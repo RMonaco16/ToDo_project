@@ -8,4 +8,45 @@ public class ToDo {
     //private immagine
     //private url
     private boolean state;
+
+    public ToDo (String title, String description, int position, boolean state){
+        this.title = title;
+        this.description = description;
+        this.position = position;
+        this.state = state;
+    }
+
+    // getter and setter
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public boolean isState() {
+        return state;
+    }
+
+    public void setState(boolean state) {
+        this.state = state;
+    }
+
 }
