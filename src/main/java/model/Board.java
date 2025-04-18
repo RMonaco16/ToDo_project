@@ -1,8 +1,11 @@
 package model;
 
+import java.util.ArrayList;
+
 public class Board {
     private TypeBoard type;
     private String description;
+    private ArrayList<ToDo> toDo = new ArrayList<>();
 
     public Board (TypeBoard type,String description){
         this.type = type;
@@ -26,5 +29,11 @@ public class Board {
         this.description = description;
     }
 
+    public ArrayList<ToDo> getToDo() {
+        return toDo;
+    }
 
+    public void setToDo(ArrayList<ToDo> toDo) {
+        this.toDo = toDo;
+    }
 }
