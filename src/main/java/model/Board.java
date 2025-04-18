@@ -36,4 +36,7 @@ public class Board {
     public void setToDo(ArrayList<ToDo> toDo) {
         this.toDo = toDo;
     }
+
+    //controlla tra tutti i to do se qualcuno lo deve mettere nell'archivio
+    public void checkaddArchive
 }

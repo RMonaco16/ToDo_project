@@ -51,4 +51,8 @@ public class ToDo {
         this.state = state;
     }
 
+    //verifica che tutte le attività del to-do siano spuntate per poi metterlo in archivio della bacheca a cui appartiene
+    public boolean checkStateTrueToDo(ToDo todo){
+
+    }
 }

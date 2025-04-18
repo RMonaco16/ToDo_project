@@ -36,5 +36,4 @@ public class Activity {
     public void setCompletionDate(Date completionDate) {
         this.completionDate = completionDate;
     }
-
 }
