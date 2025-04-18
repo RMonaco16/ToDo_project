@@ -26,5 +26,8 @@ public class Board {
         this.description = description;
     }
 
+    //metodi
+    public void createBoard(TypeBoard type, String description){
 
+    }
 }
