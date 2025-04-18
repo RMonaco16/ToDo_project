@@ -5,7 +5,7 @@ public class User {
     private String email;
     private String password;
     private Board[] boards = new Board[3];//un utente puo avere fino a 3 bacheche(0= UNIVERSITY, 1= WORK, 2= FREETIME)
-
+    private CompletedActivityHistory activityHistory;
 
     public User (String nickname, String email, String password){
         this.nickname = nickname;
@@ -38,4 +38,19 @@ public class User {
         this.password = password;
     }
 
+    public Board[] getBoards() {
+        return boards;
+    }
+
+    public void setBoards(Board[] boards) {
+        this.boards = boards;
+    }
+
+    public CompletedActivityHistory getActivityHistory() {
+        return activityHistory;
+    }
+
+    public void setActivityHistory(CompletedActivityHistory activityHistory) {
+        this.activityHistory = activityHistory;
+    }
 }

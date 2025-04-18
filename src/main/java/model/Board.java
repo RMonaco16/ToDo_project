@@ -6,6 +6,7 @@ public class Board {
     private TypeBoard type;
     private String description;
     private ArrayList<ToDo> toDo = new ArrayList<>();
+    private ToDoArchiveCompleted toDoArchiveCompleted;
 
     public Board (TypeBoard type,String description){
         this.type = type;
@@ -37,6 +38,11 @@ public class Board {
         this.toDo = toDo;
     }
 
-    //controlla tra tutti i to do se qualcuno lo deve mettere nell'archivio
-    public void checkaddArchive
+    public ToDoArchiveCompleted getToDoArchiveCompleted() {
+        return toDoArchiveCompleted;
+    }
+
+    public void setToDoArchiveCompleted(ToDoArchiveCompleted toDoArchiveCompleted) {
+        this.toDoArchiveCompleted = toDoArchiveCompleted;
+    }
 }
