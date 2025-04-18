@@ -6,6 +6,7 @@ public class User {
     private String password;
     private Board[] boards = new Board[3];//un utente puo avere fino a 3 bacheche(0= UNIVERSITY, 1= WORK, 2= FREETIME)
 
+
     public User (String nickname, String email, String password){
         this.nickname = nickname;
         this.email = email;
