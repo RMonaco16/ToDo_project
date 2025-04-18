@@ -14,7 +14,6 @@ public class User {
 
     //getter and setter
     public String getNickname() {
-
         return nickname;
     }
 
