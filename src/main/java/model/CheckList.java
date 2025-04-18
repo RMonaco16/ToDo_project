@@ -26,7 +26,7 @@ public class CheckList {
 
     public void rmvActivity(Activity act){
         for(Activity a : activities){
-            if (a.getName()==act.getName()){
+            if (a.getName().equalsIgnoreCase(act.getName())){
                 activities.remove(act);
                 System.out.println("Attività rimossa corretamente.");
                 return;
@@ -34,5 +34,4 @@ public class CheckList {
             System.out.println("Attività non trovata.");
         }
     }
-
 }
