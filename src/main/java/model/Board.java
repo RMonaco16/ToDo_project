@@ -1,5 +1,6 @@
 package model;
 
+import java.time.Year;
 import java.util.ArrayList;
 
 public class Board {
@@ -45,4 +46,45 @@ public class Board {
     public void setToDoArchiveCompleted(ToDoArchiveCompleted toDoArchiveCompleted) {
         this.toDoArchiveCompleted = toDoArchiveCompleted;
     }
+
+    public void searchToDoAddActivity(String titleToDo, Activity a){
+        int trovato = 0;
+        for(int i = 0; i < this.toDo.size(); i++){
+            if(titleToDo.equalsIgnoreCase(this.toDo.get(i).getTitle())){
+                trovato = 1;
+                this.toDo.get(i).getCheckList().addActivity(a);
+            }
+        }
+        if(trovato == 0){
+            System.out.println("ToDo non trovato..");
+        }
+    }
+
+    public void searchToDoRemoveActivity(String titleToDo, String nameActivity){
+        int trovato = 0;
+        for(int i = 0; i < this.toDo.size(); i++){
+            if(titleToDo.equalsIgnoreCase(this.toDo.get(i).getTitle())){
+                trovato = 1;
+                this.toDo.get(i).getCheckList().rmvActivity(nameActivity);
+            }
+        }
+        if(trovato == 0){
+            System.out.println("ToDo non trovato..");
+        }
+    }
+
+    public void boardAddToDo(ToDo todo){
+        boolean nuova = true;
+        for(int i = 0; i < this.toDo.size(); i++){
+            if(this.toDo.get(i).getTitle().equalsIgnoreCase(todo.getTitle())){
+                nuova = false;
+            }
+        }
+        if(nuova){
+            this.toDo.add(todo);
+        }else{
+            System.out.println("Un to do all'interno di questa bacheca gia esiste...");
+        }
+    }
+
 }

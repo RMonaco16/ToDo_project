@@ -10,7 +10,7 @@ public class ToDo {
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
-    public ToDo (String title, String description, int position, boolean state, CheckList checkList){
+    public ToDo(String title, String description, int position, boolean state, CheckList checkList) {
         this.title = title;
         this.description = description;
         this.position = position;
@@ -51,8 +51,17 @@ public class ToDo {
         this.state = state;
     }
 
-    //verifica che tutte le attività del to-do siano spuntate per poi metterlo in archivio della bacheca a cui appartiene
-    public boolean checkStateTrueToDo(ToDo todo){
-
+    public CheckList getCheckList() {
+        return checkList;
     }
+
+    public void setCheckList(CheckList checkList) {
+        this.checkList = checkList;
+    }
+
 }
+
+
+
+
+
