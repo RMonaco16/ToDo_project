@@ -128,4 +128,227 @@ public class ApplicationManagement {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void shareToDo(User amministratore, User utenteCondividere, String boardName, String toDoName ){
+        int AmministratoreFound = 0;
+        int bachecaAmmTrovata = 0;
+        int utenteTrovato = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (amministratore.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && amministratore.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && amministratore.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                AmministratoreFound = 1;
+                for(int x = 0; x < users.size(); x++) {
+                    if (utenteCondividere.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && utenteCondividere.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && utenteCondividere.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                        utenteTrovato = 1;
+                        if(boardName.equalsIgnoreCase("Universita") && amministratore.getBoards()[0] != null){
+                            if(utenteCondividere.getBoards()[0] == null){
+                                Board b = new Board(amministratore.getBoards()[0].getType(), amministratore.getBoards()[0].getDescription());
+                                addBoard(utenteCondividere, b);
+                            }
+                            int toDoTrovato = 0;
+                            for(int y = 0; y < amministratore.getBoards()[0].getToDo().size(); y++){
+                                if(toDoName.equalsIgnoreCase(amministratore.getBoards()[0].getToDo().get(y).getTitle())){
+                                    ToDo todo = amministratore.getBoards()[0].getToDo().get(y);
+                                    utenteCondividere.getBoards()[0].getToDo().add(todo);
+                                    Sharing s = new Sharing(amministratore,todo);
+                                    amministratore.getSharing().add(s);
+                                    toDoTrovato = 1;
+                                    break;
+                                }
+                            }
+                            if(toDoTrovato == 0){
+                                System.out.println("To do non trovato dell'amministratore");
+                            }
+                            bachecaAmmTrovata = 1;
+                        }else if(boardName.equalsIgnoreCase("lavoro") && amministratore.getBoards()[1] != null){
+                            if(utenteCondividere.getBoards()[1] == null){
+                                Board b = new Board(amministratore.getBoards()[0].getType(), amministratore.getBoards()[1].getDescription());
+                                addBoard(utenteCondividere, b);
+                            }
+                            int toDoTrovato = 0;
+                            for(int y = 0; y < amministratore.getBoards()[1].getToDo().size(); y++){
+                                if(toDoName.equalsIgnoreCase(amministratore.getBoards()[1].getToDo().get(y).getTitle())){
+                                    ToDo todo = amministratore.getBoards()[1].getToDo().get(y);
+                                    utenteCondividere.getBoards()[1].getToDo().add(todo);
+                                    Sharing s = new Sharing(amministratore,todo);
+                                    amministratore.getSharing().add(s);
+                                    toDoTrovato = 1;
+                                    break;
+                                }
+                            }
+                            if(toDoTrovato == 0){
+                                System.out.println("To do non trovato dell'amministratore");
+                            }
+                            bachecaAmmTrovata = 1;
+                        }else if(boardName.equalsIgnoreCase("tempo libero") && amministratore.getBoards()[2] != null){
+                            if(utenteCondividere.getBoards()[2] == null){
+                                Board b = new Board(amministratore.getBoards()[2].getType(), amministratore.getBoards()[2].getDescription());
+                                addBoard(utenteCondividere, b);
+                            }
+                            int toDoTrovato = 0;
+                            for(int y = 0; y < amministratore.getBoards()[2].getToDo().size(); y++){
+                                if(toDoName.equalsIgnoreCase(amministratore.getBoards()[2].getToDo().get(y).getTitle())){
+                                    ToDo todo = amministratore.getBoards()[2].getToDo().get(y);
+                                    utenteCondividere.getBoards()[2].getToDo().add(todo);
+                                    Sharing s = new Sharing(amministratore,todo);
+                                    amministratore.getSharing().add(s);
+                                    toDoTrovato = 1;
+                                    break;
+                                }
+                            }
+                            if(toDoTrovato == 0){
+                                System.out.println("To do non trovato dell'amministratore");
+                            }
+                            bachecaAmmTrovata = 1;
+                        }
+                    }
+                }
+                if(bachecaAmmTrovata == 0){
+                    System.out.println("Bacheca amministratore non trovata...");
+
+                }
+            }
+        }
+        if (AmministratoreFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+        if (utenteTrovato == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
 }

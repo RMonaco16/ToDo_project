@@ -1,11 +1,14 @@
 package model;
 
+import java.util.ArrayList;
+
 public class User {
     private String nickname;
     private String email;
     private String password;
     private Board[] boards = new Board[3];//un utente puo avere fino a 3 bacheche(0= UNIVERSITY, 1= WORK, 2= FREETIME)
     private CompletedActivityHistory activityHistory;
+    private ArrayList<Sharing> sharing = new ArrayList<>();
 
     public User(String nickname, String email, String password) {
         this.nickname = nickname;
@@ -52,6 +55,14 @@ public class User {
 
     public void setActivityHistory(CompletedActivityHistory activityHistory) {
         this.activityHistory = activityHistory;
+    }
+
+    public ArrayList<Sharing> getSharing() {
+        return sharing;
+    }
+
+    public void setSharing(ArrayList<Sharing> sharing) {
+        this.sharing = sharing;
     }
 
     public void addBoard(Board board) {

@@ -1,5 +1,7 @@
 package model;
 
+import java.time.LocalDate;
+
 public class ToDo {
     private String title;
     private String description;
@@ -7,6 +9,7 @@ public class ToDo {
     private int position;
     //private immagine
     //private url
+    private LocalDate date;
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
@@ -43,7 +46,7 @@ public class ToDo {
         this.position = position;
     }
 
-    public boolean isState() {
+    public boolean getState() {
         return state;
     }
 

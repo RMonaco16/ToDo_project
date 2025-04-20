@@ -32,7 +32,6 @@ public class CheckList {
         }else{
             System.out.println("Questa attivita esiste gia...");
         }
-
     }
 
     public void rmvActivity(String nameActivity){
