@@ -5,9 +5,11 @@ import java.util.ArrayList;
 public class CompletedActivityHistory {
     private ArrayList<Activity> activityHistory = new ArrayList<>();
 
-    public CompletedActivityHistory(){
+    public void  AddActivityHistory(Activity a){
 
     }
+
+
 
     public ArrayList<Activity> getActivityHistory() {
         return activityHistory;

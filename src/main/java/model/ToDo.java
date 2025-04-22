@@ -1,5 +1,6 @@
 package model;
 
+import java.time.LocalDate;
 
 public class ToDo {
     private String title;
@@ -8,6 +9,7 @@ public class ToDo {
     private int position;
     //private immagine
     //private url
+    private LocalDate date;
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
@@ -60,11 +62,6 @@ public class ToDo {
         this.checkList = checkList;
     }
 
-    public void printActs(){
-        for(Activity a : checkList.getActivities()){
-           System.out.print(a.getName()+" | "+a.getState());
-        }
-    }
 }
 
 
