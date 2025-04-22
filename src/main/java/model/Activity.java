@@ -21,7 +21,7 @@ public class Activity {
         this.name = name;
     }
 
-    public boolean isState() {
+    public boolean getState() {
         return state;
     }
 

@@ -16,4 +16,10 @@ public class ToDoArchiveCompleted {
     public void setToDoArchive(ArrayList<ToDo> toDoArchive) {
         this.toDoArchive = toDoArchive;
     }
+
+    public void print(){
+        for(ToDo a :toDoArchive){
+            System.out.println(a.getTitle());
+        }
+    }
 }

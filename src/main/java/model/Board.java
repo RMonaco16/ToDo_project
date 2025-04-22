@@ -1,6 +1,5 @@
 package model;
 
-import java.time.Year;
 import java.util.ArrayList;
 
 public class Board {
@@ -87,4 +86,27 @@ public class Board {
         }
     }
 
+    public void srcTodocheck(String nmTodo,String nmAct){
+        for(ToDo t : toDo){
+            if(nmTodo.equalsIgnoreCase(t.getTitle())){
+                t.getCheckList().checkAct(nmAct);
+                return;
+            }
+        }
+    }
+
+    public void print(){
+        for(ToDo t : toDo){
+            System.out.print(t.getTitle()+"|"+t.getDescription());
+        }
+    }
+
+    public void srcTodoPrint(String nmTodo){
+        for(ToDo t : toDo){
+            if(nmTodo.equalsIgnoreCase(t.getTitle())){
+                t.printActs();
+                return;
+            }
+        }
+    }
 }

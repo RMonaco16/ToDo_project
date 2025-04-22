@@ -116,16 +116,131 @@ public class ApplicationManagement {
         }
     }
 
+    public void printHistory(User u){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                u.getActivityHistory().print();
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
+    public void checkActivity(User u,String board, String todo, String activity){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                if(board.equalsIgnoreCase("universita") && u.getBoards()[0]!=null){
+                    u.getBoards()[0].srcTodocheck(todo,activity);
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro") && u.getBoards()[1]!=null){
+                    u.getBoards()[1].srcTodocheck(todo,activity);
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero") && u.getBoards()[2]!=null){
+                    u.getBoards()[2].srcTodocheck(todo,activity);
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
+    public void printArchive(User u,String board){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                if(board.equalsIgnoreCase("universita")&& u.getBoards()[0]!=null){
+                    u.getBoards()[0].getToDoArchiveCompleted().print();
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro")&& u.getBoards()[1]!=null){
+                    u.getBoards()[1].getToDoArchiveCompleted().print();
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero")&& u.getBoards()[2]!=null){
+                    u.getBoards()[2].getToDoArchiveCompleted().print();
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
+    public void rmvHistoryAct(User u,String nmAct){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                u.getActivityHistory().rmvAct(nmAct);
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
+    public void dltHistory(User u,String nmAct){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                u.getActivityHistory().dltActs();
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
+    public void printTodo(User u,String board){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                if(board.equalsIgnoreCase("universita")&& u.getBoards()[0]!=null){
+                    u.getBoards()[0].print();
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro")&& u.getBoards()[1]!=null){
+                    u.getBoards()[1].print();
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero")&& u.getBoards()[2]!=null){
+                    u.getBoards()[2].print();
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
-
-
-
-
-
+    public void printActs(User u, String board, String todo){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (u.getEmail().equalsIgnoreCase(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                if(board.equalsIgnoreCase("universita")&& u.getBoards()[0]!=null){
+                    u.getBoards()[0].srcTodoPrint(todo);
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro")&& u.getBoards()[1]!=null){
+                    u.getBoards()[1].srcTodoPrint(todo);
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero")&& u.getBoards()[2]!=null){
+                    u.getBoards()[2].srcTodoPrint(todo);
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
 
 }

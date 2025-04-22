@@ -1,5 +1,6 @@
 package model;
 
+
 public class ToDo {
     private String title;
     private String description;
@@ -43,7 +44,7 @@ public class ToDo {
         this.position = position;
     }
 
-    public boolean isState() {
+    public boolean getState() {
         return state;
     }
 
@@ -59,6 +60,11 @@ public class ToDo {
         this.checkList = checkList;
     }
 
+    public void printActs(){
+        for(Activity a : checkList.getActivities()){
+           System.out.print(a.getName()+" | "+a.getState());
+        }
+    }
 }
 
 
