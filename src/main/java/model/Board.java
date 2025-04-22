@@ -104,7 +104,7 @@ public class Board {
     public void srcTodoPrint(String nmTodo){
         for(ToDo t : toDo){
             if(nmTodo.equalsIgnoreCase(t.getTitle())){
-                t.printActs();
+                t.getCheckList().printActs();
                 return;
             }
         }

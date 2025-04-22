@@ -54,7 +54,9 @@ public class CheckList {
         }
     }
 
-    public void printChecklist(){
-
+    public void printActs(){
+        for(Activity a: activities){
+            System.out.print(a.getName()+" | "+a.getState());
+        }
     }
 }
