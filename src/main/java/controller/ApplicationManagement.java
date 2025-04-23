@@ -1,4 +1,6 @@
-package model;
+package controller;
+
+import model.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,8 +22,13 @@ public class ApplicationManagement {
     }
 
     public void addUser(User u) {
-        users.add(u);
-        System.out.println("Utente Aggiunto Correttamente!!");
+        if(u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")
+                || u.getEmail().equalsIgnoreCase("")){
+            System.out.println("Utente non creato");
+        }else{
+            users.add(u);
+            System.out.println("Utente Aggiunto Correttamente!!");
+        }
     }
 
     public boolean login(String email, String password) {
