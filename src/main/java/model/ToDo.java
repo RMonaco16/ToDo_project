@@ -13,10 +13,9 @@ public class ToDo {
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
-    public ToDo(String title, String description, int position, boolean state, CheckList checkList) {
+    public ToDo(String title, String description, boolean state, CheckList checkList) {
         this.title = title;
         this.description = description;
-        this.position = position;
         this.state = state;
         this.checkList = checkList;
     }
