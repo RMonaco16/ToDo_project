@@ -10,7 +10,7 @@ public class ToDo {
     private int position;
     //private immagine
     //private url
-    private LocalDate expiration;
+
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
