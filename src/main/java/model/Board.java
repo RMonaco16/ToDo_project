@@ -84,8 +84,9 @@ public class Board {
         }
         if(nuova){
             this.toDo.add(todo);
+            System.out.println("ToDo aggiunto correttamente!!");
         }else{
-            System.out.println("Un to do all'interno di questa bacheca gia esiste...");
+            System.out.println("Un to do con questo titolo all'interno di questa bacheca gia esiste...");
         }
     }
 

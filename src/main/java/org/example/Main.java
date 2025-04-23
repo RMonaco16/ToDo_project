@@ -40,6 +40,7 @@ public class Main {
                System.out.println("Inserire Password");
                String password = scannString.nextLine();
                User u = new User(nickname,email,password);
+               management.addUser(u);
            }else if(scelta1 == 2){
                System.out.println("Inserire Email");
                String email = scannString.nextLine();
@@ -92,21 +93,19 @@ public class Main {
                            String tipo = scannString.nextLine();
                            management.deleteBoard(email, tipo);
                        }else if(scelta2 == 3){
-                           System.out.println("Inserire nome della Bacheca");
-                           String nomeBacheca = scannString.nextLine();
+                           System.out.println("inserire bacheca nella quale inserire toDo: (Universita, Lavoro, Tempo Libero)");
+                           String tipo = scannString.nextLine();
                            System.out.println("Inserire Titolo del toDo");
                            String titoloToDo = scannString.nextLine();
                            System.out.println("Inserire desctizione del toDo");
                            String descrizioneToDo = scannString.nextLine();
-                           System.out.println("inserire bacheca nella quale inserire toDo: (Universita, Lavoro, Tempo Libero)");
-                           String tipo = scannString.nextLine();
                            System.out.println("Inserire la data di scadenza da verificare");
                            String data = scannString.nextLine();
                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                            LocalDate dataScadenza = LocalDate.parse(data,formatter);
                            boolean stato = false;
                            CheckList c = new CheckList();
-                           ToDo t = new ToDo(nomeBacheca,descrizioneToDo,stato,c,dataScadenza);
+                           ToDo t = new ToDo(titoloToDo,descrizioneToDo,stato,c,dataScadenza);
                            management.addToDoInBoard(email,tipo,t);
                        }else if(scelta2 == 4){
                            System.out.println("Inserire nome della Bacheca");

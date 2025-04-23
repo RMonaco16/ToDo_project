@@ -83,13 +83,12 @@ public class ApplicationManagement {
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1;
-                User u = users.get(i);
-                if (board.equalsIgnoreCase("Universita") && u.getBoards()[0] != null) {
-                    u.getBoards()[0].searchToDoAddActivity(titleToDo, activity);
-                } else if (board.equalsIgnoreCase("lavoro") && u.getBoards()[1] != null) {
-                    u.getBoards()[1].searchToDoAddActivity(titleToDo, activity);
-                } else if (board.equalsIgnoreCase("tempo libero") && u.getBoards()[2] != null) {
-                    u.getBoards()[2].searchToDoAddActivity(titleToDo, activity);
+                if (board.equalsIgnoreCase("Universita") && users.get(i).getBoards()[0] != null) {
+                    users.get(i).getBoards()[0].searchToDoAddActivity(titleToDo, activity);
+                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
+                    users.get(i).getBoards()[1].searchToDoAddActivity(titleToDo, activity);
+                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
+                    users.get(i).getBoards()[2].searchToDoAddActivity(titleToDo, activity);
                 }
             }
         }
