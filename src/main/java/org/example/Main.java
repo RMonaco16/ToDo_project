@@ -184,7 +184,6 @@ public class Main {
                        }
                    }while(scelta2 != 0);
                }
-
            }
 
        }while(scelta1 != 0);
