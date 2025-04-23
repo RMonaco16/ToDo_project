@@ -2,7 +2,9 @@ package org.example;
 
 import model.*;
 
+import java.sql.DataTruncation;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Main {
@@ -60,6 +62,8 @@ public class Main {
                        System.out.println("11) Elimina un'Attività dalla Cronologia");
                        System.out.println("12) Elimina tutte le Attività dalla Cronologia");
                        System.out.println("13) Stampa Archivio dei ToDo Svolti");
+                       System.out.println("14) Scegli posizione toDo in una bachehca");
+                       System.out.println("15) Visualizzare toDo in scadenza entro la data (gg/mm/aa)");
                        System.out.println();
                        System.out.println("0) Esci dall'applicazione");
                        System.out.println("----------------------------------------");
@@ -96,9 +100,13 @@ public class Main {
                            String descrizioneToDo = scannString.nextLine();
                            System.out.println("inserire bacheca nella quale inserire toDo: (Universita, Lavoro, Tempo Libero)");
                            String tipo = scannString.nextLine();
+                           System.out.println("Inserire la data di scadenza da verificare");
+                           String data = scannString.nextLine();
+                           DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                           LocalDate dataScadenza = LocalDate.parse(data,formatter);
                            boolean stato = false;
                            CheckList c = new CheckList();
-                           ToDo t = new ToDo(nomeBacheca,descrizioneToDo,stato,c);
+                           ToDo t = new ToDo(nomeBacheca,descrizioneToDo,stato,c,dataScadenza);
                            management.addToDoInBoard(email,tipo,t);
                        }else if(scelta2 == 4){
                            System.out.println("Inserire nome della Bacheca");
@@ -156,6 +164,23 @@ public class Main {
                            System.out.println("Inserire nome della Bacheca di cui stampare l'Archivio");
                            String nomeBacheca = scannString.nextLine();
                            management.printArchive(email,nomeBacheca);
+                       } else if (scelta2 == 14) {
+                           System.out.println("Inserire nome della Bacheca");
+                           String nomeBacheca = scannString.nextLine();
+                           System.out.println("Inserire Titolo del toDo da spostare");
+                           String titoloToDo = scannString.nextLine();
+                           System.out.println("Inserire la posizione in cui si vuole il toDo");
+                           int posiz = scannInt.nextInt();
+                           posiz += 1;
+                           management.swapToDo(email,nomeBacheca,titoloToDo,posiz);
+                       } else if (scelta2 == 15) {
+                           System.out.println("Inserire nome della Bacheca di cui verificarne scadenza toDo");
+                           String nomeBacheca = scannString.nextLine();
+                           System.out.println("Inserire la data di scadenza da verificare");
+                           String data = scannString.nextLine();
+                           DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                           LocalDate dataScadenza = LocalDate.parse(data,formatter);
+                           management.printTodoRange(email,nomeBacheca,dataScadenza);
                        }
                    }while(scelta2 != 0);
                }
