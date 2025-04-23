@@ -2,6 +2,7 @@ package model;
 
 import java.time.LocalDate;
 
+
 public class ToDo {
     private String title;
     private String description;
@@ -62,6 +63,13 @@ public class ToDo {
         this.checkList = checkList;
     }
 
+    public LocalDate getExpiration() {
+        return expiration;
+    }
+
+    public void setExpiration(LocalDate expiration) {
+        this.expiration = expiration;
+    }
 }
 
 
