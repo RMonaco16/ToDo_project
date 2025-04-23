@@ -282,62 +282,6 @@ public class ApplicationManagement {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public void printActs(String email, String board, String todo) {
         int notFound = 0;
 
