@@ -1,5 +1,6 @@
 package model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class ApplicationManagement {
@@ -240,6 +241,50 @@ public class ApplicationManagement {
         }
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
+        }
+    }
+
+    public void swapToDo(String email, String board, String todo, int j){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail()) && u.getPassword().equalsIgnoreCase(users.get(i).getPassword()) && u.getNickname().equalsIgnoreCase(users.get(i).getNickname())) {
+                notFound = 1; //trovato
+                if(board.equalsIgnoreCase("universita")&& u.getBoards()[0]!=null){
+                    emails.getBoards()[0].srcTodoSwap(todo,j);
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro")&& u.getBoards()[1]!=null){
+                    u.getBoards()[1].srcTodoSwap(todo,j);
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero")&& u.getBoards()[2]!=null){
+                    u.getBoards()[2].srcTodoSwap(todo,j);
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
+
+    public void printTodoRange(String email, String board, LocalDate range){ //per parametro range o data di oggi decisa nel main
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                if(board.equalsIgnoreCase("universita")&& users.get(i).getBoards()[0]!=null){
+                    users.get(i).getBoards()[0].printRange(range);
+                    return;
+                }else if(board.equalsIgnoreCase("lavoro")&& users.get(i).getBoards()[1]!=null){
+                    users.get(i).getBoards()[1].printRange(range);
+                    return;
+                }else if(board.equalsIgnoreCase("tempo libero")&& users.get(i).getBoards()[2]!=null){
+                    users.get(i).getBoards()[2].printRange(range);
+                    return;
+                }
+            }
+            }
+            if (notFound == 0) {
+            System.out.println("Utente non trovato...");
         }
     }
 

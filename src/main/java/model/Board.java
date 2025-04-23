@@ -1,6 +1,9 @@
 package model;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Board {
     private TypeBoard type;
@@ -106,6 +109,23 @@ public class Board {
             if(nmTodo.equalsIgnoreCase(t.getTitle())){
                 t.getCheckList().printActs();
                 return;
+            }
+        }
+    }
+
+    public void srcTodoSwap(String nmTodo,int i){
+        for(ToDo t: toDo){
+            if(t.getTitle().equalsIgnoreCase(nmTodo)){
+                Collections.swap(toDo,toDo.indexOf(t.getTitle()), i);
+            }
+        }
+    }
+
+    public void printRange(LocalDate range){
+        for(ToDo t: toDo){
+            //long giorniRimanenti = ChronoUnit.DAYS.between(oggi, dataScadenza);
+            if(t.getExpiration().compareTo(range)>=0){
+                System.out.println(t.getTitle()+" | "+ t.getDescription());
             }
         }
     }
