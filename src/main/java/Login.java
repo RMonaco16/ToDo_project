@@ -22,8 +22,9 @@ public class Login {
                 String passwordStr = new String(passwordField1.getPassword());
                 if(!(controller.login(textField1.getText(), passwordStr))){
                     JOptionPane.showMessageDialog(logInButton,"Utete non torvato!");
-                }else
+                }else{
                     Home home = new Home(controller,frame,textField1.getText());
+                }
             }
 
         });
