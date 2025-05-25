@@ -1,7 +1,8 @@
+package gui;
+
 import controller.ApplicationManagement;
 import model.Board;
 import model.TypeBoard;
-import controller.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

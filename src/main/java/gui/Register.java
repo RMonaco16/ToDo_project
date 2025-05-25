@@ -1,3 +1,5 @@
+package gui;
+
 import controller.ApplicationManagement;
 import model.User;
 
