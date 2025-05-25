@@ -10,7 +10,6 @@ public class ApplicationManagement {
     private ArrayList<User> users = new ArrayList<>();
 
     public ApplicationManagement() {
-
     }
 
     public ArrayList<User> getUsers() {
