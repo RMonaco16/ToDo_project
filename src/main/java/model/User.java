@@ -65,21 +65,22 @@ public class User {
         this.sharing = sharing;
     }
 
-    public void addBoard(Board board) {
+    public boolean addBoard(Board board) {
         if (this.getBoards()[0] == null && board.getType() == TypeBoard.UNIVERSITY) {
             this.getBoards()[0] = board;
             System.out.println("Bacheca Universita creata correttamente!!");
-            return;
+            return true;
         } else if (this.getBoards()[1] == null && board.getType() == TypeBoard.WORK) {
             this.getBoards()[1] = board;
             System.out.println("Bacheca Lavoro creata correttamente!!");
-            return;
+            return true;
         } else if (this.getBoards()[2] == null && board.getType() == TypeBoard.FREETIME) {
             this.getBoards()[2] = board;
             System.out.println("Bacheca Tempo Libero creata correttamente!!");
-            return;
+            return true;
         } else {
             System.out.println("Esiste gia una Bacheca di tipo: " + board.getType());
+            return false;
         }
     }
 

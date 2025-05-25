@@ -15,11 +15,15 @@ public class AddBoard {
     private JTextField textDescription;
     private JPanel panelAddBoard;
 
-    public AddBoard(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente) {
+    private Home home;  // riferimento alla Home
+
+    public AddBoard(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, Home home) {
+
+        this.home = home;//creazione di home passata da parametro per metodi
         // Mostra la GUI
         JFrame nuovoFrame = new JFrame("Aggiungi bacheca");
         nuovoFrame.setContentPane(panelAddBoard);
-        nuovoFrame.setSize(300, 200);
+        nuovoFrame.setSize(500, 300);
         nuovoFrame.setLocationRelativeTo(null);
         nuovoFrame.setVisible(true);
 
@@ -43,21 +47,38 @@ public class AddBoard {
 
     }
 
+    //Crea una una Board e chiama il metodo per aggiungerla ad Home
     public void addNewBoard(ApplicationManagement controller, String emailUtente) {
         String descrizione = textDescription.getText().trim();
+        boolean creatoCorrettamente = false;
 
         if (universityRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.UNIVERSITY, descrizione);
-            controller.addBoard(emailUtente,b);
-            JOptionPane.showMessageDialog(null, "Board created successfully!");
+            creatoCorrettamente = controller.addBoard(emailUtente,b);
+            if(creatoCorrettamente){
+                JOptionPane.showMessageDialog(null, "Board created successfully!");
+                home.addBoardButton(b);
+            }else{
+                JOptionPane.showMessageDialog(null, "This board already exists!");
+            }
         } else if (workRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.WORK, descrizione);
-            controller.addBoard(emailUtente,b);
-            JOptionPane.showMessageDialog(null, "Board created successfully!");
+            creatoCorrettamente = controller.addBoard(emailUtente,b);
+            if(creatoCorrettamente){
+                JOptionPane.showMessageDialog(null, "Board created successfully!");
+                home.addBoardButton(b);
+            }else{
+                JOptionPane.showMessageDialog(null, "This board already exists!");
+            }
         } else if (freeTimeRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.FREETIME, descrizione);
-            controller.addBoard(emailUtente,b);
-            JOptionPane.showMessageDialog(null, "Board created successfully!");
+            creatoCorrettamente = controller.addBoard(emailUtente,b);
+            if(creatoCorrettamente){
+                JOptionPane.showMessageDialog(null, "Board created successfully!");
+                home.addBoardButton(b);
+            }else{
+                JOptionPane.showMessageDialog(null, "This board already exists!");
+            }
         } else {
             JOptionPane.showMessageDialog(null, "Select a board and enter a description before creating!");
         }

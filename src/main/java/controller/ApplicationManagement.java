@@ -46,17 +46,19 @@ public class ApplicationManagement {
         return false;
     }
 
-    public void addBoard(String email, Board b) {
+    public boolean addBoard(String email, Board b) {
         int notFound = 0;
+        boolean creato = false;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1;
-                users.get(i).addBoard(b);
+                creato = users.get(i).addBoard(b);
             }
         }
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
         }
+        return creato;
     }
 
     public void deleteBoard(String email, String type) {
