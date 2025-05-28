@@ -7,15 +7,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class Home {
     public JPanel panelHome;
     private JButton ADDButton;
     private JPanel panelBoards;
     private JFrame jFrame;
+    private ApplicationManagement controller;
+    private String email;
+
+    private ArrayList<JButton> noticeBoards = new ArrayList<>();
 
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
+        this.controller=controller;
+        this.email=emailUtente;
 
         // Imposta la finestra
         jFrame = new JFrame("Home");
@@ -43,11 +50,11 @@ public class Home {
         ADDButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AddBoard addBoard = new AddBoard(controller, jFrame, emailUtente, Home.this);
+                AddBoard addBoard = new AddBoard(controller, jFrame, emailUtente,Home.this);
             }
         });
-
         jFrame.setVisible(true);
+
     }
 
     // Metodo per aggiungere un bottone per ogni bacheca
@@ -63,11 +70,24 @@ public class Home {
         // Allinea al centro
         boardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        //action listener del bottone
+        boardButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                BoardGui boardGui = new BoardGui(controller,jFrame,email,board.getType().toString());
+                jFrame.setVisible(false);
+            }
+        });
+
         // Aggiungi bottone al pannello
         panelBoards.add(Box.createVerticalStrut(10)); // spazio verticale
         panelBoards.add(boardButton);
         panelBoards.revalidate();
         panelBoards.repaint();
+
+        noticeBoards.add(boardButton);
     }
+
+
 
 }

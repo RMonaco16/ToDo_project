@@ -59,4 +59,5 @@ public class CheckList {
             System.out.print(a.getName()+" | "+a.getState());
         }
     }
+
 }

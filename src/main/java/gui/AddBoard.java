@@ -15,6 +15,7 @@ public class AddBoard {
     private JButton createBoardButton;
     private JTextField textDescription;
     private JPanel panelAddBoard;
+    private JFrame nuovoFrame;
 
     private Home home;  // riferimento alla Home
 
@@ -22,8 +23,9 @@ public class AddBoard {
 
         this.home = home;//creazione di home passata da parametro per metodi
         // Mostra la GUI
-        JFrame nuovoFrame = new JFrame("Aggiungi bacheca");
+        nuovoFrame = new JFrame("Aggiungi bacheca");
         nuovoFrame.setContentPane(panelAddBoard);
+        nuovoFrame.pack();
         nuovoFrame.setSize(500, 300);
         nuovoFrame.setLocationRelativeTo(null);
         nuovoFrame.setVisible(true);
@@ -57,7 +59,6 @@ public class AddBoard {
             Board b = new Board(TypeBoard.UNIVERSITY, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                JOptionPane.showMessageDialog(null, "Board created successfully!");
                 home.addBoardButton(b);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");
@@ -66,7 +67,6 @@ public class AddBoard {
             Board b = new Board(TypeBoard.WORK, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                JOptionPane.showMessageDialog(null, "Board created successfully!");
                 home.addBoardButton(b);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");
@@ -75,7 +75,6 @@ public class AddBoard {
             Board b = new Board(TypeBoard.FREETIME, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                JOptionPane.showMessageDialog(null, "Board created successfully!");
                 home.addBoardButton(b);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");

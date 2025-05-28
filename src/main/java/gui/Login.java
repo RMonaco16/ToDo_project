@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 public class Login {
     private JTextField textField1;
     private JPasswordField passwordField1;
-    private JButton logInButton;
+    private JButton loginButton;
     private JButton registerButton;
     private JPanel panelLogin;
     private static JFrame frame;
@@ -18,18 +18,21 @@ public class Login {
     public Login() {
         controller = new ApplicationManagement();
 
-        logInButton.addActionListener(new ActionListener() {
+        loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String passwordStr = new String(passwordField1.getPassword());
                 if(!(controller.login(textField1.getText(), passwordStr))){
-                    JOptionPane.showMessageDialog(logInButton,"Utete non torvato!");
+                    JOptionPane.showMessageDialog(loginButton,"Utete non torvato!");
                 }else{
                     Home home = new Home(controller,frame,textField1.getText());
                 }
             }
 
         });
+
+        frame.getRootPane().setDefaultButton(loginButton);
+
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -44,7 +47,9 @@ public class Login {
         frame.setContentPane(new Login().panelLogin);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
-        frame.setVisible(true);
         frame.setSize(500,500);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
     }
 }

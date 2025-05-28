@@ -105,7 +105,7 @@ public class Main {
                            LocalDate dataScadenza = LocalDate.parse(data,formatter);
                            boolean stato = false;
                            CheckList c = new CheckList();
-                           ToDo t = new ToDo(titoloToDo,descrizioneToDo,stato,c,dataScadenza);
+                           ToDo t = new ToDo(titoloToDo,stato,c,dataScadenza);
                            management.addToDoInBoard(email,tipo,t);
                        }else if(scelta2 == 4){
                            System.out.println("Inserire nome della Bacheca");
@@ -162,7 +162,7 @@ public class Main {
                        } else if (scelta2 == 13) {
                            System.out.println("Inserire nome della Bacheca di cui stampare l'Archivio");
                            String nomeBacheca = scann.nextLine();
-                           management.printArchive(email,nomeBacheca);
+                          // management.printArchive(email,nomeBacheca);
                        } else if (scelta2 == 14) {
                            System.out.println("Inserire nome della Bacheca");
                            String nomeBacheca = scann.nextLine();

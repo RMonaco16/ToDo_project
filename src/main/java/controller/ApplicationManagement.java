@@ -21,8 +21,8 @@ public class ApplicationManagement {
     }
 
     public void addUser(User u) {
-        if(u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")
-                || u.getEmail().equalsIgnoreCase("")){
+        if(u.getNickname().equals("") || u.getEmail().equals("")
+                || u.getEmail().equals("")){
             System.out.println("Utente non creato");
         }else{
             users.add(u);
@@ -161,27 +161,27 @@ public class ApplicationManagement {
         }
     }
 
-    public void printArchive(String email, String board) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].getToDoArchiveCompleted().print();
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].getToDoArchiveCompleted().print();
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].getToDoArchiveCompleted().print();
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
+//    public void printArchive(String email, String board) {
+//        int notFound = 0;
+//        for (int i = 0; i < users.size(); i++) {
+//            if (email.equals(users.get(i).getEmail())) {
+//                notFound = 1; // trovato
+//                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
+//                    users.get(i).getBoards()[0].getToDoArchiveCompleted().print();
+//                    return;
+//                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
+//                    users.get(i).getBoards()[1].getToDoArchiveCompleted().print();
+//                    return;
+//                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
+//                    users.get(i).getBoards()[2].getToDoArchiveCompleted().print();
+//                    return;
+//                }
+//            }
+//        }
+//        if (notFound == 0) {
+//            System.out.println("Utente non Loggato...");
+//        }
+//    }
 
 
     public void rmvHistoryAct(String email, String nmAct) {
@@ -216,25 +216,22 @@ public class ApplicationManagement {
         }
     }
 
-    public void printTodo(String email, String board) {
+    public ArrayList<ToDo> printTodo(String email, String board) {
         int notFound = 0;
+        ArrayList<ToDo> todoList= new ArrayList<>();
 
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
 
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].print();
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].print();
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].print();
-                    return;
-                } else {
-                    System.out.println("Bacheca non trovata o vuota.");
-                    return;
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
+                    return users.get(i).getBoards()[0].getToDo();
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
+                    return users.get(i).getBoards()[1].getToDo();
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
+                    return users.get(i).getBoards()[2].getToDo();
+                } else {System.out.println("Bacheca non trovata o vuota1.");
+                    return todoList;
                 }
             }
         }
@@ -242,6 +239,7 @@ public class ApplicationManagement {
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
         }
+        return todoList;
     }
 
     public void swapToDo(String email, String board, String todo, int j){
@@ -289,25 +287,21 @@ public class ApplicationManagement {
     }
 
 
-    public void printActs(String email, String board, String todo) {
+    public ArrayList<Activity> printActs(String email, String board, String todo) {
         int notFound = 0;
-
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
 
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodoPrint(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodoPrint(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodoPrint(todo);
-                    return;
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
+                    return users.get(i).getBoards()[0].srcTodoPrint(todo);
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
+                    return users.get(i).getBoards()[1].srcTodoPrint(todo);
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
+                    return users.get(i).getBoards()[2].srcTodoPrint(todo);
                 } else {
-                    System.out.println("Bacheca non trovata o vuota.");
-                    return;
+                    System.out.println("Bacheca non trovata o vuota2.");
+                    return null;
                 }
             }
         }
@@ -315,6 +309,7 @@ public class ApplicationManagement {
         if (notFound == 0) {
             System.out.println("Utente non trovato...");
         }
+        return null;
     }
 
 

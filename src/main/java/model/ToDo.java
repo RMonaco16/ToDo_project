@@ -15,9 +15,9 @@ public class ToDo {
     private boolean state;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
-    public ToDo(String title, String description, boolean state, CheckList checkList,LocalDate expiration) {
+    public ToDo(String title, /*String description,*/ boolean state, CheckList checkList,LocalDate expiration) {
         this.title = title;
-        this.description = description;
+        //this.description = description;
         this.state = state;
         this.checkList = checkList;
         this.expiration = expiration;
@@ -32,13 +32,13 @@ public class ToDo {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+//    public String getDescription() {
+//        return description;
+//    }
+//
+//    public void setDescription(String description) {
+//        this.description = description;
+//    }
 
     public int getPosition() {
         return position;
