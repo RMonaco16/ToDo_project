@@ -59,7 +59,7 @@ public class AddBoard {
             Board b = new Board(TypeBoard.UNIVERSITY, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                home.addBoardButton(b);
+                home.addBoardButton(b,controller,emailUtente);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }
@@ -67,7 +67,7 @@ public class AddBoard {
             Board b = new Board(TypeBoard.WORK, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                home.addBoardButton(b);
+                home.addBoardButton(b,controller,emailUtente);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }
@@ -75,7 +75,7 @@ public class AddBoard {
             Board b = new Board(TypeBoard.FREETIME, descrizione);
             creatoCorrettamente = controller.addBoard(emailUtente,b);
             if(creatoCorrettamente){
-                home.addBoardButton(b);
+                home.addBoardButton(b,controller,emailUtente);
             }else{
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }

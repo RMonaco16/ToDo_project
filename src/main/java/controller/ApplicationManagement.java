@@ -260,25 +260,22 @@ public class ApplicationManagement {
         }
     }
 
-    public void printTodo(String email, String board) {
+    public ArrayList<ToDo> printTodo(String email, String board) {
         int notFound = 0;
-
+        ArrayList<ToDo> listaVuota = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
 
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].print();
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].print();
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].print();
-                    return;
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
+                    return users.get(i).getBoards()[0].getToDo();
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
+                    return users.get(i).getBoards()[1].getToDo();
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
+                    return users.get(i).getBoards()[2].getToDo();
                 } else {
                     System.out.println("Bacheca non trovata o vuota.");
-                    return;
+                    return listaVuota;
                 }
             }
         }
@@ -286,6 +283,7 @@ public class ApplicationManagement {
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
         }
+        return listaVuota;
     }
 
     public void swapToDo(String email, String board, String todo, int j){
@@ -333,25 +331,24 @@ public class ApplicationManagement {
     }
 
 
-    public void printActs(String email, String board, String todo) {
+    public ArrayList<Activity> printActs(String email, String board, String todo) {
         int notFound = 0;
-
+        ArrayList<Activity> listaVuota = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
 
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodoPrint(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
+                    return users.get(i).getBoards()[0].srcTodoPrint(todo);
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
                     users.get(i).getBoards()[1].srcTodoPrint(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
+                    return users.get(i).getBoards()[1].srcTodoPrint(todo);
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
                     users.get(i).getBoards()[2].srcTodoPrint(todo);
-                    return;
+                    return users.get(i).getBoards()[2].srcTodoPrint(todo);
                 } else {
                     System.out.println("Bacheca non trovata o vuota.");
-                    return;
+                    return listaVuota;
                 }
             }
         }
@@ -359,6 +356,7 @@ public class ApplicationManagement {
         if (notFound == 0) {
             System.out.println("Utente non trovato...");
         }
+        return listaVuota;
     }
 
 

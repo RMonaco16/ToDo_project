@@ -71,7 +71,7 @@ public class Home {
     }
 
     // Metodo per aggiungere un bottone per ogni bacheca ─────────────────────────────
-    public void addBoardButton(Board board) {
+    public void addBoardButton(Board board,ApplicationManagement controller, String emailUtente) {
         // Rimuove la label se ancora presente
         if (emptyLabel != null && emptyLabel.getParent() != null) {
             panelBoards.remove(emptyLabel);
@@ -89,11 +89,24 @@ public class Home {
         // Allinea al centro
         boardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        //Action listener del bottone creato
+        boardButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Azione da eseguire al click sul bottone della bacheca
+                // Esempio: aprire la board
+                new BoardGui(controller, jFrame, emailUtente, board.getType().toString());
+            }
+        });
+
         // Aggiungi spazio verticale e il bottone
         panelBoards.add(Box.createVerticalStrut(10));
         panelBoards.add(boardButton);
+
+
 
         panelBoards.revalidate();
         panelBoards.repaint();
     }
 }
+
