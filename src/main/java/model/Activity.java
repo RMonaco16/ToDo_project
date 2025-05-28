@@ -5,7 +5,7 @@ import java.util.Date;
 public class Activity {
     private String name;
     private boolean state;
-    private Date completionDate;
+    private String completionDate;
 
     public Activity(String name, boolean state){
         this.name = name;
@@ -29,11 +29,11 @@ public class Activity {
         this.state = state;
     }
 
-    public Date getCompletionDate() {
+    public String getCompletionDate() {
         return completionDate;
     }
 
-    public void setCompletionDate(Date completionDate) {
+    public void setCompletionDate(String completionDate) {
         this.completionDate = completionDate;
     }
 }

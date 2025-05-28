@@ -45,10 +45,11 @@ public class CheckList {
         }
     }
 
-    public void checkAct(String nmAct){
+    public void checkAct(String nmAct, String dataCompletamento){
         for(Activity a : activities){
             if(nmAct.equalsIgnoreCase(a.getName())){
                 a.setState(true);
+                a.setCompletionDate(dataCompletamento);
                 return;
             }
         }

@@ -14,6 +14,7 @@ public class User {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
+        this.activityHistory = new CompletedActivityHistory();
     }
 
     //getter and setter

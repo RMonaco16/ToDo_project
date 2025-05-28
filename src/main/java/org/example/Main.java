@@ -140,7 +140,7 @@ public class Main {
                            String titoloToDo = scann.nextLine();
                            System.out.println("Inserire nome attivita da Spuntare");
                            String nomeA = scann.nextLine();
-                           management.checkActivity(email,nomeBacheca,titoloToDo,nomeA);
+                           //management.checkActivity(email,nomeBacheca,titoloToDo,nomeA);
                        } else if (scelta2 == 8) {
                            System.out.println("Inserire nome della Bacheca di cui stampare i toDo");
                            String nomeBacheca = scann.nextLine();
@@ -152,7 +152,7 @@ public class Main {
                            String titoloToDo = scann.nextLine();
                            management.printActs(email,nomeBacheca,titoloToDo);
                        } else if (scelta2 == 10) {
-                           management.printHistory(email);
+                           //management.printHistory(email);
                        } else if (scelta2 == 11) {
                            System.out.println("Inserire nome della attivita da rimuovere dalla Cronologia");
                            String nomeAct = scann.nextLine();

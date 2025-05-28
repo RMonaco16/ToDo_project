@@ -125,33 +125,22 @@ public class ApplicationManagement {
         }
     }
 
-    public void printHistory(String email) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                users.get(i).getActivityHistory().print();
-                return;
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
-
-    public void checkActivity(String email, String board, String todo, String activity) {
+    public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
         int notFound = 0;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // trovato
                 if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodocheck(todo, activity);
+                    users.get(i).getBoards()[0].srcTodocheck(todo, activity, dataCompletamento);
+                    addHistoryAct(email,board,todo,activity);
                     return;
                 } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodocheck(todo, activity);
+                    users.get(i).getBoards()[1].srcTodocheck(todo, activity, dataCompletamento);
+                    addHistoryAct(email,board,todo,activity);
                     return;
                 } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodocheck(todo, activity);
+                    users.get(i).getBoards()[2].srcTodocheck(todo, activity, dataCompletamento);
+                    addHistoryAct(email,board,todo,activity);
                     return;
                 }
             }
@@ -160,6 +149,62 @@ public class ApplicationManagement {
             System.out.println("Utente non Loggato...");
         }
     }
+
+    public void addHistoryAct(String email, String board, String todo, String activity) {
+        int notFound = 0;
+
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // trovato
+
+                int boardIndex = -1;
+                if (board.equalsIgnoreCase("universita")) {
+                    boardIndex = 0;
+                } else if (board.equalsIgnoreCase("lavoro")) {
+                    boardIndex = 1;
+                } else if (board.equalsIgnoreCase("tempo libero")) {
+                    boardIndex = 2;
+                }
+
+                if (boardIndex != -1 && users.get(i).getBoards()[boardIndex] != null) {
+                    Board currentBoard = users.get(i).getBoards()[boardIndex];
+
+                    for (int x = 0; x < currentBoard.getToDo().size(); x++) {
+                        if (currentBoard.getToDo().get(x).getTitle().equalsIgnoreCase(todo)) {
+
+                            for (int y = 0; y < currentBoard.getToDo().get(x).getCheckList().getActivities().size(); y++) {
+                                if (currentBoard.getToDo().get(x).getCheckList().getActivities().get(y).getName().equalsIgnoreCase(activity)) {
+
+                                    users.get(i).getActivityHistory().AddActivityHistory(
+                                            currentBoard.getToDo().get(x).getCheckList().getActivities().get(y)
+                                    );
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
+
+    public ArrayList<Activity> returnCompletedActivity(String email) {
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                // Utente trovato: ritorna la lista di attività completate
+                return users.get(i).getActivityHistory().print();
+            }
+        }
+
+        // Utente non trovato
+        System.out.println("Utente non loggato...");
+        return new ArrayList<>(); // Ritorna lista vuota
+    }
+
 
     public void printArchive(String email, String board) {
         int notFound = 0;
@@ -182,7 +227,6 @@ public class ApplicationManagement {
             System.out.println("Utente non Loggato...");
         }
     }
-
 
     public void rmvHistoryAct(String email, String nmAct) {
         int notFound = 0;

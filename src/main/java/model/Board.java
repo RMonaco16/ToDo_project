@@ -90,10 +90,10 @@ public class Board {
         }
     }
 
-    public void srcTodocheck(String nmTodo,String nmAct){
+    public void srcTodocheck(String nmTodo,String nmAct, String dataCompletamento){
         for(ToDo t : toDo){
             if(nmTodo.equalsIgnoreCase(t.getTitle())){
-                t.getCheckList().checkAct(nmAct);
+                t.getCheckList().checkAct(nmAct, dataCompletamento);
                 return;
             }
         }

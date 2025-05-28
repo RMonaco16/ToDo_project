@@ -13,6 +13,7 @@ public class Home {
     private JButton ADDButton;
     private JPanel panelBoards;
     private JFrame jFrame;
+    private JLabel emptyLabel; // serve per il messaggio iniziale
 
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
@@ -27,14 +28,28 @@ public class Home {
         // Layout principale
         panelHome.setLayout(new BorderLayout());
 
-        // Pannello centrale per le bacheche con padding simmetrico
+        // ─── Top: bottone Cronologia ─────────────────────────────────────────────
+        JButton historyButton = new JButton("\uD83D\uDD58");
+        historyButton.setFont(new Font("Dialog", Font.PLAIN, 20)); // Imposta la dimensione del testo a 20
+        historyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Chronology cronologia = new Chronology(controller, jFrame, emailUtente );
+            }
+        });
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        topPanel.add(historyButton);
+        panelHome.add(topPanel, BorderLayout.NORTH);
+
+
+        // ─── Center: pannello bacheche con padding simmetrico ─────────────────
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80)); // padding laterale
         panelBoards.setLayout(new BoxLayout(panelBoards, BoxLayout.Y_AXIS));
-        centerWrapper.add(panelBoards); // pannello con i bottoni
+        centerWrapper.add(panelBoards);
         panelHome.add(centerWrapper, BorderLayout.CENTER);
 
-        // Pannello in basso per il bottone ADD, allineato a destra
+        // ─── South: bottone ADD in basso a destra ─────────────────────────────
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.add(ADDButton);
         panelHome.add(bottomPanel, BorderLayout.SOUTH);
@@ -43,19 +58,30 @@ public class Home {
         ADDButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AddBoard addBoard = new AddBoard(controller, jFrame, emailUtente, Home.this);
+                new AddBoard(controller, jFrame, emailUtente, Home.this);
             }
         });
+
+        // Messaggio iniziale se non ci sono bacheche
+        emptyLabel = new JLabel("No boards available.");
+        emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelBoards.add(emptyLabel);
 
         jFrame.setVisible(true);
     }
 
-    // Metodo per aggiungere un bottone per ogni bacheca
+    // Metodo per aggiungere un bottone per ogni bacheca ─────────────────────────────
     public void addBoardButton(Board board) {
+        // Rimuove la label se ancora presente
+        if (emptyLabel != null && emptyLabel.getParent() != null) {
+            panelBoards.remove(emptyLabel);
+            emptyLabel = null;
+        }
+
         JButton boardButton = new JButton(board.getType().toString());
 
         // Imposta dimensioni consistenti
-        Dimension buttonSize = new Dimension(400, 70); // Modifica qui la dimensione
+        Dimension buttonSize = new Dimension(400, 70);
         boardButton.setPreferredSize(buttonSize);
         boardButton.setMaximumSize(buttonSize);
         boardButton.setMinimumSize(buttonSize);
@@ -63,11 +89,11 @@ public class Home {
         // Allinea al centro
         boardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Aggiungi bottone al pannello
-        panelBoards.add(Box.createVerticalStrut(10)); // spazio verticale
+        // Aggiungi spazio verticale e il bottone
+        panelBoards.add(Box.createVerticalStrut(10));
         panelBoards.add(boardButton);
+
         panelBoards.revalidate();
         panelBoards.repaint();
     }
-
 }
