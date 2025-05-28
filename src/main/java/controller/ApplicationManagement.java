@@ -199,7 +199,6 @@ public class ApplicationManagement {
                 return users.get(i).getActivityHistory().print();
             }
         }
-
         // Utente non trovato
         System.out.println("Utente non loggato...");
         return new ArrayList<>(); // Ritorna lista vuota
