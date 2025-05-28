@@ -102,13 +102,13 @@ public class User {
     }
 
     public void searchBoardAddToDo(String tipoEnum, ToDo toDo) {
-        if (tipoEnum.equalsIgnoreCase("universita") && this.getBoards()[0] != null) {
+            if (tipoEnum.equalsIgnoreCase("UNIVERSITY") && this.getBoards()[0] != null) {
             this.getBoards()[0].boardAddToDo(toDo);
             return;
-        } else if (tipoEnum.equalsIgnoreCase("lavoro") && this.getBoards()[1] != null) {
+        } else if (tipoEnum.equalsIgnoreCase("WORK") && this.getBoards()[1] != null) {
             this.getBoards()[1].boardAddToDo(toDo);
             return;
-        } else if (tipoEnum.equalsIgnoreCase("tempo libero") && this.getBoards()[2] != null) {
+        } else if (tipoEnum.equalsIgnoreCase("FREETIME") && this.getBoards()[2] != null) {
             this.getBoards()[2].boardAddToDo(toDo);
             return;
         }else{

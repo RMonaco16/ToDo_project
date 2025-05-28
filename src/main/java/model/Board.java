@@ -99,19 +99,22 @@ public class Board {
         }
     }
 
-    public void print(){
+    public ArrayList<ToDo> print(){
+        ArrayList<ToDo> todoList = new ArrayList<>();
         for(ToDo t : toDo){
-            System.out.print(t.getTitle()+"|"+t.getDescription());
+            todoList.add(t);
         }
+        return todoList;
     }
 
-    public void srcTodoPrint(String nmTodo){
+    public ArrayList<Activity> srcTodoPrint(String nmTodo){
+        ArrayList<Activity> activities = new ArrayList<>();
         for(ToDo t : toDo){
             if(nmTodo.equalsIgnoreCase(t.getTitle())){
-                t.getCheckList().printActs();
-                return;
+                return t.getCheckList().getActivities();
             }
         }
+        return activities;
     }
 
     public void srcTodoSwap(String nmTodo,int i){
@@ -126,7 +129,7 @@ public class Board {
         for(ToDo t: toDo){
             //long giorniRimanenti = ChronoUnit.DAYS.between(oggi, dataScadenza);
             if(t.getExpiration().compareTo(range)>=0){
-                System.out.println(t.getTitle()+" | "+ t.getDescription());
+                System.out.println(t.getTitle()+" | ");//+ t.getDescription());
             }
         }
     }
