@@ -46,8 +46,6 @@ public class AddBoard {
                 nuovoFrame.dispose();
             }
         });
-
-
     }
 
     //Crea una una Board e chiama il metodo per aggiungerla ad Home

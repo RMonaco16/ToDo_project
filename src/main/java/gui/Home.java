@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import javax.swing.border.EmptyBorder;
 
 public class Home {
     public JPanel panelHome;
@@ -28,17 +30,41 @@ public class Home {
         // Layout principale
         panelHome.setLayout(new BorderLayout());
 
-        // ─── Top: bottone Cronologia ─────────────────────────────────────────────
+        // Crea un pannello superiore unico con BorderLayout
+        JPanel topPanel = new JPanel(new BorderLayout());
+
+        // ─── Bottone Torna indietro (sinistra) ────────────────
+        JButton goBackButton = new JButton("⤶");
+        goBackButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        goBackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jFrame.setVisible(false);
+                jFrame.dispose();
+                frameVecchio.setVisible(true);
+            }
+        });
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        leftPanel.setBorder(new EmptyBorder(5, 10, 5, 0)); // top, left, bottom, right
+        leftPanel.add(goBackButton);
+        topPanel.add(leftPanel, BorderLayout.WEST);
+
+        // ─── Bottone Cronologia (destra) ──────────────────────
         JButton historyButton = new JButton("\uD83D\uDD58");
-        historyButton.setFont(new Font("Dialog", Font.PLAIN, 20)); // Imposta la dimensione del testo a 20
+        historyButton.setFont(new Font("Dialog", Font.PLAIN, 20));
         historyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Chronology cronologia = new Chronology(controller, jFrame, emailUtente );
+                Chronology cronologia = new Chronology(controller, jFrame, emailUtente);
             }
         });
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        topPanel.add(historyButton);
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setBorder(new EmptyBorder(5, 0, 5, 10)); // top, left, bottom, right
+        rightPanel.add(historyButton);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+
+
+        // Aggiungi il pannello superiore al pannello principale
         panelHome.add(topPanel, BorderLayout.NORTH);
 
 
@@ -68,6 +94,17 @@ public class Home {
         panelBoards.add(emptyLabel);
 
         jFrame.setVisible(true);
+
+        //  ────────────────Recupera e mostra tutte le bacheche salvate dell'utente ────────────────
+        ArrayList<Board> userBoards = controller.printBoard(emailUtente);
+        if (userBoards != null && !userBoards.isEmpty()) {
+            for (Board board : userBoards) {
+                if (board != null) {
+                    addBoardButton(board, controller, emailUtente);
+                }
+            }
+        }
+
     }
 
     // Metodo per aggiungere un bottone per ogni bacheca ─────────────────────────────
@@ -102,9 +139,6 @@ public class Home {
         // Aggiungi spazio verticale e il bottone
         panelBoards.add(Box.createVerticalStrut(10));
         panelBoards.add(boardButton);
-
-
-
         panelBoards.revalidate();
         panelBoards.repaint();
     }
