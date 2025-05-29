@@ -50,6 +50,18 @@ public class CheckList {
             if(nmAct.equalsIgnoreCase(a.getName())){
                 a.setState(true);
                 a.setCompletionDate(dataCompletamento);
+                System.out.println("set true");
+                return;
+            }
+        }
+    }
+
+    public void deCheckAct(String nmAct){
+        for(Activity a : activities){
+            if(nmAct.equalsIgnoreCase(a.getName())){
+                a.setState(false);
+                a.setCompletionDate("");
+                System.out.println("set False");
                 return;
             }
         }

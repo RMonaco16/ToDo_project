@@ -99,6 +99,15 @@ public class Board {
         }
     }
 
+    public void srcTodoDeCheck(String nmTodo,String nmAct){
+        for(ToDo t : toDo){
+            if(nmTodo.equalsIgnoreCase(t.getTitle())){
+                t.getCheckList().deCheckAct(nmAct);
+                return;
+            }
+        }
+    }
+
     public ArrayList<ToDo> print(){
         ArrayList<ToDo> todoList = new ArrayList<>();
         for(ToDo t : toDo){
