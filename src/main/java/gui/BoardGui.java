@@ -9,10 +9,7 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.time.chrono.ChronoLocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class BoardGui {
@@ -36,18 +33,23 @@ public class BoardGui {
         frame.setSize(1000, 800);
         frame.setLocationRelativeTo(null);
         vecchioFrame.setVisible(false);
+
+        // Set layout verticale per contenitore principale
+        panelToDoMain.setLayout(new BoxLayout(panelToDoMain, BoxLayout.Y_AXIS));
+
+        // Collega panelToDoMain allo scroll pane
+        scrollPanelToDo.setViewportView(panelToDoMain);
+        scrollPanelToDo.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPanelToDo.getVerticalScrollBar().setUnitIncrement(16);
+
         frame.setVisible(true);
 
-        panelToDoMain.setLayout(new GridLayout(0, 3));
-
-        // Pulsante "indietro"
         undoButton.addActionListener(e -> {
             frame.setVisible(false);
             vecchioFrame.setVisible(true);
             frame.dispose();
         });
 
-        // Pulsante per aggiungere ToDo
         addButton.addActionListener(e -> {
             nameToDo = new JDialog(frame, "New ToDo", true);
             nameToDo.setSize(300, 150);
@@ -62,7 +64,7 @@ public class BoardGui {
             dialog.add(nameField);
             dialog.add(new JLabel("Expiration (dd-MM-yyyy):"));
             dialog.add(expirationField);
-            dialog.add(new JLabel());  // spazio vuoto
+            dialog.add(new JLabel());
             dialog.add(doneButton);
 
             doneButton.addActionListener(ae -> {
@@ -76,7 +78,6 @@ public class BoardGui {
                     ToDo todo = new ToDo(nameToDoText, false, checkList, expirationDate);
                     controller.addToDoInBoard(email, nameBoard, todo);
 
-                    // Aggiorna la GUI
                     updateToDoList(controller, email, nameBoard);
 
                     nameToDo.dispose();
@@ -89,50 +90,41 @@ public class BoardGui {
             nameToDo.setVisible(true);
         });
 
-        // Carica i ToDo iniziali
-        updateToDoList(controller, email, nameBoard);
+        shareButton.addActionListener(e -> new Sharing(controller, email, vecchioFrame, nameBoard));
 
-        //------Collegamento a Sharing----------
-        shareButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Sharing sharing = new Sharing(controller,email,vecchioFrame,nameBoard);
-            }
-        });
+        updateToDoList(controller, email, nameBoard);
     }
 
     private void updateToDoList(ApplicationManagement controller, String email, String nameBoard) {
-        panelToDoMain.removeAll(); // Rimuove i vecchi componenti
+        panelToDoMain.removeAll();
+
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        int count = 0;
 
         for (ToDo t : controller.printTodo(email, nameBoard)) {
-            // Titolo del ToDo
             JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
             titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
 
-            // Modello della tabella
             DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Attività", "Fatto"}, 0) {
                 @Override
                 public Class<?> getColumnClass(int columnIndex) {
                     return columnIndex == 1 ? Boolean.class : String.class;
                 }
-
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 1; // Solo la checkbox è modificabile
+                    return column == 1;
                 }
             };
 
             tableModel.addTableModelListener(e -> {
                 if (e.getColumn() == 1 && e.getType() == TableModelEvent.UPDATE) {
                     int row = e.getFirstRow();
-                    Boolean stato = (Boolean) tableModel.getValueAt(row, 1); // true se spuntato, false se tolto
+                    Boolean stato = (Boolean) tableModel.getValueAt(row, 1);
                     String nomeAttivita = (String) tableModel.getValueAt(row, 0);
-
                     if (stato) {
                         LocalDate date = LocalDate.now();
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                         String completitionDate = date.format(formatter);
-
                         controller.checkActivity(email, nameBoard, t.getTitle(), nomeAttivita, completitionDate);
                     } else {
                         controller.deCheckActivity(email, nameBoard, t.getTitle(), nomeAttivita);
@@ -140,36 +132,36 @@ public class BoardGui {
                 }
             });
 
-
-            // Aggiungi attività
-            if (controller.printActs(email, nameBoard, t.getTitle()).size()!=0){
+            if (!controller.printActs(email, nameBoard, t.getTitle()).isEmpty()) {
                 for (Activity a : controller.printActs(email, nameBoard, t.getTitle())) {
-                    tableModel.addRow(new Object[]{a.getName(),false});
+                    tableModel.addRow(new Object[]{a.getName(), a.getState()});
                 }
             }
-
 
             JTable table = new JTable(tableModel);
             table.setFillsViewportHeight(true);
             JScrollPane tableScroll = new JScrollPane(table);
 
-            // Calcolo dell'altezza dinamica della tabella
             int rowCount = table.getRowCount();
             int rowHeight = table.getRowHeight();
-            int totalHeight = rowCount * rowHeight;
-            table.setPreferredScrollableViewportSize(new Dimension(table.getPreferredSize().width, totalHeight));
-            tableScroll.setPreferredSize(new Dimension(400, totalHeight + 20)); // +20 per header/margini
+
+            int maxHeight = 200; // altezza fissa massima visibile per la tabella
+            int totalHeight = rowCount * table.getRowHeight();
+
+            int scrollHeight = Math.min(totalHeight, maxHeight);
+
+            // Limita l'altezza visibile a maxHeight, aggiunge scrollbar se necessario
+            table.setPreferredScrollableViewportSize(new Dimension(380, scrollHeight));
+            tableScroll.setPreferredSize(new Dimension(400, scrollHeight + 20));
 
 
-            // Pannello contenitore
-            JPanel todoPanel = new JPanel();
-            todoPanel.setLayout(new BorderLayout(5, 5));
+            JPanel todoPanel = new JPanel(new BorderLayout(5, 5));
             todoPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             todoPanel.add(titleLabel, BorderLayout.NORTH);
 
-            // Pannello interno per contenere la tabella e il bottone
-            JPanel centerPanel = new JPanel();
-            centerPanel.setLayout(new BorderLayout());
+            todoPanel.setPreferredSize(new Dimension(495, 300)); // dimensione fissa iniziale
+
+            JPanel centerPanel = new JPanel(new BorderLayout());
             centerPanel.add(tableScroll, BorderLayout.CENTER);
 
             JButton addActivityButton = new JButton("Add Activity");
@@ -177,41 +169,55 @@ public class BoardGui {
 
             todoPanel.add(centerPanel, BorderLayout.CENTER);
 
-            addActivityButton.addActionListener(e->{
-                JDialog newAct = new JDialog(frame,"New Activity",true);
-                newAct.setSize(300,150);
+            addActivityButton.addActionListener(e -> {
+                JDialog newAct = new JDialog(frame, "New Activity", true);
+                newAct.setSize(300, 150);
                 newAct.setLocationRelativeTo(frame);
+                newAct.setResizable(false);
 
-                JPanel dialog = new JPanel(new GridLayout(2, 2));
+                JPanel dialog = new JPanel();
+                dialog.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+                dialog.setLayout(new BorderLayout(10, 10));
+
+                JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
+                inputPanel.add(new JLabel("Name:"), BorderLayout.NORTH);
                 JTextField nameAct = new JTextField();
-                JButton doneButton = new JButton("Done");
+                inputPanel.add(nameAct, BorderLayout.CENTER);
 
-                dialog.add(new JLabel("Name:"));
-                dialog.add(nameAct);
-                dialog.add(new JLabel());  // spazio vuoto
-                dialog.add(doneButton);
+                JButton doneButton = new JButton("Done");
+                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                buttonPanel.add(doneButton);
+
+                dialog.add(inputPanel, BorderLayout.CENTER);
+                dialog.add(buttonPanel, BorderLayout.SOUTH);
 
                 doneButton.addActionListener(ae -> {
                     try {
                         String nameToDoText = nameAct.getText();
-                        Activity activity = new Activity(nameToDoText,false);
-                        controller.addActivity(email,t.getTitle(),nameBoard,activity);
-
-                        // Aggiorna la GUI
+                        Activity activity = new Activity(nameToDoText, false);
+                        controller.addActivity(email, t.getTitle(), nameBoard, activity);
                         updateToDoList(controller, email, nameBoard);
-
                         newAct.dispose();
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(newAct, "Qualcosa è andato storto.", "Errore", JOptionPane.ERROR_MESSAGE);
                     }
                 });
 
-                newAct.add(dialog);
+                newAct.setContentPane(dialog);
                 newAct.setVisible(true);
-
             });
 
-            panelToDoMain.add(todoPanel);
+            rowPanel.add(todoPanel);
+            count++;
+
+            if (count % 3 == 0) {
+                panelToDoMain.add(rowPanel);
+                rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+            }
+        }
+
+        if (count % 3 != 0) {
+            panelToDoMain.add(rowPanel);
         }
 
         panelToDoMain.revalidate();
