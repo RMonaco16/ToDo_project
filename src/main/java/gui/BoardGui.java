@@ -10,6 +10,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.chrono.ChronoLocalDate;
 import java.time.format.DateTimeFormatter;
@@ -90,6 +91,14 @@ public class BoardGui {
 
         // Carica i ToDo iniziali
         updateToDoList(controller, email, nameBoard);
+
+        //------Collegamento a Sharing----------
+        shareButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Sharing sharing = new Sharing(controller,email,vecchioFrame,nameBoard);
+            }
+        });
     }
 
     private void updateToDoList(ApplicationManagement controller, String email, String nameBoard) {

@@ -8,11 +8,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Register {
-    private JTextField textField1;
-    private JTextField textField2;
+    private JTextField textNickName;
+    private JTextField textEmail;
     private JPasswordField passwordField1;
     private JButton registerButton;
     private JPanel panelRegister;
+    private JButton loginButton;
 
     private JFrame frame;
 
@@ -29,8 +30,20 @@ public class Register {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String passwordStr = new String(passwordField1.getPassword());
-                User u = new User(textField1.getText(),textField2.getText(),passwordStr);
-                controller.addUser(u);
+                if(textEmail.getText().isEmpty() || textNickName.getText().isEmpty() || passwordStr.equals("")){
+                    JOptionPane.showMessageDialog(panelRegister,"Enter all values","missing values",JOptionPane.WARNING_MESSAGE);
+                }else{
+                    User u = new User(textNickName.getText(), textEmail.getText(),passwordStr);
+                    controller.addUser(u);
+                    frameChiamante.setVisible(true);
+                    frame.setVisible(false);
+                    frame.dispose();
+                }
+            }
+        });
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 frameChiamante.setVisible(true);
                 frame.setVisible(false);
                 frame.dispose();

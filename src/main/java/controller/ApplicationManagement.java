@@ -73,6 +73,25 @@ public class ApplicationManagement {
         }
     }
 
+    public ArrayList<Board> printBoard(String email) {
+        ArrayList<Board> popolaLista = new ArrayList<>();
+
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                Board[] boards = users.get(i).getBoards();
+                if (boards != null) {
+                    for (int x = 0; x < boards.length; x++) {
+                        popolaLista.add(boards[x]);
+                    }
+                }
+                return popolaLista;
+            }
+        }
+        System.out.println("Utente non loggato...");
+        return new ArrayList<>(); // meglio di `null`
+    }
+
+
     public void addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
         int notFound = 0;
         for (int i = 0; i < users.size(); i++) {
@@ -381,7 +400,7 @@ public class ApplicationManagement {
     }
 
 
-    public void shareToDo(String mailAmministratore, String mainUtenteCondividere, String boardName, String toDoName ){
+    public boolean shareToDo(String mailAmministratore, String mainUtenteCondividere, String boardName, String toDoName ){
         int AmministratoreFound = 0;
         int bachecaAmmTrovata = 0;
         int utenteTrovato = 0;
@@ -389,9 +408,9 @@ public class ApplicationManagement {
             if (mailAmministratore.equals(users.get(i).getEmail()) ) {
                 AmministratoreFound = 1;
                 for(int x = 0; x < users.size(); x++) {
-                    if (mainUtenteCondividere.equals(users.get(i).getEmail()) ) {
+                    if (mainUtenteCondividere.equals(users.get(x).getEmail()) ) {
                         utenteTrovato = 1;
-                        if(boardName.equalsIgnoreCase("Universita") && users.get(i).getBoards()[0] != null){
+                        if(boardName.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null){
                             if(users.get(x).getBoards()[0] == null){
                                 Board b = new Board(users.get(i).getBoards()[0].getType(), users.get(i).getBoards()[0].getDescription());
                                 users.get(x).addBoard(b);
@@ -411,7 +430,7 @@ public class ApplicationManagement {
                                 System.out.println("To do non trovato dell'amministratore");
                             }
                             bachecaAmmTrovata = 1;
-                        }else if(boardName.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null){
+                        }else if(boardName.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null){
                             if(users.get(x).getBoards()[1] == null){
                                 Board b = new Board(users.get(i).getBoards()[0].getType(), users.get(i).getBoards()[1].getDescription());
                                 users.get(x).addBoard(b);
@@ -431,7 +450,7 @@ public class ApplicationManagement {
                                 System.out.println("To do non trovato dell'amministratore");
                             }
                             bachecaAmmTrovata = 1;
-                        }else if(boardName.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null){
+                        }else if(boardName.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null){
                             if(users.get(x).getBoards()[2] == null){
                                 Board b = new Board(users.get(i).getBoards()[2].getType(), users.get(i).getBoards()[2].getDescription());
                                 users.get(x).addBoard(b);
@@ -455,18 +474,19 @@ public class ApplicationManagement {
                     }
                 }
                 if(bachecaAmmTrovata == 0){
-                    System.out.println("Bacheca amministratore non trovata...");
+                    System.out.println("Bacheca amministratore non trovata...:"+ boardName);
 
                 }
             }
         }
         if (AmministratoreFound == 0) {
-            System.out.println("Utente non Loggato...");
+            System.out.println("Amministratore non Loggato...");
         }
         if (utenteTrovato == 0) {
-            System.out.println("Utente non Loggato...");
+            System.out.println("Utente non esistente...");
+            return false;
         }
-
+        return true;
     }
 
 
