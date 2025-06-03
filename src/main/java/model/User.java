@@ -86,15 +86,15 @@ public class User {
     }
 
     public void deleteBoard(String type) {
-        if (type.equalsIgnoreCase("universita") && this.getBoards()[0] != null) {
+        if (type.equalsIgnoreCase("UNIVERSITY") && this.getBoards()[0] != null) {
             this.getBoards()[0] = null;
             System.out.println("Bacheca Universita Eliminata!!");
             return;
-        } else if (type.equalsIgnoreCase("lavoro") && this.getBoards()[1] != null) {
+        } else if (type.equalsIgnoreCase("WORK") && this.getBoards()[1] != null) {
             this.getBoards()[1] = null;
             System.out.println("Bacheca Lavoro Eliminata!!");
             return;
-        } else if (type.equalsIgnoreCase("tempo libero") && this.getBoards()[2] != null) {
+        } else if (type.equalsIgnoreCase("FREETIME") && this.getBoards()[2] != null) {
             this.getBoards()[2] = null;
             System.out.println("Bacheca Tempo Libero Eliminata!!");
             return;

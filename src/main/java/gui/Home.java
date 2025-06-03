@@ -20,82 +20,73 @@ public class Home {
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
 
-        // Imposta la finestra
         jFrame = new JFrame("Home");
         jFrame.setContentPane(panelHome);
         jFrame.setLocationRelativeTo(null);
         jFrame.setSize(600, 400);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Layout principale
         panelHome.setLayout(new BorderLayout());
 
-        // Crea un pannello superiore unico con BorderLayout
         JPanel topPanel = new JPanel(new BorderLayout());
 
-        // ─── Bottone Torna indietro (sinistra) ────────────────
         JButton goBackButton = new JButton("⤶");
         goBackButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        goBackButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jFrame.setVisible(false);
-                jFrame.dispose();
-                frameVecchio.setVisible(true);
-            }
+        goBackButton.addActionListener(e -> {
+            jFrame.setVisible(false);
+            jFrame.dispose();
+            frameVecchio.setVisible(true);
         });
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        leftPanel.setBorder(new EmptyBorder(5, 10, 5, 0)); // top, left, bottom, right
+        leftPanel.setBorder(new EmptyBorder(5, 10, 5, 0));
         leftPanel.add(goBackButton);
         topPanel.add(leftPanel, BorderLayout.WEST);
 
-        // ─── Bottone Cronologia (destra) ──────────────────────
         JButton historyButton = new JButton("\uD83D\uDD58");
         historyButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        historyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Chronology cronologia = new Chronology(controller, jFrame, emailUtente);
-            }
-        });
+        historyButton.addActionListener(e -> new Chronology(controller, jFrame, emailUtente));
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rightPanel.setBorder(new EmptyBorder(5, 0, 5, 10)); // top, left, bottom, right
+        rightPanel.setBorder(new EmptyBorder(5, 0, 5, 10));
         rightPanel.add(historyButton);
         topPanel.add(rightPanel, BorderLayout.EAST);
 
-
-        // Aggiungi il pannello superiore al pannello principale
         panelHome.add(topPanel, BorderLayout.NORTH);
 
-
-        // ─── Center: pannello bacheche con padding simmetrico ─────────────────
         JPanel centerWrapper = new JPanel(new GridBagLayout());
-        centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80)); // padding laterale
+        centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
         panelBoards.setLayout(new BoxLayout(panelBoards, BoxLayout.Y_AXIS));
         centerWrapper.add(panelBoards);
         panelHome.add(centerWrapper, BorderLayout.CENTER);
 
-        // ─── South: bottone ADD in basso a destra ─────────────────────────────
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottomPanel.add(ADDButton);
+        // BOTTOM PANEL con DELETE a sinistra e ADD a destra
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+
+        // Bottone DELETE (a sinistra)
+        JButton deleteButton = new JButton("🗑️");
+        deleteButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        deleteButton.addActionListener(e -> {
+            DeleteBoardForm deleteBoardForm = new DeleteBoardForm(controller,jFrame,emailUtente,Home.this);
+        });
+        JPanel deletePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        deletePanel.setBorder(new EmptyBorder(5, 10, 5, 0));
+        deletePanel.add(deleteButton);
+        bottomPanel.add(deletePanel, BorderLayout.WEST);
+
+        // Bottone ADD (a destra)
+        JPanel addPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        addPanel.add(ADDButton);
+        bottomPanel.add(addPanel, BorderLayout.EAST);
+
         panelHome.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Listener per aprire la finestra AddBoard
-        ADDButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new AddBoard(controller, jFrame, emailUtente, Home.this);
-            }
-        });
+        ADDButton.addActionListener(e -> new AddBoard(controller, jFrame, emailUtente, Home.this));
 
-        // Messaggio iniziale se non ci sono bacheche
         emptyLabel = new JLabel("No boards available.");
         emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelBoards.add(emptyLabel);
 
         jFrame.setVisible(true);
 
-        //  ────────────────Recupera e mostra tutte le bacheche salvate dell'utente ────────────────
         ArrayList<Board> userBoards = controller.printBoard(emailUtente);
         if (userBoards != null && !userBoards.isEmpty()) {
             for (Board board : userBoards) {
@@ -104,8 +95,8 @@ public class Home {
                 }
             }
         }
-
     }
+
 
     // Metodo per aggiungere un bottone per ogni bacheca ─────────────────────────────
     public void addBoardButton(Board board,ApplicationManagement controller, String emailUtente) {
@@ -130,8 +121,6 @@ public class Home {
         boardButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Azione da eseguire al click sul bottone della bacheca
-                // Esempio: aprire la board
                 new BoardGui(controller, jFrame, emailUtente, board.getType().toString());
             }
         });
@@ -139,8 +128,26 @@ public class Home {
         // Aggiungi spazio verticale e il bottone
         panelBoards.add(Box.createVerticalStrut(10));
         panelBoards.add(boardButton);
+
         panelBoards.revalidate();
         panelBoards.repaint();
     }
+
+    //-------- refresh delle boards aggiornato dopo averne rimossa una ----------
+    public void refreshBoards(ApplicationManagement controller, String emailUtente) {
+        panelBoards.removeAll(); // Rimuove tutto
+
+        ArrayList<Board> userBoards = controller.printBoard(emailUtente);
+        if (userBoards != null && !userBoards.isEmpty()) {
+            for (Board board : userBoards) {
+                if (board != null) {
+                    addBoardButton(board, controller, emailUtente);//reinserisce quelle esistenti
+                }
+            }
+        }
+        panelBoards.revalidate();//aggiorna il layout
+        panelBoards.repaint();// aggiorna la grafica visiva
+    }
+
 }
 

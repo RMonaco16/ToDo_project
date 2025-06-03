@@ -26,7 +26,7 @@ public class AddBoard {
         nuovoFrame = new JFrame("Aggiungi bacheca");
         nuovoFrame.setContentPane(panelAddBoard);
         nuovoFrame.pack();
-        nuovoFrame.setSize(500, 300);
+        nuovoFrame.setSize(400, 200);
         nuovoFrame.setLocationRelativeTo(null);
         nuovoFrame.setVisible(true);
 

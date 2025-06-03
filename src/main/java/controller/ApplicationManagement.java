@@ -88,7 +88,7 @@ public class ApplicationManagement {
             }
         }
         System.out.println("Utente non loggato...");
-        return new ArrayList<>(); // meglio di `null`
+        return new ArrayList<>();
     }
 
 

@@ -20,7 +20,7 @@ public class Chronology {
     public Chronology(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente) {
 
         // Mostra la GUI
-        JFrame nuovoFrame = new JFrame("Cronologia attività");
+        JFrame nuovoFrame = new JFrame("Chronology");
         nuovoFrame.setContentPane(panelCronologia);
         nuovoFrame.setSize(450, 650);
         nuovoFrame.setLocationRelativeTo(null);
