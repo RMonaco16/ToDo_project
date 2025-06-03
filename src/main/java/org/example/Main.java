@@ -105,7 +105,7 @@ public class Main {
                            LocalDate dataScadenza = LocalDate.parse(data,formatter);
                            boolean stato = false;
                            CheckList c = new CheckList();
-                           ToDo t = new ToDo(titoloToDo,stato,c,dataScadenza);
+                           ToDo t = new ToDo(titoloToDo,stato,c);
                            management.addToDoInBoard(email,tipo,t);
                        }else if(scelta2 == 4){
                            System.out.println("Inserire nome della Bacheca");

@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 
 public class BoardGui {
     private JButton undoButton;
-    private JButton deleteButton;
+    private JButton a️Button;
     private JButton addButton;
     private JPanel BoardGui;
     private JPanel panelToDoMain;
@@ -23,7 +23,6 @@ public class BoardGui {
     private JTextField filter;
     private JLabel textFilter;
     private JFrame frame;
-    private JDialog nameToDo;
     private JScrollPane scrollPanelToDo;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
@@ -51,43 +50,49 @@ public class BoardGui {
         });
 
         addButton.addActionListener(e -> {
-            nameToDo = new JDialog(frame, "New ToDo", true);
-            nameToDo.setSize(300, 150);
-            nameToDo.setLocationRelativeTo(frame);
+            JDialog newToDo = new JDialog(frame, "New Activity", true);
+            newToDo.setSize(300, 150);
+            newToDo.setLocationRelativeTo(frame);
+            newToDo.setResizable(false);
 
-            JPanel dialog = new JPanel(new GridLayout(3, 2));
-            JTextField nameField = new JTextField();
-            JTextField expirationField = new JTextField();
+            JPanel dialog = new JPanel();
+            dialog.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+            dialog.setLayout(new BorderLayout(10, 10));
+
+            JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
+            inputPanel.add(new JLabel("Name:"), BorderLayout.NORTH);
+            JTextField nameToDo = new JTextField();
+            inputPanel.add(nameToDo, BorderLayout.CENTER);
+
             JButton doneButton = new JButton("Done");
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.add(doneButton);
 
-            dialog.add(new JLabel("Name:"));
-            dialog.add(nameField);
-            dialog.add(new JLabel("Expiration (dd-MM-yyyy):"));
-            dialog.add(expirationField);
-            dialog.add(new JLabel());
-            dialog.add(doneButton);
+            dialog.add(inputPanel, BorderLayout.CENTER);
+            dialog.add(buttonPanel, BorderLayout.SOUTH);
+
 
             doneButton.addActionListener(ae -> {
                 try {
-                    String nameToDoText = nameField.getText();
-                    String expirationText = expirationField.getText();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                    LocalDate expirationDate = LocalDate.parse(expirationText, formatter);
+                    String nameToDoText = nameToDo.getText();
+//                    String expirationText = expirationField.getText();
+//                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//                    LocalDate expirationDate = LocalDate.parse(expirationText, formatter);
 
                     CheckList checkList = new CheckList();
-                    ToDo todo = new ToDo(nameToDoText, false, checkList, expirationDate);
+                    ToDo todo = new ToDo(nameToDoText, false, checkList);
                     controller.addToDoInBoard(email, nameBoard, todo);
 
                     updateToDoList(controller, email, nameBoard);
 
-                    nameToDo.dispose();
+                    newToDo.dispose();
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(nameToDo, "Formato data non valido!", "Errore", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
-            nameToDo.add(dialog);
-            nameToDo.setVisible(true);
+            newToDo.setContentPane(dialog);
+            newToDo.setVisible(true);
         });
 
         shareButton.addActionListener(e -> new Sharing(controller, email, vecchioFrame, nameBoard));
@@ -102,8 +107,17 @@ public class BoardGui {
         int count = 0;
 
         for (ToDo t : controller.printTodo(email, nameBoard)) {
+
+            JPanel titleToDo = new JPanel(new BorderLayout());
+
             JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
-            titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            titleLabel.setFont(new Font(null, Font.BOLD, 22));
+            JButton propertiesButton = new JButton("≡");
+            propertiesButton.setFont(new Font(null, Font.BOLD, 22));
+
+            titleToDo.add(titleLabel, BorderLayout.WEST);
+            titleToDo.add(propertiesButton, BorderLayout.EAST);
+
 
             DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Attività", "Fatto"}, 0) {
                 @Override
@@ -139,6 +153,11 @@ public class BoardGui {
             }
 
             JTable table = new JTable(tableModel);
+
+            // Imposta larghezza preferita delle colonne
+            table.getColumnModel().getColumn(0).setPreferredWidth(300);
+            table.getColumnModel().getColumn(1).setPreferredWidth(50);
+
             table.setFillsViewportHeight(true);
             JScrollPane tableScroll = new JScrollPane(table);
 
@@ -154,18 +173,22 @@ public class BoardGui {
             table.setPreferredScrollableViewportSize(new Dimension(380, scrollHeight));
             tableScroll.setPreferredSize(new Dimension(400, scrollHeight + 20));
 
-
             JPanel todoPanel = new JPanel(new BorderLayout(5, 5));
             todoPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            todoPanel.add(titleLabel, BorderLayout.NORTH);
+            todoPanel.add(titleToDo, BorderLayout.NORTH);
 
             todoPanel.setPreferredSize(new Dimension(495, 300)); // dimensione fissa iniziale
 
             JPanel centerPanel = new JPanel(new BorderLayout());
             centerPanel.add(tableScroll, BorderLayout.CENTER);
 
+            JPanel buttonInToDo = new JPanel(new FlowLayout(FlowLayout.CENTER));
             JButton addActivityButton = new JButton("Add Activity");
-            centerPanel.add(addActivityButton, BorderLayout.SOUTH);
+            JButton rmvActivityButton = new JButton("Remove Activity");
+            buttonInToDo.add(addActivityButton);
+            buttonInToDo.add(rmvActivityButton);
+
+            centerPanel.add(buttonInToDo, BorderLayout.SOUTH);
 
             todoPanel.add(centerPanel, BorderLayout.CENTER);
 
@@ -205,6 +228,87 @@ public class BoardGui {
 
                 newAct.setContentPane(dialog);
                 newAct.setVisible(true);
+            });
+
+            rmvActivityButton.addActionListener(e->{
+                try {
+                    int rowTable = table.getSelectedRow();
+                    String activityName = (String) table.getValueAt(rowTable,0);
+
+                    controller.removeActivity(email,t.getTitle(),nameBoard,activityName);
+                    updateToDoList(controller, email, nameBoard);
+                }catch (Exception ex){
+                    JOptionPane.showMessageDialog(table, "Selezionare l'attività prima di rimuoverla","Qualcosa è andato storto.", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            /*  •	Titolo (obbligatorio)
+                •	Data di scadenza
+                •	Descrizione dettagliata
+                •	Immagine
+                •	Colore di sfondo personalizzabile
+                •	Stato di completament
+            */
+            propertiesButton.addActionListener(e->{
+
+                JDialog propertiesDialog = new JDialog(frame,"Properties",false);
+                propertiesDialog.setLayout(new GridLayout(6,1));
+
+                JPanel titlePanel = new JPanel(new BorderLayout(1,2));
+                JLabel titleToDoLabel = new JLabel("Title:");
+                JTextField titleField = new JTextField(20);
+                titleField.setText(t.getTitle());
+                titlePanel.add(titleToDoLabel,BorderLayout.WEST);
+                titlePanel.add(titleField,BorderLayout.EAST);
+                propertiesDialog.add(titlePanel);
+
+                JPanel expirationPanel = new JPanel(new BorderLayout(1,2));
+                JLabel expirationToDoLabel = new JLabel("Expiration:");
+                JTextField expirationField = new JTextField(20);
+                String expirationText = (t.getExpiration() != null) ? t.getExpiration().toString() : "";
+                expirationField.setText(expirationText);
+
+                expirationPanel.add(expirationToDoLabel,BorderLayout.WEST);
+                expirationPanel.add(expirationField,BorderLayout.EAST);
+                propertiesDialog.add(expirationPanel);
+
+                JPanel descriptionPanel = new JPanel(new BorderLayout(1,2));
+                JLabel descriptionToDoLabel = new JLabel("Description:");
+                JTextField descriptionField = new JTextField(20);
+                descriptionField.setText(t.getDescription());
+                descriptionPanel.add(descriptionToDoLabel,BorderLayout.WEST);
+                descriptionPanel.add(descriptionField,BorderLayout.EAST);
+                propertiesDialog.add(descriptionPanel);
+
+                JPanel imagePanel = new JPanel(new BorderLayout(1,2));
+                JLabel imageToDoLabel = new JLabel("Image URL:");
+                ImageIcon image = new ImageIcon(t.getImage());
+                JLabel imageToDo = new JLabel(image);
+                imagePanel.add(imageToDoLabel,BorderLayout.WEST);
+                imagePanel.add(imageToDo,BorderLayout.EAST);
+                propertiesDialog.add(imagePanel);
+
+                JPanel colorPanel = new JPanel(new BorderLayout(1,2));
+                JLabel colorToDoLabel = new JLabel("Color:");
+                JTextField colorField = new JTextField(20);
+                descriptionField.setText(t.getDescription());
+                colorPanel.add(colorToDoLabel,BorderLayout.WEST);
+                colorPanel.add(colorField,BorderLayout.EAST);
+                propertiesDialog.add(colorPanel);
+
+                JPanel statePanel = new JPanel(new BorderLayout(1,2));
+                JLabel stateToDoLabel = new JLabel("Stato:");
+                JLabel stateField = new JLabel();
+                //String expirationText = (t.getExpiration() != null) ? t.getExpiration().toString() : "";
+                String stateToDo = (t.getState()==true) ? "✅":"❌";
+                stateField.setText(stateToDo);
+                titlePanel.add(titleToDoLabel,BorderLayout.WEST);
+                titlePanel.add(titleField,BorderLayout.EAST);
+                propertiesDialog.add(titlePanel);
+
+                propertiesDialog.pack();
+                propertiesDialog.setLocationRelativeTo(frame);
+                propertiesDialog.setVisible(true);
             });
 
             rowPanel.add(todoPanel);
