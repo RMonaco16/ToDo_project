@@ -81,4 +81,10 @@ public class AddBoard {
             JOptionPane.showMessageDialog(null, "Select a board and enter a description before creating!");
         }
     }
+
+    //metodo per restituire ad home lo stato del frame
+    public JFrame getFrame() {
+        return nuovoFrame;
+    }
+
 }

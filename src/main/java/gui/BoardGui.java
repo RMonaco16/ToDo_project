@@ -25,6 +25,7 @@ public class BoardGui {
     private JFrame frame;
     private JDialog nameToDo;
     private JScrollPane scrollPanelToDo;
+    private Sharing sharingWindow = null;//per verificare apertura finestre
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
         frame = new JFrame(nameBoard);
@@ -75,7 +76,7 @@ public class BoardGui {
                     LocalDate expirationDate = LocalDate.parse(expirationText, formatter);
 
                     CheckList checkList = new CheckList();
-                    ToDo todo = new ToDo(nameToDoText, false, checkList, expirationDate);
+                    ToDo todo = new ToDo(nameToDoText, false, checkList,  false);
                     controller.addToDoInBoard(email, nameBoard, todo);
 
                     updateToDoList(controller, email, nameBoard);
@@ -90,7 +91,15 @@ public class BoardGui {
             nameToDo.setVisible(true);
         });
 
-        shareButton.addActionListener(e -> new Sharing(controller, email, vecchioFrame, nameBoard));
+        //apertura della finestra e Condizione per non farla aprire piu volte
+        shareButton.addActionListener(e -> {
+            if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
+                sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard);
+            } else {
+                sharingWindow.getFrame().toFront();
+                sharingWindow.getFrame().requestFocus();
+            }
+        });
 
         updateToDoList(controller, email, nameBoard);
     }

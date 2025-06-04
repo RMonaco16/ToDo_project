@@ -11,16 +11,16 @@ public class ToDo {
     //private immagine
     //private url
     private LocalDate expiration;
-
     private boolean state;
+    boolean condiviso;
     private CheckList checkList;//la  to Do ha una checklist al suo interno
 
-    public ToDo(String title, /*String description,*/ boolean state, CheckList checkList,LocalDate expiration) {
+    public ToDo(String title, /*String description,*/ boolean state, CheckList checkList, boolean condivione) {
         this.title = title;
         //this.description = description;
         this.state = state;
         this.checkList = checkList;
-        this.expiration = expiration;
+        this.condiviso = condivione;
     }
 
     // getter and setter
@@ -70,6 +70,14 @@ public class ToDo {
 
     public void setExpiration(LocalDate expiration) {
         this.expiration = expiration;
+    }
+
+    public boolean isCondiviso() {
+        return condiviso;
+    }
+
+    public void setCondiviso(boolean condiviso) {
+        this.condiviso = condiviso;
     }
 }
 

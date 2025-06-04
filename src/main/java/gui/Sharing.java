@@ -32,7 +32,9 @@ public class Sharing {
         comboBoxToDo.addItem("--"); // Placeholder nullo
 
         for (int i = 0; i < listaToDo.size(); i++) {
-            comboBoxToDo.addItem(listaToDo.get(i).getTitle()); // Aggiungi ogni elemento alla comboBox
+            if(listaToDo.get(i).isCondiviso() != true){
+                comboBoxToDo.addItem(listaToDo.get(i).getTitle()); // Aggiungi ogni elemento alla comboBox
+            }
         }
         //------------------------------------------
 
@@ -69,5 +71,10 @@ public class Sharing {
         }
 
     }
+
+    public JFrame getFrame() {
+        return this.nuovoFrame;
+    }
+
 
 }

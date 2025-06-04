@@ -2,6 +2,7 @@ package controller;
 
 import model.*;
 
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -20,14 +21,22 @@ public class ApplicationManagement {
         this.users = users;
     }
 
-    public void addUser(User u) {
-        if(u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")
-                || u.getEmail().equalsIgnoreCase("")){
+    public boolean addUser(User u) {
+        if(u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")){
             System.out.println("Utente non creato");
         }else{
+            boolean nuovo = false;
+            for(int i = 0; i < users.size(); i ++){
+                if(users.get(i).getEmail().equalsIgnoreCase(u.getEmail())){
+                    System.out.println("Mail gia esistente");
+                    return true;
+                }
+            }
             users.add(u);
             System.out.println("Utente Aggiunto Correttamente!!");
+            return false;
         }
+        return false;
     }
 
     public boolean login(String email, String password) {
@@ -400,93 +409,283 @@ public class ApplicationManagement {
     }
 
 
-    public boolean shareToDo(String mailAmministratore, String mainUtenteCondividere, String boardName, String toDoName ){
+    public boolean shareToDo(String mailAmministratore, String mainUtenteCondividere, String boardName, String toDoName) {
+        // Blocco per evitare autocondivisione
+        if (mailAmministratore.equalsIgnoreCase(mainUtenteCondividere)) {
+            System.out.println("Errore: non puoi condividere un ToDo con te stesso.");
+            return false;
+        }
+
         int AmministratoreFound = 0;
         int bachecaAmmTrovata = 0;
         int utenteTrovato = 0;
+
         for (int i = 0; i < users.size(); i++) {
-            if (mailAmministratore.equals(users.get(i).getEmail()) ) {
+            if (mailAmministratore.equals(users.get(i).getEmail())) {
                 AmministratoreFound = 1;
-                for(int x = 0; x < users.size(); x++) {
-                    if (mainUtenteCondividere.equals(users.get(x).getEmail()) ) {
+
+                for (int x = 0; x < users.size(); x++) {
+                    if (mainUtenteCondividere.equals(users.get(x).getEmail())) {
                         utenteTrovato = 1;
-                        if(boardName.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null){
-                            if(users.get(x).getBoards()[0] == null){
-                                Board b = new Board(users.get(i).getBoards()[0].getType(), users.get(i).getBoards()[0].getDescription());
+
+                        int boardIndex = -1;
+                        if (boardName.equalsIgnoreCase("UNIVERSITY")) boardIndex = 0;
+                        else if (boardName.equalsIgnoreCase("WORK")) boardIndex = 1;
+                        else if (boardName.equalsIgnoreCase("FREETIME")) boardIndex = 2;
+
+                        if (boardIndex != -1 && users.get(i).getBoards()[boardIndex] != null) {
+                            if (users.get(x).getBoards()[boardIndex] == null) {
+                                Board b = new Board(
+                                        users.get(i).getBoards()[boardIndex].getType(),
+                                        users.get(i).getBoards()[boardIndex].getDescription()
+                                );
                                 users.get(x).addBoard(b);
                             }
+
                             int toDoTrovato = 0;
-                            for(int y = 0; y < users.get(i).getBoards()[0].getToDo().size(); y++){
-                                if(toDoName.equalsIgnoreCase(users.get(i).getBoards()[0].getToDo().get(y).getTitle())){
-                                    ToDo todo = users.get(i).getBoards()[0].getToDo().get(y);
-                                    users.get(x).getBoards()[0].getToDo().add(todo);
-                                    Sharing s = new Sharing(users.get(i),todo);
-                                    users.get(i).getSharing().add(s);
+                            for (int y = 0; y < users.get(i).getBoards()[boardIndex].getToDo().size(); y++) {
+                                if (toDoName.equalsIgnoreCase(users.get(i).getBoards()[boardIndex].getToDo().get(y).getTitle())) {
+                                    ToDo todo = users.get(i).getBoards()[boardIndex].getToDo().get(y);
+
+                                    // 1. Crea una nuova CheckList vuota
+                                    CheckList nuovaCheckList = new CheckList();
+
+                                    // 2. Copia le attività dalla checklist originale
+                                    for (Activity a : todo.getCheckList().getActivities()) {
+                                        // Si assume che Activity abbia un costruttore che accetta nome e stato
+                                        Activity copiaAttivita = new Activity(a.getName(), a.getState());
+                                        nuovaCheckList.addActivity(copiaAttivita); 
+                                    }
+
+                                    // 3. Crea il nuovo ToDo copiato, con checklist e condiviso=true
+                                    ToDo copiaToDo = new ToDo(todo.getTitle(), todo.getState(), nuovaCheckList, true);
+
+                                    // 4. Aggiungi il ToDo copiato all’utente destinatario
+                                    users.get(x).getBoards()[boardIndex].getToDo().add(copiaToDo);
+
+
+
+                                    // Crea sharing per l’amministratore
+                                    Sharing sharingAdmin = new Sharing(users.get(i), todo);
+                                    sharingAdmin.getMembers().add(users.get(x)); // aggiungi utente condiviso
+                                    users.get(i).getSharing().add(sharingAdmin);
+
+                                    // Crea sharing per l’utente condiviso
+                                    Sharing sharingUser = new Sharing(users.get(i), todo);
+                                    sharingUser.getMembers().add(users.get(x)); // aggiungi utente condiviso
+                                    users.get(x).getSharing().add(sharingUser);
+
                                     toDoTrovato = 1;
                                     break;
                                 }
                             }
-                            if(toDoTrovato == 0){
+
+                            if (toDoTrovato == 0) {
                                 System.out.println("To do non trovato dell'amministratore");
                             }
-                            bachecaAmmTrovata = 1;
-                        }else if(boardName.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null){
-                            if(users.get(x).getBoards()[1] == null){
-                                Board b = new Board(users.get(i).getBoards()[0].getType(), users.get(i).getBoards()[1].getDescription());
-                                users.get(x).addBoard(b);
-                            }
-                            int toDoTrovato = 0;
-                            for(int y = 0; y < users.get(i).getBoards()[1].getToDo().size(); y++){
-                                if(toDoName.equalsIgnoreCase(users.get(i).getBoards()[1].getToDo().get(y).getTitle())){
-                                    ToDo todo = users.get(i).getBoards()[1].getToDo().get(y);
-                                    users.get(x).getBoards()[1].getToDo().add(todo);
-                                    Sharing s = new Sharing(users.get(i),todo);
-                                    users.get(i).getSharing().add(s);
-                                    toDoTrovato = 1;
-                                    break;
-                                }
-                            }
-                            if(toDoTrovato == 0){
-                                System.out.println("To do non trovato dell'amministratore");
-                            }
-                            bachecaAmmTrovata = 1;
-                        }else if(boardName.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null){
-                            if(users.get(x).getBoards()[2] == null){
-                                Board b = new Board(users.get(i).getBoards()[2].getType(), users.get(i).getBoards()[2].getDescription());
-                                users.get(x).addBoard(b);
-                            }
-                            int toDoTrovato = 0;
-                            for(int y = 0; y < users.get(i).getBoards()[2].getToDo().size(); y++){
-                                if(toDoName.equalsIgnoreCase(users.get(i).getBoards()[2].getToDo().get(y).getTitle())){
-                                    ToDo todo = users.get(i).getBoards()[2].getToDo().get(y);
-                                    users.get(x).getBoards()[2].getToDo().add(todo);
-                                    Sharing s = new Sharing(users.get(i),todo);
-                                    users.get(i).getSharing().add(s);
-                                    toDoTrovato = 1;
-                                    break;
-                                }
-                            }
-                            if(toDoTrovato == 0){
-                                System.out.println("To do non trovato dell'amministratore");
-                            }
+
                             bachecaAmmTrovata = 1;
                         }
                     }
                 }
-                if(bachecaAmmTrovata == 0){
-                    System.out.println("Bacheca amministratore non trovata...:"+ boardName);
 
+                if (bachecaAmmTrovata == 0) {
+                    System.out.println("Bacheca amministratore non trovata...: " + boardName);
                 }
             }
         }
+
         if (AmministratoreFound == 0) {
             System.out.println("Amministratore non Loggato...");
         }
+
         if (utenteTrovato == 0) {
             System.out.println("Utente non esistente...");
             return false;
         }
+
         return true;
+    }
+
+    public boolean rimuoviUtenteDaCondivisione(String emailUtente, String toDoName, String emailDaEliminare) {
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getEmail().equalsIgnoreCase(emailUtente)) {
+                // Cicla su tutti gli sharing
+                for (int x = 0; x < users.get(i).getSharing().size(); x++) {
+                    Sharing sharing = users.get(i).getSharing().get(x);
+
+                    // Verifica che l'utente sia l'amministratore del sharing
+                    if (!sharing.getAdministrator().getEmail().equalsIgnoreCase(emailUtente)) {
+                        continue;
+                    }
+
+                    if (sharing.getToDo().getTitle().equalsIgnoreCase(toDoName)) {
+                        // Cerca il membro da eliminare
+                        for (int z = 0; z < sharing.getMembers().size(); z++) {
+                            User membro = sharing.getMembers().get(z);
+                            if (membro.getEmail().equalsIgnoreCase(emailDaEliminare)) {
+                                sharing.getMembers().remove(z); // rimuovi membro
+
+                                // Ora rimuovi anche la sharing da lui
+                                for (int u = 0; u < membro.getSharing().size(); u++) {
+                                    Sharing s = membro.getSharing().get(u);
+                                    if (s.getToDo().getTitle().equalsIgnoreCase(toDoName)
+                                            && s.getAdministrator().getEmail().equalsIgnoreCase(emailUtente)) {
+                                        membro.getSharing().remove(u);
+                                        break;
+                                    }
+                                }
+
+                                // Rimuovi il ToDo condiviso dalla board
+                                Board[] boards = membro.getBoards();
+                                for (int b = 0; b < boards.length; b++) {
+                                    if (boards[b] != null) {
+                                        for (int t = 0; t < boards[b].getToDo().size(); t++) {
+                                            ToDo todo = boards[b].getToDo().get(t);
+                                            if (todo.getTitle().equalsIgnoreCase(toDoName) && todo.isCondiviso()) {
+                                                boards[b].getToDo().remove(t);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                System.out.println("Utente rimosso con successo.");
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Errore: condivisione o utente non trovati.");
+        return false;
+    }
+
+
+    public ArrayList<User> getToDoUserShared(String email, String toDo){
+        int notFound = 0;
+        ArrayList<User> listaUtenti = new ArrayList<>();
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                for (int x = 0; x < users.get(i).getSharing().size(); x++){
+                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
+                        for (int y = 0; y < users.get(i).getSharing().get(x).getMembers().size(); y++){
+                            listaUtenti.add(users.get(i).getSharing().get(x).getMembers().get(y));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+        return listaUtenti;
+    }
+
+    public String getToAdministratorNick(String email, String toDo){
+        int notFound = 0;
+        String nickname = "";
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                for (int x = 0; x < users.get(i).getSharing().size(); x++){
+                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
+                        nickname = users.get(i).getSharing().get(x).getAdministrator().getNickname();
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+        return nickname;
+    }
+
+    public String getToAdministratorMail(String email, String toDo){
+        int notFound = 0;
+        String mail = "";
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                for (int x = 0; x < users.get(i).getSharing().size(); x++){
+                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
+                        mail = users.get(i).getSharing().get(x).getAdministrator().getEmail();
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+        return mail;
+    }
+
+    public int spostaToDoInBacheca(String email, String nomeToDo, String nomeBachecaInCuiSpostare, String nomeBachecaDiOrigine){
+        //return 0 = tutto ok
+        //return 1 = todo gia esistente nella bacheca dove vuoi spostare
+        //return 2 = toDo condiviso, non puoi spostarlo
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                for (int x = 0; x < users.size(); x++) {
+                    //trovo bacheca in cui spostare
+                    int boardIndex = -1;
+                    if (nomeBachecaInCuiSpostare.equalsIgnoreCase("UNIVERSITY")) boardIndex = 0;
+                    else if (nomeBachecaInCuiSpostare.equalsIgnoreCase("WORK")) boardIndex = 1;
+                    else if (nomeBachecaInCuiSpostare.equalsIgnoreCase("FREETIME")) boardIndex = 2;
+
+                    //trovo bacheca di origine dove presente il toDo
+                    int boardIndexOrigine = -1;
+                    if (nomeBachecaDiOrigine.equalsIgnoreCase("UNIVERSITY")) boardIndexOrigine = 0;
+                    else if (nomeBachecaDiOrigine.equalsIgnoreCase("WORK")) boardIndexOrigine = 1;
+                    else if (nomeBachecaDiOrigine.equalsIgnoreCase("FREETIME")) boardIndexOrigine = 2;
+
+                    for(int y = 0; y < users.get(i).getBoards()[boardIndexOrigine].getToDo().size(); y++){
+                        if(users.get(i).getBoards()[boardIndexOrigine].getToDo().get(y).getTitle().equalsIgnoreCase(nomeToDo) && users.get(i).getBoards()[boardIndexOrigine].getToDo().get(y).isCondiviso() == false){
+                            ToDo todo = users.get(i).getBoards()[boardIndexOrigine].getToDo().get(y);
+                            for(int z = 0; z < users.get(i).getBoards()[boardIndex].getToDo().size(); z++){
+                                if(users.get(i).getBoards()[boardIndex].getToDo().get(z).getTitle().equalsIgnoreCase(nomeToDo)){
+                                    System.out.println("To do con questo nome gia presente nell'altra bacheca");
+                                    return 1;
+                                }
+                            }
+                            // 1 Crea una nuova CheckList vuota
+                            CheckList nuovaCheckList = new CheckList();
+
+                            // 2 Copia le attività dalla checklist originale
+                            for (Activity a : todo.getCheckList().getActivities()) {
+                                Activity copiaAttivita = new Activity(a.getName(), a.getState());
+                                nuovaCheckList.addActivity(copiaAttivita);
+                            }
+
+                            // 3 Crea il nuovo ToDo copiato, con checklist e condiviso=true
+                            ToDo copiaToDo = new ToDo(todo.getTitle(), todo.getState(), nuovaCheckList, todo.isCondiviso());
+
+                            // 4 Aggiungi il ToDo copiato all’utente destinatario
+                            users.get(i).getBoards()[boardIndex].getToDo().add(copiaToDo);
+
+
+                        }else{
+                            System.out.println("to do condiviso non spostabile");
+                            return 2;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+        return 0;
     }
 
 

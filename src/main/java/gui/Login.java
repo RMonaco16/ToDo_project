@@ -23,7 +23,7 @@ public class Login {
             public void actionPerformed(ActionEvent e) {
                 String passwordStr = new String(passwordField1.getPassword());
                 if(!(controller.login(textField1.getText(), passwordStr))){
-                    JOptionPane.showMessageDialog(loginButton,"Utete non torvato!");
+                    JOptionPane.showMessageDialog(loginButton,"User not found!");
                 }else{
                     Home home = new Home(controller,frame,textField1.getText());
                 }

@@ -16,11 +16,12 @@ public class Chronology {
     private JButton deleteSelectedButton;
     private JButton deleteAllButton;
     private DefaultTableModel defaultTableModel;
+    private JFrame nuovoFrame;
 
     public Chronology(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente) {
 
         // Mostra la GUI
-        JFrame nuovoFrame = new JFrame("Chronology");
+         nuovoFrame = new JFrame("Chronology");
         nuovoFrame.setContentPane(panelCronologia);
         nuovoFrame.setSize(450, 650);
         nuovoFrame.setLocationRelativeTo(null);
@@ -94,5 +95,10 @@ public class Chronology {
                 }
             }
         });
+    }
+
+    //metodo per ritorare ad home lo stato del frame per il controllo apertura finestr amultipla
+    public JFrame getFrame() {
+        return nuovoFrame;
     }
 }

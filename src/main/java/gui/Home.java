@@ -16,6 +16,9 @@ public class Home {
     private JPanel panelBoards;
     private JFrame jFrame;
     private JLabel emptyLabel; // serve per il messaggio iniziale
+    private AddBoard addBoardWindow = null;//mi istanzio addBoard per poi verificare se gia aperta
+    private Chronology chronologyWindow = null;//stessa cosa per controllo gia aperta
+    private DeleteBoardForm deleteBoardFormWindow = null;//variabile per controllare stato deleteBoard
 
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
@@ -44,7 +47,14 @@ public class Home {
 
         JButton historyButton = new JButton("\uD83D\uDD58");
         historyButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        historyButton.addActionListener(e -> new Chronology(controller, jFrame, emailUtente));
+        historyButton.addActionListener(e -> {
+            if (chronologyWindow == null || !chronologyWindow.getFrame().isVisible()) {
+                chronologyWindow = new Chronology(controller, jFrame, emailUtente);
+            } else {
+                chronologyWindow.getFrame().toFront();
+                chronologyWindow.getFrame().requestFocus();
+            }
+        });
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rightPanel.setBorder(new EmptyBorder(5, 0, 5, 10));
         rightPanel.add(historyButton);
@@ -64,8 +74,15 @@ public class Home {
         // Bottone DELETE (a sinistra)
         JButton deleteButton = new JButton("🗑️");
         deleteButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+
+        //apertura della finestra e Condizione per non farla aprire piu volte
         deleteButton.addActionListener(e -> {
-            DeleteBoardForm deleteBoardForm = new DeleteBoardForm(controller,jFrame,emailUtente,Home.this);
+            if (deleteBoardFormWindow == null || !deleteBoardFormWindow.getFrame().isVisible()) {
+                deleteBoardFormWindow = new DeleteBoardForm(controller, jFrame, emailUtente, Home.this);
+            } else {
+                deleteBoardFormWindow.getFrame().toFront();
+                deleteBoardFormWindow.getFrame().requestFocus();
+            }
         });
         JPanel deletePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         deletePanel.setBorder(new EmptyBorder(5, 10, 5, 0));
@@ -79,7 +96,16 @@ public class Home {
 
         panelHome.add(bottomPanel, BorderLayout.SOUTH);
 
-        ADDButton.addActionListener(e -> new AddBoard(controller, jFrame, emailUtente, Home.this));
+        //apertura della finestra per aggiungere una bacheca e Condizione per non farla aprire piu volte
+        ADDButton.addActionListener(e -> {
+            if (addBoardWindow == null || !addBoardWindow.getFrame().isVisible()) {
+                addBoardWindow = new AddBoard(controller, jFrame, emailUtente, Home.this);
+            } else {
+                addBoardWindow.getFrame().toFront();
+                addBoardWindow.getFrame().requestFocus();
+            }
+        });
+
 
         emptyLabel = new JLabel("No boards available.");
         emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -147,6 +173,11 @@ public class Home {
         }
         panelBoards.revalidate();//aggiorna il layout
         panelBoards.repaint();// aggiorna la grafica visiva
+    }
+
+    //setta deleteBoardFormWindow a null.
+    public void clearDeleteBoardFormWindow() {
+        deleteBoardFormWindow = null;
     }
 
 }

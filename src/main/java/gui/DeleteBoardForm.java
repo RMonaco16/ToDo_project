@@ -13,6 +13,7 @@ public class DeleteBoardForm {
     private JPanel panelDeleteBoard;
     private JButton deleteButton;
     private JComboBox comboBoxBoards;
+    private JFrame nuovoFrame;
 
     public DeleteBoardForm(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente,Home home){
         // Prima ottieni la lista
@@ -33,7 +34,7 @@ public class DeleteBoardForm {
         }
 
         // Solo se ci sono board si crea e mostra il frame
-        JFrame nuovoFrame = new JFrame("Delete Board");
+        nuovoFrame = new JFrame("Delete Board");
         nuovoFrame.setContentPane(panelDeleteBoard);
         nuovoFrame.setSize(350, 300);
         nuovoFrame.setLocationRelativeTo(null);
@@ -59,6 +60,19 @@ public class DeleteBoardForm {
             }
         });
 
+        //listner per verificare che la finestra non venga aperta piu volte
+        nuovoFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+                home.clearDeleteBoardFormWindow();
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                home.clearDeleteBoardFormWindow();
+            }
+        });
+
         nuovoFrame.setVisible(true);
     }
 
@@ -67,5 +81,12 @@ public class DeleteBoardForm {
         controller.deleteBoard(emailUtente, boardName);
         home.refreshBoards(controller, emailUtente); //aggiorna la schermata chiamando il metodo di home
     }
+
+    //metodo per restituire ad home lo stato del frame
+    public JFrame getFrame() {
+        return nuovoFrame;
+    }
+
+
 }
 

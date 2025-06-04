@@ -34,7 +34,11 @@ public class Register {
                     JOptionPane.showMessageDialog(panelRegister,"Enter all values","missing values",JOptionPane.WARNING_MESSAGE);
                 }else{
                     User u = new User(textNickName.getText(), textEmail.getText(),passwordStr);
-                    controller.addUser(u);
+                    boolean esistente = controller.addUser(u);
+                    if(esistente == true){
+                        JOptionPane.showMessageDialog(panelRegister,"email already exists","This email is already in use",JOptionPane.WARNING_MESSAGE);
+                    }
+
                     frameChiamante.setVisible(true);
                     frame.setVisible(false);
                     frame.dispose();
