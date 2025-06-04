@@ -42,12 +42,12 @@
           </grid>
         </children>
       </scrollpane>
-      <component id="f5e3f" class="javax.swing.JButton" binding="deleteButton" default-binding="true">
+      <component id="f5e3f" class="javax.swing.JButton" binding="a️Button" default-binding="true">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="delete"/>
+          <text value="🗑️"/>
         </properties>
       </component>
       <component id="d4b79" class="javax.swing.JButton" binding="searchButton">
@@ -85,8 +85,8 @@
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <font size="22"/>
-          <text value="⇵"/>
+          <font size="18"/>
+          <text value="🔀"/>
         </properties>
       </component>
       <hspacer id="c4198">

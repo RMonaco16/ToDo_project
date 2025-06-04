@@ -25,8 +25,9 @@ public class Home {
 
         jFrame = new JFrame("Home");
         jFrame.setContentPane(panelHome);
-        jFrame.setLocationRelativeTo(null);
+        jFrame.pack();
         jFrame.setSize(600, 400);
+        jFrame.setLocationRelativeTo(null);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         panelHome.setLayout(new BorderLayout());

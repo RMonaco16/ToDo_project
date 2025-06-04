@@ -121,10 +121,13 @@ public class ApplicationManagement {
                 notFound = 1;
                 if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
                     users.get(i).getBoards()[0].searchToDoAddActivity(titleToDo, activity);
+                    return;
                 } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
                     users.get(i).getBoards()[1].searchToDoAddActivity(titleToDo, activity);
+                    return;
                 } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
                     users.get(i).getBoards()[2].searchToDoAddActivity(titleToDo, activity);
+                    return;
                 }
             }
         }
@@ -139,12 +142,40 @@ public class ApplicationManagement {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1;
                 User u = users.get(i);
-                if (board.equalsIgnoreCase("Universita") && u.getBoards()[0] != null) {
+                if (board.equalsIgnoreCase("UNIVERSITY") && u.getBoards()[0] != null) {
                     u.getBoards()[0].searchToDoRemoveActivity(titleToDo, nameActivity);
-                } else if (board.equalsIgnoreCase("lavoro") && u.getBoards()[1] != null) {
+                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    return;
+                } else if (board.equalsIgnoreCase("WORK") && u.getBoards()[1] != null) {
                     u.getBoards()[1].searchToDoRemoveActivity(titleToDo, nameActivity);
-                } else if (board.equalsIgnoreCase("tempo libero") && u.getBoards()[2] != null) {
+                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    return;
+                } else if (board.equalsIgnoreCase("FREETIME") && u.getBoards()[2] != null) {
                     u.getBoards()[2].searchToDoRemoveActivity(titleToDo, nameActivity);
+                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    return;
+                }
+            }
+        }
+        if (notFound == 0) {
+            System.out.println("Utente non Loggato...");
+        }
+    }
+
+    public void editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color){
+        int notFound = 0;
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // trovato
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
+                    users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    return;
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
+                    users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    return;
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
+                    users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    return;
                 }
             }
         }
@@ -161,14 +192,17 @@ public class ApplicationManagement {
                 if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
                     users.get(i).getBoards()[0].srcTodocheck(todo, activity, dataCompletamento);
                     addHistoryAct(email,board,todo,activity);
+                    users.get(i).getBoards()[0].srcToDoifComplete(todo);
                     return;
                 } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
                     users.get(i).getBoards()[1].srcTodocheck(todo, activity, dataCompletamento);
                     addHistoryAct(email,board,todo,activity);
+                    users.get(i).getBoards()[1].srcToDoifComplete(todo);
                     return;
                 } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
                     users.get(i).getBoards()[2].srcTodocheck(todo, activity, dataCompletamento);
                     addHistoryAct(email,board,todo,activity);
+                    users.get(i).getBoards()[2].srcToDoifComplete(todo);
                     return;
                 }
             }
