@@ -8,7 +8,7 @@ import java.time.LocalDate;
 public class ToDo {
     private String title;
     private String description;
-    private String colore;
+    private String color;
     private int position;
     private String image;
     private LocalDate expiration;
@@ -18,17 +18,17 @@ public class ToDo {
     public ToDo(String title, /*String description,*/ boolean state, CheckList checkList) {
         this.title = title;
         this.description = description;
-        this.state = state;
+        this.state = false;
         this.checkList = checkList;
     }
 
     // getter and setter
-    public String getColore() {
-        return colore;
+    public String getColor() {
+        return color;
     }
 
-    public void setColore(String colore) {
-        this.colore = colore;
+    public void setColor(String colore) {
+        this.color = colore;
     }
 
     public String getImage() {
@@ -40,13 +40,7 @@ public class ToDo {
     }
 
     public boolean isState() {
-        this.checkList = checkList;
-        if(!(checkList.getActivities().isEmpty()))
-            for(Activity a: checkList.getActivities()){
-                if(a.getState()==false);
-                return false;
-            }
-        return true;
+        return state;
     }
 
     public String getTitle() {
@@ -73,10 +67,6 @@ public class ToDo {
         this.position = position;
     }
 
-    public boolean getState() {
-        return state;
-    }
-
     public void setState(boolean state) {
         this.state = state;
     }
@@ -96,6 +86,8 @@ public class ToDo {
     public void setExpiration(LocalDate expiration) {
         this.expiration = expiration;
     }
+
+
 }
 
 

@@ -1,6 +1,8 @@
 package model;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +57,7 @@ public class Board {
             if(titleToDo.equalsIgnoreCase(this.toDo.get(i).getTitle())){
                 trovato = 1;
                 this.toDo.get(i).getCheckList().addActivity(a);
+                this.toDo.get(i).setState(false);
             }
         }
         if(trovato == 0){
@@ -103,9 +106,43 @@ public class Board {
         for(ToDo t : toDo){
             if(nmTodo.equalsIgnoreCase(t.getTitle())){
                 t.getCheckList().deCheckAct(nmAct);
+                t.setState(false);
                 return;
             }
         }
+    }
+
+    public void srcToDoToEdit(String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color) {
+        for (ToDo t : toDo) {
+            if (ToDoToSrc.equalsIgnoreCase(t.getTitle())) {
+                t.setTitle(newNameToDo);
+                t.setDescription(description);
+
+                if (expiration != null) {
+                    t.setExpiration(expiration);
+                } else {
+                    t.setExpiration(null);
+                }
+
+                t.setImage(image);
+                t.setColor(color);
+                return;
+            }
+        }
+    }
+
+
+    public void srcToDoifComplete(String nmTodo){
+        for(ToDo t : toDo){
+            if(nmTodo.equalsIgnoreCase(t.getTitle())){
+                if(t.getCheckList().checkToDoComplete()){
+                    t.setState(true);
+                    System.out.println("stateTodo = true");
+                }
+                return;
+            }
+        }
+        return;
     }
 
     public ArrayList<ToDo> print(){

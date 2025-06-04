@@ -45,15 +45,15 @@ public class CheckList {
         }
     }
 
-    public void checkAct(String nmAct, String dataCompletamento){
-        for(Activity a : activities){
-            if(nmAct.equalsIgnoreCase(a.getName())){
+    public boolean checkAct(String nmAct, String dataCompletamento){
+        for(Activity a : activities) {
+            if (nmAct.equalsIgnoreCase(a.getName())) {
                 a.setState(true);
                 a.setCompletionDate(dataCompletamento);
                 System.out.println("set true");
-                return;
             }
         }
+        return false;
     }
 
     public void deCheckAct(String nmAct){
@@ -71,6 +71,14 @@ public class CheckList {
         for(Activity a: activities){
             System.out.print(a.getName()+" | "+a.getState());
         }
+    }
+
+    public boolean checkToDoComplete (){
+        for(Activity a: activities){
+            if(!a.getState())
+                return false;
+        }
+        return true;
     }
 
 }

@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class BoardGui {
     private JButton undoButton;
@@ -249,67 +250,102 @@ public class BoardGui {
                 •	Colore di sfondo personalizzabile
                 •	Stato di completament
             */
-            propertiesButton.addActionListener(e->{
+            propertiesButton.addActionListener(e -> {
+                        JDialog dialog = new JDialog(frame, "Properties", false);
+                        JPanel propertiesDialog = new JPanel();
+                        propertiesDialog.setLayout(new BoxLayout(propertiesDialog, BoxLayout.Y_AXIS));
+                        propertiesDialog.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-                JDialog propertiesDialog = new JDialog(frame,"Properties",false);
-                propertiesDialog.setLayout(new GridLayout(6,1));
 
-                JPanel titlePanel = new JPanel(new BorderLayout(1,2));
-                JLabel titleToDoLabel = new JLabel("Title:");
-                JTextField titleField = new JTextField(20);
-                titleField.setText(t.getTitle());
-                titlePanel.add(titleToDoLabel,BorderLayout.WEST);
-                titlePanel.add(titleField,BorderLayout.EAST);
-                propertiesDialog.add(titlePanel);
+                        // Title
+                        JPanel titlePanel = new JPanel(new BorderLayout(5, 2));
+                        titlePanel.add(new JLabel("Title:"), BorderLayout.WEST);
+                        JTextField titleField = new JTextField(t.getTitle(), 20);
+                        titlePanel.add(titleField, BorderLayout.CENTER);
+                        propertiesDialog.add(titlePanel);
 
-                JPanel expirationPanel = new JPanel(new BorderLayout(1,2));
-                JLabel expirationToDoLabel = new JLabel("Expiration:");
-                JTextField expirationField = new JTextField(20);
-                String expirationText = (t.getExpiration() != null) ? t.getExpiration().toString() : "";
-                expirationField.setText(expirationText);
+                        // Expiration
+                        JPanel expirationPanel = new JPanel(new BorderLayout(5, 2));
+                        expirationPanel.add(new JLabel("Expiration:"), BorderLayout.WEST);
+                        JTextField expirationField = new JTextField(
+                                t.getExpiration() != null ? t.getExpiration().toString() : "", 20
+                        );
+                        expirationPanel.add(expirationField, BorderLayout.CENTER);
+                        propertiesDialog.add(expirationPanel);
 
-                expirationPanel.add(expirationToDoLabel,BorderLayout.WEST);
-                expirationPanel.add(expirationField,BorderLayout.EAST);
-                propertiesDialog.add(expirationPanel);
+                        // Description
+                        JPanel descriptionPanel = new JPanel(new BorderLayout(5, 2));
+                        descriptionPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
+                        JTextArea descriptionArea = new JTextArea(t.getDescription(), 3, 20);
+                        descriptionArea.setLineWrap(true);
+                        descriptionArea.setWrapStyleWord(true);
+                        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+                        descriptionPanel.add(scrollPane, BorderLayout.CENTER);
+                        propertiesDialog.add(descriptionPanel);
 
-                JPanel descriptionPanel = new JPanel(new BorderLayout(1,2));
-                JLabel descriptionToDoLabel = new JLabel("Description:");
-                JTextField descriptionField = new JTextField(20);
-                descriptionField.setText(t.getDescription());
-                descriptionPanel.add(descriptionToDoLabel,BorderLayout.WEST);
-                descriptionPanel.add(descriptionField,BorderLayout.EAST);
-                propertiesDialog.add(descriptionPanel);
+                        // Image
+                        JPanel imagePanel = new JPanel(new BorderLayout(5, 2));
+                        imagePanel.add(new JLabel("Image URL:"), BorderLayout.WEST);
+                        //ImageIcon image = new ImageIcon(t.getImage());
+                        JTextField url = new JTextField();
+                        imagePanel.add(url, BorderLayout.CENTER);
+                        propertiesDialog.add(imagePanel);
 
-                JPanel imagePanel = new JPanel(new BorderLayout(1,2));
-                JLabel imageToDoLabel = new JLabel("Image URL:");
-                ImageIcon image = new ImageIcon(t.getImage());
-                JLabel imageToDo = new JLabel(image);
-                imagePanel.add(imageToDoLabel,BorderLayout.WEST);
-                imagePanel.add(imageToDo,BorderLayout.EAST);
-                propertiesDialog.add(imagePanel);
+                        // Color
+                        JPanel colorPanel = new JPanel(new BorderLayout(5, 2));
+                        colorPanel.add(new JLabel("Color:"), BorderLayout.WEST);
+                        JTextField colorField = new JTextField(20);
+                        colorField.setText(""); // oppure t.getColor() se hai un campo colore
+                        colorPanel.add(colorField, BorderLayout.CENTER);
+                        propertiesDialog.add(colorPanel);
 
-                JPanel colorPanel = new JPanel(new BorderLayout(1,2));
-                JLabel colorToDoLabel = new JLabel("Color:");
-                JTextField colorField = new JTextField(20);
-                descriptionField.setText(t.getDescription());
-                colorPanel.add(colorToDoLabel,BorderLayout.WEST);
-                colorPanel.add(colorField,BorderLayout.EAST);
-                propertiesDialog.add(colorPanel);
+                        // State
+                        JPanel statePanel = new JPanel(new BorderLayout(5, 2));
+                        statePanel.add(new JLabel("Stato:"), BorderLayout.WEST);
+                        JLabel stateField = new JLabel(t.isState() ? "✅" : "❌");
+                        statePanel.add(stateField, BorderLayout.CENTER);
+                        propertiesDialog.add(statePanel);
 
-                JPanel statePanel = new JPanel(new BorderLayout(1,2));
-                JLabel stateToDoLabel = new JLabel("Stato:");
-                JLabel stateField = new JLabel();
-                //String expirationText = (t.getExpiration() != null) ? t.getExpiration().toString() : "";
-                String stateToDo = (t.getState()==true) ? "✅":"❌";
-                stateField.setText(stateToDo);
-                titlePanel.add(titleToDoLabel,BorderLayout.WEST);
-                titlePanel.add(titleField,BorderLayout.EAST);
-                propertiesDialog.add(titlePanel);
+                        JButton saveButton = new JButton("Save");
+                        propertiesDialog.add(saveButton, BorderLayout.EAST);
 
-                propertiesDialog.pack();
-                propertiesDialog.setLocationRelativeTo(frame);
-                propertiesDialog.setVisible(true);
+                        dialog.add(propertiesDialog);
+
+                        dialog.pack();
+                        dialog.setLocationRelativeTo(frame);
+                        dialog.setResizable(false);
+                        dialog.setVisible(true);
+
+                saveButton.addActionListener(z -> {
+                    String expirationString = expirationField.getText().trim();
+                    LocalDate date = null;
+
+                    if (!expirationString.isEmpty()) {
+                        try {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                            date = LocalDate.parse(expirationString, formatter);
+                        } catch (DateTimeParseException ex) {
+                            JOptionPane.showMessageDialog(null, "Formato data non valido. Usa gg-MM-aaaa");
+                            return;
+                        }
+                    }
+
+                    controller.editToDo(
+                            email,
+                            nameBoard,
+                            t.getTitle(),                      // titolo da cercare
+                            titleField.getText(),              // nuovo titolo
+                            descriptionArea.getText(),
+                            date,                              // può essere null
+                            url.getText(),
+                            colorField.getText()
+                    );
+                    updateToDoList(controller, email, nameBoard);
+                    dialog.dispose();
+                });
             });
+
+
 
             rowPanel.add(todoPanel);
             count++;
