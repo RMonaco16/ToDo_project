@@ -101,18 +101,22 @@ public class ApplicationManagement {
     }
 
 
-    public void addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
+    public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
         int notFound = 0;
+        boolean nuova = true;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1;
-                users.get(i).searchBoardAddToDo(tipoEnum, toDo);
+                nuova = users.get(i).searchBoardAddToDo(tipoEnum, toDo);
             }
         }
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
         }
+        return nuova;
     }
+
+
 
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
         int notFound = 0;
@@ -162,26 +166,25 @@ public class ApplicationManagement {
         }
     }
 
-    public void editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color){
+    public boolean editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color){
         int notFound = 0;
+        boolean result = false;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // trovato
                 if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
-                    return;
+                    result = users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
                 } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
-                    return;
+                    result = users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
                 } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
-                    return;
+                    result = users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
                 }
             }
         }
         if (notFound == 0) {
             System.out.println("Utente non Loggato...");
         }
+        return result;
     }
 
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
@@ -492,7 +495,7 @@ public class ApplicationManagement {
                                     }
 
                                     // 3. Crea il nuovo ToDo copiato, con checklist e condiviso=true
-                                    ToDo copiaToDo = new ToDo(todo.getTitle(), todo.getState(), nuovaCheckList, true);
+                                    ToDo copiaToDo = new ToDo(todo.getTitle(), todo.isState(), nuovaCheckList, true);
 
                                     // 4. Aggiungi il ToDo copiato all’utente destinatario
                                     users.get(x).getBoards()[boardIndex].getToDo().add(copiaToDo);
@@ -700,7 +703,7 @@ public class ApplicationManagement {
                             }
 
                             // 3 Crea il nuovo ToDo copiato, con checklist e condiviso=true
-                            ToDo copiaToDo = new ToDo(todo.getTitle(), todo.getState(), nuovaCheckList, todo.isCondiviso());
+                            ToDo copiaToDo = new ToDo(todo.getTitle(), todo.isState(), nuovaCheckList, todo.isCondiviso());
 
                             // 4 Aggiungi il ToDo copiato all’utente destinatario
                             users.get(i).getBoards()[boardIndex].getToDo().add(copiaToDo);

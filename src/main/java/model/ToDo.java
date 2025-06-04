@@ -6,9 +6,9 @@ import java.time.LocalDate;
 public class ToDo {
     private String title;
     private String description;
-    //private String colore;
+    private String color;
     private int position;
-    //private immagine
+    private String image;
     //private url
     private LocalDate expiration;
     private boolean state;
@@ -24,6 +24,24 @@ public class ToDo {
     }
 
     // getter and setter
+
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -32,13 +50,13 @@ public class ToDo {
         this.title = title;
     }
 
-//    public String getDescription() {
-//        return description;
-//    }
-//
-//    public void setDescription(String description) {
-//        this.description = description;
-//    }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public int getPosition() {
         return position;
@@ -48,7 +66,7 @@ public class ToDo {
         this.position = position;
     }
 
-    public boolean getState() {
+    public boolean isState() {
         return state;
     }
 

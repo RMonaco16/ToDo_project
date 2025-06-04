@@ -101,19 +101,18 @@ public class User {
         }
     }
 
-    public void searchBoardAddToDo(String tipoEnum, ToDo toDo) {
-            if (tipoEnum.equalsIgnoreCase("UNIVERSITY") && this.getBoards()[0] != null) {
-            this.getBoards()[0].boardAddToDo(toDo);
-            return;
+    public boolean searchBoardAddToDo(String tipoEnum, ToDo toDo) {
+        boolean nuova = true;
+        if (tipoEnum.equalsIgnoreCase("UNIVERSITY") && this.getBoards()[0] != null) {
+            nuova = this.getBoards()[0].boardAddToDo(toDo);
         } else if (tipoEnum.equalsIgnoreCase("WORK") && this.getBoards()[1] != null) {
-            this.getBoards()[1].boardAddToDo(toDo);
-            return;
+            nuova = this.getBoards()[1].boardAddToDo(toDo);
         } else if (tipoEnum.equalsIgnoreCase("FREETIME") && this.getBoards()[2] != null) {
-            this.getBoards()[2].boardAddToDo(toDo);
-            return;
+            nuova = this.getBoards()[2].boardAddToDo(toDo);
         }else{
             System.out.println("Bacheca non trovata...");
         }
+        return nuova;
     }
 
 

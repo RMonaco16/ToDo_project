@@ -13,7 +13,7 @@ public class Board {
     private ArrayList<ToDo> toDo = new ArrayList<>();
     private ToDoArchiveCompleted toDoArchiveCompleted;
 
-    public Board (TypeBoard type,String description){
+    public Board(TypeBoard type, String description) {
         this.type = type;
         this.description = description;
     }
@@ -51,19 +51,20 @@ public class Board {
         this.toDoArchiveCompleted = toDoArchiveCompleted;
     }
 
-    public void searchToDoAddActivity(String titleToDo, Activity a){
+    public void searchToDoAddActivity(String titleToDo, Activity a) {
         int trovato = 0;
-        for(int i = 0; i < this.toDo.size(); i++){
-            if(titleToDo.equalsIgnoreCase(this.toDo.get(i).getTitle())){
+        for (int i = 0; i < this.toDo.size(); i++) {
+            if (titleToDo.equalsIgnoreCase(this.toDo.get(i).getTitle())) {
                 trovato = 1;
                 this.toDo.get(i).getCheckList().addActivity(a);
                 this.toDo.get(i).setState(false);
             }
         }
-        if(trovato == 0){
+        if (trovato == 0) {
             System.out.println("ToDo non trovato..");
         }
     }
+
 
     public void searchToDoRemoveActivity(String titleToDo, String nameActivity){
         int trovato = 0;
@@ -78,7 +79,7 @@ public class Board {
         }
     }
 
-    public void boardAddToDo(ToDo todo){
+    public boolean boardAddToDo(ToDo todo){
         boolean nuova = true;
         for(int i = 0; i < this.toDo.size(); i++){
             if(this.toDo.get(i).getTitle().equalsIgnoreCase(todo.getTitle())){
@@ -91,6 +92,7 @@ public class Board {
         }else{
             System.out.println("Un to do con questo titolo all'interno di questa bacheca gia esiste...");
         }
+        return nuova; // verso se aggiunta
     }
 
     public void srcTodocheck(String nmTodo,String nmAct, String dataCompletamento){
@@ -111,11 +113,26 @@ public class Board {
             }
         }
     }
+    // ritorna vero se trova un to-do già esistente con lo stesso nome
+    public boolean checkNameToDoAlreadyExisting(String nameToDo){
+        for(ToDo t: toDo){
+            if (t.getTitle().equalsIgnoreCase(nameToDo))
+                return true;
+        }
+        return false;
+    }
 
-    public void srcToDoToEdit(String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color) {
+
+
+    public boolean srcToDoToEdit(String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color) {
+        boolean result = false;
         for (ToDo t : toDo) {
             if (ToDoToSrc.equalsIgnoreCase(t.getTitle())) {
-                t.setTitle(newNameToDo);
+
+                result = checkNameToDoAlreadyExisting(newNameToDo);
+                if (!result)
+                    t.setTitle(newNameToDo);
+
                 t.setDescription(description);
 
                 if (expiration != null) {
@@ -123,12 +140,11 @@ public class Board {
                 } else {
                     t.setExpiration(null);
                 }
-
                 t.setImage(image);
                 t.setColor(color);
-                return;
             }
         }
+        return result;
     }
 
 
