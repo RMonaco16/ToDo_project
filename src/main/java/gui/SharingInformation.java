@@ -48,7 +48,7 @@ public class SharingInformation {
                 int selectedRow = tableInformazioniUsers.getSelectedRow();//prende la riga selezionata
                 if (selectedRow >= 0) {
                     // Supponiamo che l'email sia nella colonna 1
-                    String emailDaEliminare = tableInformazioniUsers.getValueAt(selectedRow, 2).toString();//prende lattributo alla riga selezionata in base alla colonna
+                    String emailDaEliminare = tableInformazioniUsers.getValueAt(selectedRow, 1).toString();//prende lattributo alla riga selezionata in base alla colonna
 
                     boolean successo = controller.rimuoviUtenteDaCondivisione(emailUtente, nomeTodo, emailDaEliminare);
                     if (successo) {
@@ -62,4 +62,9 @@ public class SharingInformation {
             }
         });
     }
+
+    public JPanel getPanel() {
+        return panelSharingInformation;
+    }
+
 }

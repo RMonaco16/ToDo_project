@@ -1,7 +1,7 @@
 package gui;
 
 import controller.ApplicationManagement;
-import model.ToDo;
+import model.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -13,10 +13,16 @@ public class Sharing {
     private JPanel panelSharing;
     private JTextField textEmail;
     private JButton shareButton;
-    private JComboBox comboBoxToDo;
+    private JComboBox<String> comboBoxToDo;
     private JFrame nuovoFrame;
+    private ApplicationManagement controller;
+    private String emailUtente;
+    private String tipoBacheca;
 
     public Sharing(ApplicationManagement controller, String emailUtente, JFrame vecchioFrame, String tipoBacheca){
+        this.controller = controller;
+        this.emailUtente = emailUtente;
+        this.tipoBacheca = tipoBacheca;
 
         // Mostra la GUI
         nuovoFrame = new JFrame("Sharing ToDo");
@@ -27,15 +33,7 @@ public class Sharing {
         nuovoFrame.setVisible(true);
 
         //-----------Popolamento Combo Box---------
-        ArrayList<ToDo> listaToDo = controller.printTodo(emailUtente,tipoBacheca); // Ottieni la lista
-        comboBoxToDo.removeAllItems(); // Pulisci la comboBox
-        comboBoxToDo.addItem("--"); // Placeholder nullo
-
-        for (int i = 0; i < listaToDo.size(); i++) {
-            if(listaToDo.get(i).isCondiviso() != true){
-                comboBoxToDo.addItem(listaToDo.get(i).getTitle()); // Aggiungi ogni elemento alla comboBox
-            }
-        }
+        popolaComboBox();
         //------------------------------------------
 
         //-----------------Condividi---------------
@@ -43,38 +41,53 @@ public class Sharing {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (textEmail.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(panelSharing, "enter an email.", "Error", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panelSharing, "Inserisci una email.", "Errore", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 if (comboBoxToDo.getSelectedItem() == null || comboBoxToDo.getSelectedItem().equals("--")) {
-                    JOptionPane.showMessageDialog(panelSharing, "Select a valid ToDo.", "Error", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panelSharing, "Seleziona un ToDo valido.", "Errore", JOptionPane.WARNING_MESSAGE);
                     return;
-                }else{
-                    condividivisione(emailUtente,textEmail.getText(),tipoBacheca,controller);
+                } else {
+                    condividiToDo(emailUtente, textEmail.getText(), tipoBacheca, (String) comboBoxToDo.getSelectedItem());
                 }
             }
         });
         //-----------------------------------------
-
     }
 
-    public void condividivisione(String emailCreatore, String emailDaCondividere, String bacheca, ApplicationManagement controller){
-        String toDoName = (String) comboBoxToDo.getSelectedItem();
-        boolean risultato = controller.shareToDo(emailCreatore,emailDaCondividere,bacheca,toDoName);
-        if (risultato == false) {
-            JOptionPane.showMessageDialog(panelSharing, "User does not exist.", "Not found", JOptionPane.INFORMATION_MESSAGE);
-        }else{
-            JOptionPane.showMessageDialog(panelSharing, "ToDo shared successfully!!.", "Sharing done", JOptionPane.INFORMATION_MESSAGE);
+    private void popolaComboBox() {
+        ArrayList<ToDo> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
+
+        comboBoxToDo.removeAllItems();
+        comboBoxToDo.addItem("--");
+
+        for (ToDo todo : listaToDo) {
+            comboBoxToDo.addItem(todo.getTitle());
+        }
+    }
+
+
+
+    public void condividiToDo(String emailCreatore, String emailDaCondividere, String bacheca, String toDoName){
+        if (!controller.isUserAdminOfToDo(emailCreatore, bacheca, toDoName)) {
+            JOptionPane.showMessageDialog(panelSharing, "Non puoi condividere un ToDo che non amministri.", "Errore", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        boolean risultato = controller.shareToDo(emailCreatore, emailDaCondividere, bacheca, toDoName);
+        if (!risultato) {
+            JOptionPane.showMessageDialog(panelSharing, "Utente non trovato o errore nello sharing.", "Errore", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(panelSharing, "ToDo condiviso con successo!", "Condivisione completata", JOptionPane.INFORMATION_MESSAGE);
             nuovoFrame.setVisible(false);
             nuovoFrame.dispose();
         }
-
     }
+
+
 
     public JFrame getFrame() {
         return this.nuovoFrame;
     }
-
-
 }

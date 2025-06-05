@@ -10,9 +10,12 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 
 public class BoardGui {
     private JButton undoButton;
@@ -27,6 +30,7 @@ public class BoardGui {
     private JFrame frame;
     private JScrollPane scrollPanelToDo;
     private Sharing sharingWindow = null;//per verificare apertura finestre
+    private JFrame sharingInfoFrame = null;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
         frame = new JFrame(nameBoard);
@@ -83,7 +87,7 @@ public class BoardGui {
 //                    LocalDate expirationDate = LocalDate.parse(expirationText, formatter);
 
                     CheckList checkList = new CheckList();
-                    ToDo todo = new ToDo(nameToDoText, false, checkList, false);
+                    ToDo todo = new ToDo(nameToDoText, false, checkList, false, email);
                     if(!controller.addToDoInBoard(email, nameBoard, todo))
                         JOptionPane.showMessageDialog(newToDo, "Name already used","Errore", JOptionPane.ERROR_MESSAGE);
 
@@ -128,7 +132,7 @@ public class BoardGui {
         JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         int count = 0;
 
-        for (ToDo t : controller.printTodo(email, nameBoard)) {
+        for (ToDo t : controller.getVisibleToDos(controller.findUserByEmail(email), nameBoard)) {
 
             JPanel titleToDo = new JPanel(new BorderLayout());
             JPanel ToDoButton = new JPanel();
@@ -136,6 +140,40 @@ public class BoardGui {
                 JButton sharingInformationButton = new JButton("👥");
                 sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
                 ToDoButton.add(sharingInformationButton);
+
+                //ActionListener bottone 👥
+                sharingInformationButton.addActionListener(e -> {
+                    if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
+                        sharingInfoFrame = new JFrame("Sharing Information");
+                        sharingInfoFrame.setSize(300, 150);
+                        sharingInfoFrame.setLocationRelativeTo(frame);
+                        sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+                        SharingInformation sharingInformation = new SharingInformation(controller,frame,email,t.getTitle());
+                        sharingInfoFrame.setContentPane(sharingInformation.getPanel());
+
+                        // Quando viene chiusa, resetta il riferimento
+                        sharingInfoFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+                            @Override
+                            public void windowClosing(java.awt.event.WindowEvent e) {
+                                sharingInfoFrame = null;
+                            }
+
+                            @Override
+                            public void windowClosed(java.awt.event.WindowEvent e) {
+                                sharingInfoFrame = null;
+                            }
+                        });
+
+                        sharingInfoFrame.setVisible(true);
+                    } else {
+                        // Porta la finestra già aperta in primo piano
+                        sharingInfoFrame.toFront();
+                        sharingInfoFrame.requestFocus();
+                    }
+                });
+
+
             }else{
                 JLabel label = new JLabel();
                 ToDoButton.add(label);
@@ -181,11 +219,13 @@ public class BoardGui {
                 }
             });
 
-            if (!controller.printActs(email, nameBoard, t.getTitle()).isEmpty()) {
-                for (Activity a : controller.printActs(email, nameBoard, t.getTitle())) {
+            ArrayList<Activity> activities = controller.printActs(t.getOwnerEmail(), nameBoard, t.getTitle());
+            if (!activities.isEmpty()) {
+                for (Activity a : activities) {
                     tableModel.addRow(new Object[]{a.getName(), a.getState()});
                 }
             }
+
 
             JTable table = new JTable(tableModel);
 
@@ -253,7 +293,7 @@ public class BoardGui {
                     try {
                         String nameToDoText = nameAct.getText();
                         Activity activity = new Activity(nameToDoText, false);
-                        controller.addActivity(email, t.getTitle(), nameBoard, activity);
+                        controller.addActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activity);
                         updateToDoList(controller, email, nameBoard);
                         newAct.dispose();
                     } catch (Exception ex) {
@@ -265,15 +305,23 @@ public class BoardGui {
                 newAct.setVisible(true);
             });
 
-            rmvActivityButton.addActionListener(e->{
+            rmvActivityButton.addActionListener(e -> {
                 try {
                     int rowTable = table.getSelectedRow();
-                    String activityName = (String) table.getValueAt(rowTable,0);
+                    if (rowTable == -1) {
+                        throw new IllegalStateException("Nessuna riga selezionata");
+                    }
+                    String activityName = (String) table.getValueAt(rowTable, 0);
 
-                    controller.removeActivity(email,t.getTitle(),nameBoard,activityName);
+                    // 🔑 Usa l'owner per rimuovere globalmente l'attività
+                    controller.removeActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activityName);
+
                     updateToDoList(controller, email, nameBoard);
-                }catch (Exception ex){
-                    JOptionPane.showMessageDialog(table, "Selezionare l'attività prima di rimuoverla","Qualcosa è andato storto.", JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(table,
+                            "Seleziona prima un'attività da rimuovere.",
+                            "Errore",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             });
 

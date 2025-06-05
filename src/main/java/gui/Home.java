@@ -20,6 +20,9 @@ public class Home {
     private Chronology chronologyWindow = null;//stessa cosa per controllo gia aperta
     private DeleteBoardForm deleteBoardFormWindow = null;//variabile per controllare stato deleteBoard
 
+    private ArrayList<Board> userBoards;
+    private User user;
+
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
 
@@ -76,7 +79,7 @@ public class Home {
         JButton deleteButton = new JButton("🗑️");
         deleteButton.setFont(new Font("Dialog", Font.PLAIN, 20));
 
-        //apertura della finestra e Condizione per non farla aprire piu volte
+        // apertura della finestra e Condizione per non farla aprire piu volte
         deleteButton.addActionListener(e -> {
             if (deleteBoardFormWindow == null || !deleteBoardFormWindow.getFrame().isVisible()) {
                 deleteBoardFormWindow = new DeleteBoardForm(controller, jFrame, emailUtente, Home.this);
@@ -97,7 +100,7 @@ public class Home {
 
         panelHome.add(bottomPanel, BorderLayout.SOUTH);
 
-        //apertura della finestra per aggiungere una bacheca e Condizione per non farla aprire piu volte
+        // apertura della finestra per aggiungere una bacheca e Condizione per non farla aprire piu volte
         ADDButton.addActionListener(e -> {
             if (addBoardWindow == null || !addBoardWindow.getFrame().isVisible()) {
                 addBoardWindow = new AddBoard(controller, jFrame, emailUtente, Home.this);
@@ -107,26 +110,32 @@ public class Home {
             }
         });
 
-
         emptyLabel = new JLabel("No boards available.");
         emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelBoards.add(emptyLabel);
 
-        jFrame.setVisible(true);
+        // Recupera user e sue board
+        user = controller.findUserByEmail(emailUtente);
+        userBoards = controller.printBoard(emailUtente);
 
-        ArrayList<Board> userBoards = controller.printBoard(emailUtente);
         if (userBoards != null && !userBoards.isEmpty()) {
             for (Board board : userBoards) {
                 if (board != null) {
                     addBoardButton(board, controller, emailUtente);
+
+                    // Recupera ToDo visibili per questa board e mostra (temporaneo in console)
+                    String boardName = board.getType().name();
+                    ArrayList<ToDo> toDoList = controller.getVisibleToDos(user, boardName);
+                    mostraToDoInUI(toDoList);
                 }
             }
         }
+
+        jFrame.setVisible(true);
     }
 
-
     // Metodo per aggiungere un bottone per ogni bacheca ─────────────────────────────
-    public void addBoardButton(Board board,ApplicationManagement controller, String emailUtente) {
+    public void addBoardButton(Board board, ApplicationManagement controller, String emailUtente) {
         // Rimuove la label se ancora presente
         if (emptyLabel != null && emptyLabel.getParent() != null) {
             panelBoards.remove(emptyLabel);
@@ -181,5 +190,12 @@ public class Home {
         deleteBoardFormWindow = null;
     }
 
-}
+    // Metodo temporaneo per mostrare ToDo in console (da sostituire con GUI)
+    private void mostraToDoInUI(ArrayList<ToDo> toDoList) {
+        System.out.println("ToDo visibili:");
+        for (ToDo todo : toDoList) {
+            System.out.println("- " + todo.getTitle());
+        }
+    }
 
+}

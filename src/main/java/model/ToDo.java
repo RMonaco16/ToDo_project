@@ -2,45 +2,28 @@ package model;
 
 import java.time.LocalDate;
 
-
 public class ToDo {
     private String title;
     private String description;
     private String color;
     private int position;
     private String image;
-    //private url
     private LocalDate expiration;
     private boolean state;
-    boolean condiviso;
-    private CheckList checkList;//la  to Do ha una checklist al suo interno
+    private boolean condiviso;
+    private CheckList checkList;
+    private String ownerEmail;  // Nuovo campo per identificare l'amministratore/proprietario
 
-    public ToDo(String title, /*String description,*/ boolean state, CheckList checkList, boolean condivione) {
+    public ToDo(String title, /*String description,*/ boolean state, CheckList checkList, boolean condiviso, String ownerEmail) {
         this.title = title;
-        //this.description = description;
+        // this.description = description;  // Se vuoi tenerla, abilita
         this.state = state;
         this.checkList = checkList;
-        this.condiviso = condivione;
+        this.condiviso = condiviso;
+        this.ownerEmail = ownerEmail;
     }
 
-    // getter and setter
-
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
+    // Getters e setters
 
     public String getTitle() {
         return title;
@@ -58,6 +41,14 @@ public class ToDo {
         this.description = description;
     }
 
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
     public int getPosition() {
         return position;
     }
@@ -66,20 +57,12 @@ public class ToDo {
         this.position = position;
     }
 
-    public boolean isState() {
-        return state;
+    public String getImage() {
+        return image;
     }
 
-    public void setState(boolean state) {
-        this.state = state;
-    }
-
-    public CheckList getCheckList() {
-        return checkList;
-    }
-
-    public void setCheckList(CheckList checkList) {
-        this.checkList = checkList;
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public LocalDate getExpiration() {
@@ -90,6 +73,14 @@ public class ToDo {
         this.expiration = expiration;
     }
 
+    public boolean isState() {
+        return state;
+    }
+
+    public void setState(boolean state) {
+        this.state = state;
+    }
+
     public boolean isCondiviso() {
         return condiviso;
     }
@@ -97,9 +88,20 @@ public class ToDo {
     public void setCondiviso(boolean condiviso) {
         this.condiviso = condiviso;
     }
+
+    public CheckList getCheckList() {
+        return checkList;
+    }
+
+    public void setCheckList(CheckList checkList) {
+        this.checkList = checkList;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
+    }
 }
-
-
-
-
-
