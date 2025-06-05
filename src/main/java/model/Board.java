@@ -128,8 +128,8 @@ public class Board {
         boolean result = false;
         for (ToDo t : toDo) {
             if (ToDoToSrc.equalsIgnoreCase(t.getTitle())) {
-
-                result = checkNameToDoAlreadyExisting(newNameToDo);
+                if(!newNameToDo.equals(ToDoToSrc))
+                    result = checkNameToDoAlreadyExisting(newNameToDo);
                 if (!result)
                     t.setTitle(newNameToDo);
 
