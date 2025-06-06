@@ -10,8 +10,6 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -57,7 +55,7 @@ public class BoardGui {
         });
 
         addButton.addActionListener(e -> {
-            JDialog newToDo = new JDialog(frame, "New Activity", true);
+            JDialog newToDo = new JDialog(frame, "New ToDo", true);
             newToDo.setSize(300, 150);
             newToDo.setLocationRelativeTo(frame);
             newToDo.setResizable(false);
@@ -82,9 +80,6 @@ public class BoardGui {
             doneButton.addActionListener(ae -> {
                 try {
                     String nameToDoText = nameToDo.getText();
-//                    String expirationText = expirationField.getText();
-//                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-//                    LocalDate expirationDate = LocalDate.parse(expirationText, formatter);
 
                     CheckList checkList = new CheckList();
                     ToDo todo = new ToDo(nameToDoText, false, checkList, false, email);
@@ -96,7 +91,7 @@ public class BoardGui {
 
                     newToDo.dispose();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(nameToDo, "Formato data non valido!", "Errore", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(nameToDo, "Invalid date format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -108,7 +103,6 @@ public class BoardGui {
         shareButton.addActionListener(e -> {
             if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
                 sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard);
-                updateToDoList(controller, email, nameBoard);
             } else {
                 sharingWindow.getFrame().toFront();
                 sharingWindow.getFrame().requestFocus();
@@ -116,54 +110,61 @@ public class BoardGui {
         });
 
         deleteButton.addActionListener(e -> {
-            JDialog dialogDelete = new JDialog(frame, "New Activity", true);
-            dialogDelete.setSize(300, 150);
-            dialogDelete.setLocationRelativeTo(frame);
-            dialogDelete.setResizable(false);
+            JDialog dialogDeleteToDo = new JDialog(frame, "Delete ToDo", true);
+            dialogDeleteToDo.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-            JPanel panelDelete = new JPanel();
-            panelDelete.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-            panelDelete.setLayout(new BorderLayout(10, 10));
+            // Pannello principale con padding
+            JPanel mainPanel = new JPanel();
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-            JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
-            inputPanel.add(new JLabel("Select ToDo to delete:"), BorderLayout.NORTH);
-            JComboBox<String> toDoToDelete = new JComboBox<>();
-            toDoToDelete.addItem("");
-            for(ToDo t:controller.printTodo(email,nameBoard)){
-                toDoToDelete.addItem(t.getTitle());
+            // Pannello selezione ToDo
+            JPanel selectionPanel = new JPanel(new BorderLayout(10, 10));
+            JLabel selectLabel = new JLabel("Select ToDo:");
+            JComboBox<String> toDoComboBox = new JComboBox<>();
+            toDoComboBox.addItem("");
+
+            for (ToDo t : controller.printTodo(email, nameBoard)) {
+                toDoComboBox.addItem(t.getTitle());
             }
 
-            inputPanel.add(toDoToDelete, BorderLayout.CENTER);
+            selectionPanel.add(selectLabel, BorderLayout.WEST);
+            selectionPanel.add(toDoComboBox, BorderLayout.CENTER);
+            selectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            mainPanel.add(selectionPanel);
 
-            JButton doneButton = new JButton("Delete");
+            // Spazio verticale
+            mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+            // Pannello pulsanti
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            buttonPanel.add(doneButton);
+            JButton deleteBtn = new JButton("Delete");
 
-            panelDelete.add(inputPanel, BorderLayout.CENTER);
-            panelDelete.add(buttonPanel, BorderLayout.SOUTH);
-
-            dialogDelete.setContentPane(panelDelete);
-
-            doneButton.addActionListener(x->{
-               if(toDoToDelete.getSelectedItem()==null||toDoToDelete.getSelectedItem().equals("")){
-                   JOptionPane.showMessageDialog(dialogDelete, "First select the todo", "Errore",JOptionPane.ERROR_MESSAGE);
-               }else{
-                   if(controller.deleteToDo(email,nameBoard,toDoToDelete.getSelectedItem().toString())){
-                       JOptionPane.showMessageDialog(dialogDelete, "all deleted correctly");
-                       dialogDelete.dispose();
-                       updateToDoList(controller, email, nameBoard);
-                   }else{
-                       JOptionPane.showMessageDialog(dialogDelete, "you are not the administrator of this ToDo", "Warning",JOptionPane.WARNING_MESSAGE);
-                   }
-
-               }
+            deleteBtn.addActionListener(ev -> {
+                String selected = (String) toDoComboBox.getSelectedItem();
+                if (selected != null && !selected.isEmpty()) {
+                    controller.deleteToDo(email, nameBoard, selected);
+                    updateToDoList(controller, email, nameBoard);
+                    dialogDeleteToDo.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(dialogDeleteToDo, "Please select a ToDo to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
             });
 
-            dialogDelete.setVisible(true);
+            buttonPanel.add(deleteBtn);
+            buttonPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+            mainPanel.add(buttonPanel);
+
+            // Finalizzazione dialog
+            dialogDeleteToDo.setContentPane(mainPanel);
+            dialogDeleteToDo.pack();
+            dialogDeleteToDo.setSize(350, 170);
+            dialogDeleteToDo.setLocationRelativeTo(frame);
+            dialogDeleteToDo.setResizable(false);
+            dialogDeleteToDo.setVisible(true);
         });
 
 
-        updateToDoList(controller, email, nameBoard);
     }
 
     private void updateToDoList(ApplicationManagement controller, String email, String nameBoard) {
@@ -185,7 +186,7 @@ public class BoardGui {
                 sharingInformationButton.addActionListener(e -> {
                     if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
                         sharingInfoFrame = new JFrame("Sharing Information");
-                        sharingInfoFrame.setSize(500, 200);
+                        sharingInfoFrame.setSize(300, 150);
                         sharingInfoFrame.setLocationRelativeTo(frame);
                         sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -337,7 +338,7 @@ public class BoardGui {
                         updateToDoList(controller, email, nameBoard);
                         newAct.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(newAct, "Qualcosa è andato storto.", "Errore", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(newAct, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 });
 
@@ -349,34 +350,26 @@ public class BoardGui {
                 try {
                     int rowTable = table.getSelectedRow();
                     if (rowTable == -1) {
-                        throw new IllegalStateException("Nessuna riga selezionata");
+                        throw new IllegalStateException("No rows selected");
                     }
-
                     String activityName = (String) table.getValueAt(rowTable, 0);
 
-                    // 🔑 Rimozione attività
+                    // 🔑 Usa l'owner per rimuovere globalmente l'attività
                     controller.removeActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activityName);
 
                     updateToDoList(controller, email, nameBoard);
-                } catch (IllegalStateException ex) {
-                    JOptionPane.showMessageDialog(table,
-                            "Seleziona prima un'attività da rimuovere.",
-                            "Errore",
-                            JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
-                    ex.printStackTrace(); // utile per debugging
                     JOptionPane.showMessageDialog(table,
-                            "Errore durante la rimozione dell'attività.",
-                            "Errore",
+                            "First select an activity to remove.",
+                            "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
 
-
             /*  •	Titolo (obbligatorio)
                 •	Data di scadenza
                 •	Descrizione dettagliata
-                 •	Immagine
+                •	Immagine
                 •	Colore di sfondo personalizzabile
                 •	Stato di completament
             */
@@ -465,13 +458,23 @@ public class BoardGui {
                 saveButton.addActionListener(z -> {
                     String expirationString = expirationField.getText().trim();
                     LocalDate date = null;
+                    String nuovaBoard = boardComboBox.getSelectedItem().toString();
+
+
 
                     if (!expirationString.isEmpty()) {
                         try {
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                             date = LocalDate.parse(expirationString, formatter);
+
+                            // Controllo che la data non sia nel passato
+                            if (date.isBefore(LocalDate.now())) {
+                                JOptionPane.showMessageDialog(null, "The expiration date cannot be in the past.");
+                                return;
+                            }
+
                         } catch (DateTimeParseException ex) {
-                            JOptionPane.showMessageDialog(null, "Formato data non valido. Usa gg-MM-aaaa");
+                            JOptionPane.showMessageDialog(null, "Invalid date format. Use dd-MM-yyyy");
                             return;
                         }
                     }
@@ -479,6 +482,19 @@ public class BoardGui {
                     if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), colorField.getText())){
                         JOptionPane.showMessageDialog(saveButton,"name already in use");
                     }
+
+                    //controllo spostamento bacheca
+                    if(!nameBoard.equalsIgnoreCase(nuovaBoard)){
+                        int result =  controller.spostaToDoInBacheca(email,t.getTitle(),nuovaBoard,nameBoard);
+                        if(result == 1){
+                            JOptionPane.showMessageDialog(null,"To-Do already exists in " + nuovaBoard+ "dashboard", "Error", JOptionPane.WARNING_MESSAGE);
+                        }else if(result == 2){
+                            JOptionPane.showMessageDialog(null,"You can't move a shared To-Do ","Error", JOptionPane.WARNING_MESSAGE);
+                        }else if(result == 0){
+                            JOptionPane.showMessageDialog(null,"To-Do moved to"+ nuovaBoard + "board", "Moved correctly", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();
                 });
