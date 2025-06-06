@@ -96,7 +96,7 @@ public class BoardGui {
 
                     newToDo.dispose();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(nameToDo, "Formato data non valido!", "Errore", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(nameToDo, "Invalid date format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -119,8 +119,6 @@ public class BoardGui {
             JPanel panelDeleteToDo = new JPanel();
             panelDeleteToDo.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
             panelDeleteToDo.setLayout(new BoxLayout(panelDeleteToDo, BoxLayout.Y_AXIS));
-
-
         });
 
         updateToDoList(controller, email, nameBoard);
@@ -297,7 +295,7 @@ public class BoardGui {
                         updateToDoList(controller, email, nameBoard);
                         newAct.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(newAct, "Qualcosa è andato storto.", "Errore", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(newAct, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 });
 
@@ -309,7 +307,7 @@ public class BoardGui {
                 try {
                     int rowTable = table.getSelectedRow();
                     if (rowTable == -1) {
-                        throw new IllegalStateException("Nessuna riga selezionata");
+                        throw new IllegalStateException("No rows selected");
                     }
                     String activityName = (String) table.getValueAt(rowTable, 0);
 
@@ -319,8 +317,8 @@ public class BoardGui {
                     updateToDoList(controller, email, nameBoard);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(table,
-                            "Seleziona prima un'attività da rimuovere.",
-                            "Errore",
+                            "First select an activity to remove.",
+                            "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
@@ -417,13 +415,23 @@ public class BoardGui {
                 saveButton.addActionListener(z -> {
                     String expirationString = expirationField.getText().trim();
                     LocalDate date = null;
+                    String nuovaBoard = boardComboBox.getSelectedItem().toString();
+
+
 
                     if (!expirationString.isEmpty()) {
                         try {
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                             date = LocalDate.parse(expirationString, formatter);
+
+                            // Controllo che la data non sia nel passato
+                            if (date.isBefore(LocalDate.now())) {
+                                JOptionPane.showMessageDialog(null, "The expiration date cannot be in the past.");
+                                return;
+                            }
+
                         } catch (DateTimeParseException ex) {
-                            JOptionPane.showMessageDialog(null, "Formato data non valido. Usa gg-MM-aaaa");
+                            JOptionPane.showMessageDialog(null, "Invalid date format. Use dd-MM-yyyy");
                             return;
                         }
                     }
@@ -431,6 +439,19 @@ public class BoardGui {
                     if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), colorField.getText())){
                         JOptionPane.showMessageDialog(saveButton,"name already in use");
                     }
+
+                    //controllo spostamento bacheca
+                    if(!nameBoard.equalsIgnoreCase(nuovaBoard)){
+                       int result =  controller.spostaToDoInBacheca(email,t.getTitle(),nuovaBoard,nameBoard);
+                       if(result == 1){
+                           JOptionPane.showMessageDialog(null,"To-Do already exists in " + nuovaBoard+ "dashboard", "Error", JOptionPane.WARNING_MESSAGE);
+                       }else if(result == 2){
+                           JOptionPane.showMessageDialog(null,"You can't move a shared To-Do ","Error", JOptionPane.WARNING_MESSAGE);
+                       }else if(result == 0){
+                           JOptionPane.showMessageDialog(null,"To-Do moved to"+ nuovaBoard + "board", "Moved correctly", JOptionPane.INFORMATION_MESSAGE);
+                       }
+                    }
+
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();
                 });
