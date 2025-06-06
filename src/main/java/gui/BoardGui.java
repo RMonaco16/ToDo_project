@@ -148,8 +148,10 @@ public class BoardGui {
                if(toDoToDelete.getSelectedItem()==null||toDoToDelete.getSelectedItem().equals("")){
                    JOptionPane.showMessageDialog(dialogDelete, "First select the todo", "Errore",JOptionPane.ERROR_MESSAGE);
                }else{
-                   if(controller.deleteToDo(email,nameBoard)){
+                   if(controller.deleteToDo(email,nameBoard,toDoToDelete.getSelectedItem().toString())){
                        JOptionPane.showMessageDialog(dialogDelete, "all deleted correctly");
+                       dialogDelete.dispose();
+                       updateToDoList(controller, email, nameBoard);
                    }else{
                        JOptionPane.showMessageDialog(dialogDelete, "you are not the administrator of this ToDo", "Warning",JOptionPane.WARNING_MESSAGE);
                    }
