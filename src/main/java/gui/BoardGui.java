@@ -108,20 +108,58 @@ public class BoardGui {
         shareButton.addActionListener(e -> {
             if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
                 sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard);
+                updateToDoList(controller, email, nameBoard);
             } else {
                 sharingWindow.getFrame().toFront();
                 sharingWindow.getFrame().requestFocus();
             }
         });
 
-        deleteButton.addActionListener(e->{
-            JDialog dialogDeleteToDo = new JDialog(frame, "Delete ToDo",true);
-            JPanel panelDeleteToDo = new JPanel();
-            panelDeleteToDo.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
-            panelDeleteToDo.setLayout(new BoxLayout(panelDeleteToDo, BoxLayout.Y_AXIS));
+        deleteButton.addActionListener(e -> {
+            JDialog dialogDelete = new JDialog(frame, "New Activity", true);
+            dialogDelete.setSize(300, 150);
+            dialogDelete.setLocationRelativeTo(frame);
+            dialogDelete.setResizable(false);
 
+            JPanel panelDelete = new JPanel();
+            panelDelete.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+            panelDelete.setLayout(new BorderLayout(10, 10));
 
+            JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
+            inputPanel.add(new JLabel("Select ToDo to delete:"), BorderLayout.NORTH);
+            JComboBox<String> toDoToDelete = new JComboBox<>();
+            toDoToDelete.addItem("");
+            for(ToDo t:controller.printTodo(email,nameBoard)){
+                toDoToDelete.addItem(t.getTitle());
+            }
+
+            inputPanel.add(toDoToDelete, BorderLayout.CENTER);
+
+            JButton doneButton = new JButton("Delete");
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.add(doneButton);
+
+            panelDelete.add(inputPanel, BorderLayout.CENTER);
+            panelDelete.add(buttonPanel, BorderLayout.SOUTH);
+
+            dialogDelete.setContentPane(panelDelete);
+
+            doneButton.addActionListener(x->{
+               if(toDoToDelete.getSelectedItem()==null||toDoToDelete.getSelectedItem().equals("")){
+                   JOptionPane.showMessageDialog(dialogDelete, "First select the todo", "Errore",JOptionPane.ERROR_MESSAGE);
+               }else{
+                   if(controller.deleteToDo(email,nameBoard)){
+                       JOptionPane.showMessageDialog(dialogDelete, "all deleted correctly");
+                   }else{
+                       JOptionPane.showMessageDialog(dialogDelete, "you are not the administrator of this ToDo", "Warning",JOptionPane.WARNING_MESSAGE);
+                   }
+
+               }
+            });
+
+            dialogDelete.setVisible(true);
         });
+
 
         updateToDoList(controller, email, nameBoard);
     }
@@ -145,7 +183,7 @@ public class BoardGui {
                 sharingInformationButton.addActionListener(e -> {
                     if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
                         sharingInfoFrame = new JFrame("Sharing Information");
-                        sharingInfoFrame.setSize(300, 150);
+                        sharingInfoFrame.setSize(500, 200);
                         sharingInfoFrame.setLocationRelativeTo(frame);
                         sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -311,24 +349,32 @@ public class BoardGui {
                     if (rowTable == -1) {
                         throw new IllegalStateException("Nessuna riga selezionata");
                     }
+
                     String activityName = (String) table.getValueAt(rowTable, 0);
 
-                    // 🔑 Usa l'owner per rimuovere globalmente l'attività
+                    // 🔑 Rimozione attività
                     controller.removeActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activityName);
 
                     updateToDoList(controller, email, nameBoard);
-                } catch (Exception ex) {
+                } catch (IllegalStateException ex) {
                     JOptionPane.showMessageDialog(table,
                             "Seleziona prima un'attività da rimuovere.",
+                            "Errore",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    ex.printStackTrace(); // utile per debugging
+                    JOptionPane.showMessageDialog(table,
+                            "Errore durante la rimozione dell'attività.",
                             "Errore",
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
 
+
             /*  •	Titolo (obbligatorio)
                 •	Data di scadenza
                 •	Descrizione dettagliata
-                •	Immagine
+                 •	Immagine
                 •	Colore di sfondo personalizzabile
                 •	Stato di completament
             */

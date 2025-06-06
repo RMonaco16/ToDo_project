@@ -148,17 +148,19 @@ public class Board {
     }
 
 
-    public void srcToDoifComplete(String nmTodo){
-        for(ToDo t : toDo){
-            if(nmTodo.equalsIgnoreCase(t.getTitle())){
-                if(t.getCheckList().checkToDoComplete()){
+    public void srcToDoifComplete(String nmTodo) {
+        for (ToDo t : toDo) {
+            if (nmTodo.equalsIgnoreCase(t.getTitle())) {
+                if (t.getCheckList().checkToDoComplete() && !t.getCheckList().getActivities().isEmpty()) {
                     t.setState(true);
                     System.out.println("stateTodo = true");
+                } else {
+                    t.setState(false);
                 }
                 return;
             }
+            return;
         }
-        return;
     }
 
     public ArrayList<ToDo> print(){

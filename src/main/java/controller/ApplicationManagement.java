@@ -152,11 +152,11 @@ public class ApplicationManagement {
                     return;
                 } else if (board.equalsIgnoreCase("WORK") && u.getBoards()[1] != null) {
                     u.getBoards()[1].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    u.getBoards()[1].srcToDoifComplete(titleToDo);
                     return;
                 } else if (board.equalsIgnoreCase("FREETIME") && u.getBoards()[2] != null) {
                     u.getBoards()[2].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    u.getBoards()[2].srcToDoifComplete(titleToDo);
                     return;
                 }
             }
