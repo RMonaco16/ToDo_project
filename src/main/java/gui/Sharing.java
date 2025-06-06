@@ -41,12 +41,12 @@ public class Sharing {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (textEmail.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(panelSharing, "Inserisci una email.", "Errore", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panelSharing, "Enter an email.", "Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 if (comboBoxToDo.getSelectedItem() == null || comboBoxToDo.getSelectedItem().equals("--")) {
-                    JOptionPane.showMessageDialog(panelSharing, "Seleziona un ToDo valido.", "Errore", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(panelSharing, "Please select a valid ToDo.", "Error", JOptionPane.WARNING_MESSAGE);
                     return;
                 } else {
                     condividiToDo(emailUtente, textEmail.getText(), tipoBacheca, (String) comboBoxToDo.getSelectedItem());
@@ -71,21 +71,19 @@ public class Sharing {
 
     public void condividiToDo(String emailCreatore, String emailDaCondividere, String bacheca, String toDoName){
         if (!controller.isUserAdminOfToDo(emailCreatore, bacheca, toDoName)) {
-            JOptionPane.showMessageDialog(panelSharing, "Non puoi condividere un ToDo che non amministri.", "Errore", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(panelSharing, "You can't share a ToDo that you don't manage.", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         boolean risultato = controller.shareToDo(emailCreatore, emailDaCondividere, bacheca, toDoName);
         if (!risultato) {
-            JOptionPane.showMessageDialog(panelSharing, "Utente non trovato o errore nello sharing.", "Errore", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(panelSharing, "User not found or sharing error.", "Error", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(panelSharing, "ToDo condiviso con successo!", "Condivisione completata", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(panelSharing, "ToDo shared successfully!", "Sharing completed", JOptionPane.INFORMATION_MESSAGE);
             nuovoFrame.setVisible(false);
             nuovoFrame.dispose();
         }
     }
-
-
 
     public JFrame getFrame() {
         return this.nuovoFrame;

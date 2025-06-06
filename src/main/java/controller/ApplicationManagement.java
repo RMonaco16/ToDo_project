@@ -82,6 +82,83 @@ public class ApplicationManagement {
         }
     }
 
+    public boolean deleteToDo(String email, String nameBoard, String nomeToDo) {
+        int boardIndex = getBoardIndex(nameBoard);
+
+        for (int i = 0; i < users.size(); i++) {
+            User user = users.get(i);
+            if (!user.getEmail().equalsIgnoreCase(email)) continue;
+
+            Board board = user.getBoards()[boardIndex];
+            if (board == null) continue;
+
+            for (int t = 0; t < board.getToDo().size(); t++) {
+                ToDo todo = board.getToDo().get(t);
+                if (!todo.getTitle().equalsIgnoreCase(nomeToDo)) continue;
+
+                if (todo.isCondiviso()) {
+                    // Trova la condivisione di cui è amministratore
+                    Sharing sharingToRemove = null;
+
+                    for (int s = 0; s < user.getSharing().size(); s++) {
+                        Sharing sharing = user.getSharing().get(s);
+                        if (sharing.getToDo().getTitle().equalsIgnoreCase(nomeToDo)
+                                && sharing.getAdministrator().getEmail().equalsIgnoreCase(email)) {
+                            sharingToRemove = sharing;
+                            break;
+                        }
+                    }
+
+                    if (sharingToRemove == null) {
+                        System.out.println("Solo l'amministratore può eliminare un ToDo condiviso.");
+                        return false;
+                    }
+
+                    // Rimuovi il ToDo condiviso da ogni membro
+                    for (int m = 0; m < sharingToRemove.getMembers().size(); m++) {
+                        User membro = sharingToRemove.getMembers().get(m);
+
+                        // Rimuovi ToDo dalla board del membro
+                        Board[] boards = membro.getBoards();
+                        for (int b = 0; b < boards.length; b++) {
+                            if (boards[b] != null) {
+                                for (int td = 0; td < boards[b].getToDo().size(); td++) {
+                                    ToDo tRemove = boards[b].getToDo().get(td);
+                                    if (tRemove.getTitle().equalsIgnoreCase(nomeToDo) && tRemove.isCondiviso()) {
+                                        boards[b].getToDo().remove(td);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Rimuovi sharing dal membro
+                        for (int s = 0; s < membro.getSharing().size(); s++) {
+                            Sharing sRef = membro.getSharing().get(s);
+                            if (sRef.getToDo().getTitle().equalsIgnoreCase(nomeToDo)
+                                    && sRef.getAdministrator().getEmail().equalsIgnoreCase(email)) {
+                                membro.getSharing().remove(s);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Rimuovi sharing da admin
+                    user.getSharing().remove(sharingToRemove);
+                }
+
+                // Elimina definitivamente il ToDo dalla board dell’amministratore
+                board.getToDo().remove(t);
+                System.out.println("ToDo eliminato con successo.");
+                return true;
+            }
+        }
+
+        System.out.println("ToDo non trovato o utente non autorizzato.");
+        return false;
+    }
+
+
     public ArrayList<Board> printBoard(String email) {
         ArrayList<Board> popolaLista = new ArrayList<>();
 
