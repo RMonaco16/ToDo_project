@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.awt.Color;
 
 public class BoardGui {
     private JButton undoButton;
@@ -29,6 +30,7 @@ public class BoardGui {
     private JScrollPane scrollPanelToDo;
     private Sharing sharingWindow = null;//per verificare apertura finestre
     private JFrame sharingInfoFrame = null;
+    private JDialog dialog = null;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
         frame = new JFrame(nameBoard);
@@ -110,39 +112,47 @@ public class BoardGui {
         });
 
         deleteButton.addActionListener(e -> {
-            JDialog dialogDeleteToDo = new JDialog(frame, "Delete ToDo", true);
+            JDialog dialogDeleteToDo = new JDialog(frame, "Delete ToDO", true);
             dialogDeleteToDo.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialogDeleteToDo.setResizable(false);
 
-            // Pannello principale con padding
-            JPanel mainPanel = new JPanel();
-            mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            // Pannello principale
+            JPanel panelDeleteToDo = new JPanel();
+            panelDeleteToDo.setLayout(new BoxLayout(panelDeleteToDo, BoxLayout.Y_AXIS));
+            panelDeleteToDo.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-            // Pannello selezione ToDo
-            JPanel selectionPanel = new JPanel(new BorderLayout(10, 10));
-            JLabel selectLabel = new JLabel("Select ToDo:");
+            // Pannello selezione centrato
+            JPanel selectionPanel = new JPanel();
+            selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.Y_AXIS));
+            selectionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel label = new JLabel("Select ToDo to delete:");
+            label.setAlignmentX(Component.CENTER_ALIGNMENT);
+            selectionPanel.add(label);
+            selectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+
             JComboBox<String> toDoComboBox = new JComboBox<>();
+            toDoComboBox.setMaximumSize(new Dimension(250, 25)); // Altezza contenuta, larghezza fissa
+            toDoComboBox.setAlignmentX(Component.CENTER_ALIGNMENT); // Centra nel BoxLayout
             toDoComboBox.addItem("");
 
             for (ToDo t : controller.printTodo(email, nameBoard)) {
                 toDoComboBox.addItem(t.getTitle());
             }
 
-            selectionPanel.add(selectLabel, BorderLayout.WEST);
-            selectionPanel.add(toDoComboBox, BorderLayout.CENTER);
-            selectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            mainPanel.add(selectionPanel);
+            selectionPanel.add(toDoComboBox);
+            selectionPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-            // Spazio verticale
-            mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+            panelDeleteToDo.add(selectionPanel);
 
-            // Pannello pulsanti
+            // Pannello pulsante
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton deleteBtn = new JButton("Delete");
 
+            // Pulsante normale (niente colore rosso)
             deleteBtn.addActionListener(ev -> {
                 String selected = (String) toDoComboBox.getSelectedItem();
-                if (selected != null && !selected.isEmpty()) {
+                if (selected != null && !selected.trim().isEmpty()) {
                     controller.deleteToDo(email, nameBoard, selected);
                     updateToDoList(controller, email, nameBoard);
                     dialogDeleteToDo.dispose();
@@ -152,19 +162,21 @@ public class BoardGui {
             });
 
             buttonPanel.add(deleteBtn);
-            buttonPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            mainPanel.add(buttonPanel);
+            panelDeleteToDo.add(buttonPanel);
 
-            // Finalizzazione dialog
-            dialogDeleteToDo.setContentPane(mainPanel);
+
+            dialogDeleteToDo.setContentPane(panelDeleteToDo);
             dialogDeleteToDo.pack();
-            dialogDeleteToDo.setSize(350, 170);
+            dialogDeleteToDo.setMinimumSize(new Dimension(350, 170));
             dialogDeleteToDo.setLocationRelativeTo(frame);
-            dialogDeleteToDo.setResizable(false);
             dialogDeleteToDo.setVisible(true);
+
+            toDoComboBox.requestFocusInWindow();
         });
 
 
+
+        updateToDoList(controller,email,nameBoard);
     }
 
     private void updateToDoList(ApplicationManagement controller, String email, String nameBoard) {
@@ -375,7 +387,11 @@ public class BoardGui {
             */
 
             propertiesButton.addActionListener(e -> {
-                JDialog dialog = new JDialog(frame, "Properties", false);
+                if (dialog != null && dialog.isShowing()) {
+                    dialog.toFront();
+                    return;
+                }
+                dialog = new JDialog(frame, "Properties", false);
                 JPanel propertiesDialog = new JPanel();
                 propertiesDialog.setLayout(new BoxLayout(propertiesDialog, BoxLayout.Y_AXIS));
                 propertiesDialog.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
@@ -418,10 +434,13 @@ public class BoardGui {
                 // Color
                 JPanel colorPanel = new JPanel(new BorderLayout(5, 2));
                 colorPanel.add(new JLabel("Color:"), BorderLayout.WEST);
-                JTextField colorField = new JTextField(20);
-                colorField.setText(""); // oppure t.getColor() se hai un campo colore
-                colorPanel.add(colorField, BorderLayout.CENTER);
+                JButton selectColor = new JButton("Color background");
+                colorPanel.add(selectColor, BorderLayout.CENTER);
                 propertiesDialog.add(colorPanel);
+
+                selectColor.addActionListener(h->{
+                    Color selectedColor = JColorChooser.showDialog(null, "Scegli colore", Color.WHITE);
+                });
 
                 // State
                 JPanel statePanel = new JPanel(new BorderLayout(5, 2));
@@ -449,10 +468,11 @@ public class BoardGui {
                 propertiesDialog.add(saveButton, BorderLayout.EAST);
 
                 dialog.add(propertiesDialog);
-
+                dialog.setContentPane(propertiesDialog);
                 dialog.pack();
                 dialog.setLocationRelativeTo(frame);
                 dialog.setResizable(false);
+
                 dialog.setVisible(true);
 
                 saveButton.addActionListener(z -> {
@@ -478,8 +498,10 @@ public class BoardGui {
                             return;
                         }
                     }
+
+                    Color color = Color.BLACK;
                     // se ritorna true ha torvato un altro to-do con lo stesso nome
-                    if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), colorField.getText())){
+                    if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), color )){
                         JOptionPane.showMessageDialog(saveButton,"name already in use");
                     }
 
@@ -494,6 +516,7 @@ public class BoardGui {
                             JOptionPane.showMessageDialog(null,"To-Do moved to"+ nuovaBoard + "board", "Moved correctly", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
+
 
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();

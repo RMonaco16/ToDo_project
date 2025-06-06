@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -124,7 +125,7 @@ public class Board {
 
 
 
-    public boolean srcToDoToEdit(String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color) {
+    public boolean srcToDoToEdit(String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, Color color) {
         boolean result = false;
         for (ToDo t : toDo) {
             if (ToDoToSrc.equalsIgnoreCase(t.getTitle())) {

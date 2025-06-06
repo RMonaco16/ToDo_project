@@ -1,11 +1,12 @@
 package model;
 
+import java.awt.*;
 import java.time.LocalDate;
 
 public class ToDo {
     private String title;
     private String description;
-    private String color;
+    private Color color;
     private int position;
     private String image;
     private LocalDate expiration;
@@ -41,11 +42,11 @@ public class ToDo {
         this.description = description;
     }
 
-    public String getColor() {
+    public Color getColor() {
         return color;
     }
 
-    public void setColor(String color) {
+    public void setColor(Color color) {
         this.color = color;
     }
 

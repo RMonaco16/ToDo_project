@@ -2,6 +2,7 @@ package controller;
 
 import model.*;
 
+import java.awt.*;
 import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -243,7 +244,7 @@ public class ApplicationManagement {
         }
     }
 
-    public boolean editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, String color){
+    public boolean editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, Color color){
         int notFound = 0;
         boolean result = false;
         for (int i = 0; i < users.size(); i++) {
