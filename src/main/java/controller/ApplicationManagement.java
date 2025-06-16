@@ -6,6 +6,7 @@ import java.awt.*;
 import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class ApplicationManagement {
 
@@ -23,12 +24,12 @@ public class ApplicationManagement {
     }
 
     public boolean addUser(User u) {
-        if(u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")){
+        if (u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")) {
             System.out.println("Utente non creato");
-        }else{
+        } else {
             boolean nuovo = false;
-            for(int i = 0; i < users.size(); i ++){
-                if(users.get(i).getEmail().equalsIgnoreCase(u.getEmail())){
+            for (int i = 0; i < users.size(); i++) {
+                if (users.get(i).getEmail().equalsIgnoreCase(u.getEmail())) {
                     System.out.println("Mail gia esistente");
                     return true;
                 }
@@ -195,7 +196,6 @@ public class ApplicationManagement {
     }
 
 
-
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
         int notFound = 0;
         for (int i = 0; i < users.size(); i++) {
@@ -244,18 +244,18 @@ public class ApplicationManagement {
         }
     }
 
-    public boolean editToDo(String email,String board,String ToDoToSrc,String newNameToDo,String description,LocalDate expiration,String image, Color color){
+    public boolean editToDo(String email, String board, String ToDoToSrc, String newNameToDo, String description, LocalDate expiration, String image, Color color) {
         int notFound = 0;
         boolean result = false;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // trovato
                 if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    result = users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    result = users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
                 } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    result = users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    result = users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
                 } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    result = users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image,  color);
+                    result = users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
                 }
             }
         }
@@ -266,53 +266,127 @@ public class ApplicationManagement {
     }
 
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodocheck(todo, activity, dataCompletamento);
-                    addHistoryAct(email,board,todo,activity);
-                    users.get(i).getBoards()[0].srcToDoifComplete(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodocheck(todo, activity, dataCompletamento);
-                    addHistoryAct(email,board,todo,activity);
-                    users.get(i).getBoards()[1].srcToDoifComplete(todo);
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodocheck(todo, activity, dataCompletamento);
-                    addHistoryAct(email,board,todo,activity);
-                    users.get(i).getBoards()[2].srcToDoifComplete(todo);
-                    return;
+        User user = findUserByEmail(email);
+        if (user == null) {
+            System.out.println("Utente non Loggato...");
+            return;
+        }
+
+        int boardIndex = getBoardIndex(board);
+        if (boardIndex == -1) {
+            System.out.println("Board non valida.");
+            return;
+        }
+
+        Board bacheca = user.getBoards()[boardIndex];
+        if (bacheca == null) {
+            System.out.println("Bacheca non trovata.");
+            return;
+        }
+
+        ToDo target = null;
+        for (ToDo t : bacheca.getToDo()) {
+            if (t.getTitle().equalsIgnoreCase(todo)) {
+                target = t;
+                break;
+            }
+        }
+
+        if (target == null) {
+            // Cerca anche tra i ToDo condivisi
+            for (Sharing s : user.getSharing()) {
+                if (s.getToDo().getTitle().equalsIgnoreCase(todo)) {
+                    target = s.getToDo();
+                    break;
                 }
             }
         }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+
+        if (target == null) {
+            System.out.println("ToDo non trovato.");
+            return;
         }
+
+        // Controlla i permessi
+        if (!canUserModifyToDo(email, target)) {
+            System.out.println("Permessi insufficienti per modificare questo ToDo.");
+            return;
+        }
+
+        // Esegui l’azione
+        target.checkActivity(activity, dataCompletamento);
+        addHistoryAct(email, board, todo, activity);
+        target.checkIfComplete();
     }
 
     public void deCheckActivity(String email, String board, String todo, String activity) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodoDeCheck(todo, activity);
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodoDeCheck(todo, activity);
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodoDeCheck(todo, activity);
-                    return;
+        User user = findUserByEmail(email);
+        if (user == null) {
+            System.out.println("Utente non Loggato...");
+            return;
+        }
+
+        int boardIndex = getBoardIndex(board);
+        if (boardIndex == -1) {
+            System.out.println("Board non valida.");
+            return;
+        }
+
+        Board bacheca = user.getBoards()[boardIndex];
+        if (bacheca == null) {
+            System.out.println("Bacheca non trovata.");
+            return;
+        }
+
+        ToDo target = null;
+        for (ToDo t : bacheca.getToDo()) {
+            if (t.getTitle().equalsIgnoreCase(todo)) {
+                target = t;
+                break;
+            }
+        }
+
+        if (target == null) {
+            for (Sharing s : user.getSharing()) {
+                if (s.getToDo().getTitle().equalsIgnoreCase(todo)) {
+                    target = s.getToDo();
+                    break;
                 }
             }
         }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+
+        if (target == null) {
+            System.out.println("ToDo non trovato.");
+            return;
         }
+
+        if (!canUserModifyToDo(email, target)) {
+            System.out.println("Permessi insufficienti per modificare questo ToDo.");
+            return;
+        }
+
+        target.deCheckActivity(activity);
+    }
+
+    public boolean canUserModifyToDo(String userEmail, ToDo toDo) {
+        if (toDo.getOwnerEmail().equalsIgnoreCase(userEmail)) {
+            // È proprietario
+            return true;
+        }
+
+        // Altrimenti controllo se è membro della condivisione
+        User user = findUserByEmail(userEmail);
+        if (user == null) return false;
+
+        for (Sharing s : user.getSharing()) {
+            if (s.getToDo().getTitle().equalsIgnoreCase(toDo.getTitle())
+                    && s.getAdministrator().getEmail().equalsIgnoreCase(toDo.getOwnerEmail())) {
+                // L'utente è membro della condivisione
+                return true;
+            }
+        }
+
+        return false; // Non è né proprietario né membro
     }
 
     public void addHistoryAct(String email, String board, String todo, String activity) {
@@ -450,19 +524,19 @@ public class ApplicationManagement {
         return listaVuota;
     }
 
-    public void swapToDo(String email, String board, String todo, int j){
+    public void swapToDo(String email, String board, String todo, int j) {
         int notFound = 0;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; //trovato
-                if(board.equalsIgnoreCase("universita")&& users.get(i).getBoards()[0]!=null){
-                    users.get(i).getBoards()[0].srcTodoSwap(todo,j);
+                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
+                    users.get(i).getBoards()[0].srcTodoSwap(todo, j);
                     return;
-                }else if(board.equalsIgnoreCase("lavoro")&& users.get(i).getBoards()[1]!=null){
-                    users.get(i).getBoards()[1].srcTodoSwap(todo,j);
+                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
+                    users.get(i).getBoards()[1].srcTodoSwap(todo, j);
                     return;
-                }else if(board.equalsIgnoreCase("tempo libero")&& users.get(i).getBoards()[2]!=null){
-                    users.get(i).getBoards()[2].srcTodoSwap(todo,j);
+                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
+                    users.get(i).getBoards()[2].srcTodoSwap(todo, j);
                     return;
                 }
             }
@@ -472,18 +546,18 @@ public class ApplicationManagement {
         }
     }
 
-    public void printTodoRange(String email, String board, LocalDate range){ //per parametro range o data di oggi decisa nel main
+    public void printTodoRange(String email, String board, LocalDate range) { //per parametro range o data di oggi decisa nel main
         int notFound = 0;
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
-                if(board.equalsIgnoreCase("UNIVERSITY")&& users.get(i).getBoards()[0]!=null){
+                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
                     users.get(i).getBoards()[0].printRange(range);
                     return;
-                }else if(board.equalsIgnoreCase("WORK")&& users.get(i).getBoards()[1]!=null){
+                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
                     users.get(i).getBoards()[1].printRange(range);
                     return;
-                }else if(board.equalsIgnoreCase("FREETIME")&& users.get(i).getBoards()[2]!=null){
+                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
                     users.get(i).getBoards()[2].printRange(range);
                     return;
                 }
@@ -640,7 +714,7 @@ public class ApplicationManagement {
 
         if (!boardPresente) {
             // Creo una nuova Board dello stesso tipo, ma senza ToDo
-            Board nuovaBoard = new Board(boardDaCondividere.getType(),"");
+            Board nuovaBoard = new Board(boardDaCondividere.getType(), "");
             destinatario.getBoards()[boardIndex] = nuovaBoard;
         }
 
@@ -651,10 +725,14 @@ public class ApplicationManagement {
 
     private int getBoardIndex(String boardName) {
         switch (boardName.toUpperCase()) {
-            case "UNIVERSITY": return 0;
-            case "WORK": return 1;
-            case "FREETIME": return 2;
-            default: return -1;
+            case "UNIVERSITY":
+                return 0;
+            case "WORK":
+                return 1;
+            case "FREETIME":
+                return 2;
+            default:
+                return -1;
         }
     }
 
@@ -730,7 +808,7 @@ public class ApplicationManagement {
                             if (membro.getEmail().equalsIgnoreCase(emailDaEliminare)) {
                                 sharing.getMembers().remove(z); // rimuovi membro
 
-                                // Se non ci sono più membri, disattiva la condivisione del ToDo e quindi la sua icona
+                                // Se non ci sono più membri, disattiva la condivisione del To-Do e quindi la sua icona
                                 if (sharing.getMembers().isEmpty()) {
                                     sharing.getToDo().setCondiviso(false);
                                     System.out.println("Condivisione disattivata: nessun utente rimasto.");
@@ -746,7 +824,7 @@ public class ApplicationManagement {
                                     }
                                 }
 
-                                // Rimuovi il ToDo condiviso dalla board
+                                // Rimuovi il To-Do condiviso dalla board
                                 Board[] boards = membro.getBoards();
                                 for (int b = 0; b < boards.length; b++) {
                                     if (boards[b] != null) {
@@ -774,15 +852,15 @@ public class ApplicationManagement {
     }
 
 
-    public ArrayList<User> getToDoUserShared(String email, String toDo){
+    public ArrayList<User> getToDoUserShared(String email, String toDo) {
         int notFound = 0;
         ArrayList<User> listaUtenti = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
-                for (int x = 0; x < users.get(i).getSharing().size(); x++){
-                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
-                        for (int y = 0; y < users.get(i).getSharing().get(x).getMembers().size(); y++){
+                for (int x = 0; x < users.get(i).getSharing().size(); x++) {
+                    if (users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)) {
+                        for (int y = 0; y < users.get(i).getSharing().get(x).getMembers().size(); y++) {
                             listaUtenti.add(users.get(i).getSharing().get(x).getMembers().get(y));
                         }
                     }
@@ -796,14 +874,14 @@ public class ApplicationManagement {
         return listaUtenti;
     }
 
-    public String getToAdministratorNick(String email, String toDo){
+    public String getToAdministratorNick(String email, String toDo) {
         int notFound = 0;
         String nickname = "";
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
-                for (int x = 0; x < users.get(i).getSharing().size(); x++){
-                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
+                for (int x = 0; x < users.get(i).getSharing().size(); x++) {
+                    if (users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)) {
                         nickname = users.get(i).getSharing().get(x).getAdministrator().getNickname();
                     }
                 }
@@ -816,14 +894,14 @@ public class ApplicationManagement {
         return nickname;
     }
 
-    public String getToAdministratorMail(String email, String toDo){
+    public String getToAdministratorMail(String email, String toDo) {
         int notFound = 0;
         String mail = "";
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
                 notFound = 1; // utente trovato
-                for (int x = 0; x < users.get(i).getSharing().size(); x++){
-                    if(users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)){
+                for (int x = 0; x < users.get(i).getSharing().size(); x++) {
+                    if (users.get(i).getSharing().get(x).getToDo().getTitle().equalsIgnoreCase(toDo)) {
                         mail = users.get(i).getSharing().get(x).getAdministrator().getEmail();
                     }
                 }
@@ -838,8 +916,8 @@ public class ApplicationManagement {
 
     public int spostaToDoInBacheca(String email, String nomeToDo, String nomeBachecaInCuiSpostare, String nomeBachecaDiOrigine) {
         // return 0 = tutto ok
-        // return 1 = todo già esistente nella bacheca di destinazione
-        // return 2 = todo condiviso, non puoi spostarlo
+        // return 1 = to-do già esistente nella bacheca di destinazione
+        // return 2 = to-do condiviso, non puoi spostarlo
         // return 3 = utente o bacheca non trovati
 
         User utente = null;
@@ -917,6 +995,99 @@ public class ApplicationManagement {
         System.out.println("ToDo spostato con successo");
         return 0;
     }
+
+    public ArrayList<ToDo> toDoExpiresToday(String email, String boardName) {
+        int boardIndex = getBoardIndex(boardName);
+        int notFound = 0;
+        ArrayList<ToDo> toDoExpires = new ArrayList<>();
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+                LocalDate today = LocalDate.now();
+                for (int x = 0; x < users.get(i).getBoards()[boardIndex].getToDo().size(); x++) {
+                    if (users.get(i).getBoards()[boardIndex].getToDo().get(x) != null && users.get(i).getBoards()[boardIndex].getToDo().get(x).getExpiration().equals(today)) {
+                        toDoExpires.add(users.get(i).getBoards()[boardIndex].getToDo().get(x));
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+        return toDoExpires;
+    }
+
+    public ArrayList<ToDo> toDoDueBy(String email, String boardName, LocalDate expirationDate) {
+        int boardIndex = getBoardIndex(boardName);
+        int notFound = 0;
+        ArrayList<ToDo> toDoExpires = new ArrayList<>();
+
+        for (int i = 0; i < users.size(); i++) {
+            if (email.equals(users.get(i).getEmail())) {
+                notFound = 1; // utente trovato
+
+                for (int x = 0; x < users.get(i).getBoards()[boardIndex].getToDo().size(); x++) {
+                    ToDo t = users.get(i).getBoards()[boardIndex].getToDo().get(x);
+                    if (t != null && t.getExpiration() != null
+                            && !t.getExpiration().isAfter(expirationDate)) {
+                        toDoExpires.add(t);
+                    }
+                }
+            }
+        }
+
+        if (notFound == 0) {
+            System.out.println("Utente non trovato...");
+        }
+
+        return toDoExpires;
+    }
+
+    public ArrayList<ToDo> getSortedTodosByName(String email, String boardName) {
+        ArrayList<ToDo> sortedTodos = new ArrayList<>();
+
+        for (User user : users) {
+            if (user.getEmail().equalsIgnoreCase(email)) {
+                int boardIndex = getBoardIndex(boardName);
+                    sortedTodos.addAll(user.getBoards()[boardIndex].getToDo());
+
+                    // Ordina i ToDo in ordine alfabetico per titolo
+                    sortedTodos.sort(Comparator.comparing(ToDo::getTitle, String.CASE_INSENSITIVE_ORDER));
+                break;
+            }
+        }
+        return sortedTodos;
+    }
+
+    public ArrayList<ToDo> getTodosOrderedByExpiration(String email, String boardName) {
+        ArrayList<ToDo> todosWithDate = new ArrayList<>();
+
+        for (User user : users) {
+            if (user.getEmail().equalsIgnoreCase(email)) {
+                int boardIndex = getBoardIndex(boardName);
+                    // Aggiunge solo i ToDo con expiration non null
+                    for (ToDo t : user.getBoards()[boardIndex].getToDo()) {
+                        if (t.getExpiration() != null) {
+                            todosWithDate.add(t);
+                        }
+                    }
+                    // Ordina per data di scadenza (dal più vicino al più lontano)
+                    todosWithDate.sort(Comparator.comparing(ToDo::getExpiration));
+                break;
+            }
+        }
+
+        return todosWithDate;
+    }
+
+
+
+
+
+
+
+
 
 
 

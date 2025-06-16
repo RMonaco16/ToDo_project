@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -423,13 +424,60 @@ public class BoardGui {
                 descriptionPanel.add(scrollPane, BorderLayout.CENTER);
                 propertiesDialog.add(descriptionPanel);
 
-                // Image
-                JPanel imagePanel = new JPanel(new BorderLayout(5, 2));
-                imagePanel.add(new JLabel("Image URL:"), BorderLayout.WEST);
-                //ImageIcon image = new ImageIcon(t.getImage());
-                JTextField url = new JTextField();
+                // Pannello per immagine---------------------------------------------------------------
+                JPanel imagePanel = new JPanel(new BorderLayout(5, 5));
+                imagePanel.add(new JLabel("Image:"), BorderLayout.NORTH);
+
+                // Campo di testo per mostrare/permettere modifica del percorso
+                JTextField url = new JTextField(t.getImage() != null ? t.getImage() : "");
                 imagePanel.add(url, BorderLayout.CENTER);
+
+                // Etichetta per anteprima
+                JLabel imagePreview = new JLabel();
+                imagePreview.setPreferredSize(new Dimension(100, 100));
+                imagePreview.setHorizontalAlignment(JLabel.CENTER);
+                imagePanel.add(imagePreview, BorderLayout.SOUTH);
+
+                // Carica immagine iniziale se esiste
+                if (t.getImage() != null && !t.getImage().isEmpty()) {
+                    try {
+                        ImageIcon icon = new ImageIcon(t.getImage());
+                        Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        imagePreview.setIcon(new ImageIcon(img));
+                    } catch (Exception ex) {
+                        System.out.println("Errore nel caricamento immagine: " + ex.getMessage());
+                    }
+                }
+
+                // Bottone per selezionare nuova immagine
+                JButton browseButton = new JButton("Sfoglia...");
+                browseButton.addActionListener(es -> {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Immagini", "jpg", "jpeg", "png", "gif"));
+
+                    int result = fileChooser.showOpenDialog(propertiesDialog);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        File selectedFile = fileChooser.getSelectedFile();
+                        String imagePath = selectedFile.getAbsolutePath();
+
+                        // Aggiorna campo di testo e ToDo
+                        url.setText(imagePath);
+                        t.setImage(imagePath);
+
+                        // Aggiorna anteprima
+                        ImageIcon icon = new ImageIcon(imagePath);
+                        Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        imagePreview.setIcon(new ImageIcon(img));
+                    }
+                });
+                imagePanel.add(browseButton, BorderLayout.EAST);
+
+                // Aggiungi il pannello al dialog
                 propertiesDialog.add(imagePanel);
+
+
+
 
                 // Color
                 JPanel colorPanel = new JPanel(new BorderLayout(5, 2));
