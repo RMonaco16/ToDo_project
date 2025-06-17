@@ -149,8 +149,8 @@ public class Board {
     }
 
 
-    public void srcToDoifComplete(String nmTodo) {
-        for (ToDo t : toDo) {
+    public void srcToDoifComplete(String nmTodo,ArrayList<ToDo> visibleToDo) {
+        for (ToDo t : visibleToDo) {
             if (nmTodo.equalsIgnoreCase(t.getTitle())) {
                 if (t.getCheckList().checkToDoComplete() && !t.getCheckList().getActivities().isEmpty()) {
                     t.setState(true);
