@@ -252,15 +252,15 @@ public class ApplicationManagement {
                 User u = users.get(i);
                 if (board.equalsIgnoreCase("UNIVERSITY") && u.getBoards()[0] != null) {
                     u.getBoards()[0].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[0].srcToDoifComplete(titleToDo);
+                    u.getBoards()[0].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
                     return;
                 } else if (board.equalsIgnoreCase("WORK") && u.getBoards()[1] != null) {
                     u.getBoards()[1].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[1].srcToDoifComplete(titleToDo);
+                    u.getBoards()[1].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
                     return;
                 } else if (board.equalsIgnoreCase("FREETIME") && u.getBoards()[2] != null) {
                     u.getBoards()[2].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[2].srcToDoifComplete(titleToDo);
+                    u.getBoards()[2].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
                     return;
                 }
             }
@@ -343,6 +343,7 @@ public class ApplicationManagement {
         target.checkActivity(activity, dataCompletamento);
         addHistoryAct(email, board, todo, activity);
         target.checkIfComplete();
+        user.getBoards()[boardIndex].srcToDoifComplete(target.getTitle(), getVisibleToDos(findUserByEmail(email),board,""));
     }
 
     public void deCheckActivity(String email, String board, String todo, String activity) {
@@ -393,6 +394,7 @@ public class ApplicationManagement {
         }
 
         target.deCheckActivity(activity);
+        user.getBoards()[boardIndex].srcToDoifComplete(target.getTitle(), getVisibleToDos(findUserByEmail(email),board,""));
     }
 
     public boolean canUserModifyToDo(String userEmail, ToDo toDo) {
