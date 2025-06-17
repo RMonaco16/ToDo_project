@@ -11,11 +11,14 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.awt.Color;
+
 
 public class BoardGui {
     private JButton undoButton;
@@ -29,9 +32,12 @@ public class BoardGui {
     private JLabel textFilter;
     private JFrame frame;
     private JScrollPane scrollPanelToDo;
+    private JButton buttonTodayFilter;
+    private JComboBox<String> comboBoxSortFilter;
     private Sharing sharingWindow = null;//per verificare apertura finestre
     private JFrame sharingInfoFrame = null;
     private JDialog dialog = null;
+    private Color color;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
         frame = new JFrame(nameBoard);
@@ -48,6 +54,13 @@ public class BoardGui {
         scrollPanelToDo.setViewportView(panelToDoMain);
         scrollPanelToDo.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPanelToDo.getVerticalScrollBar().setUnitIncrement(16);
+
+        //aggiunta ricerca con filtri
+        comboBoxSortFilter.addItem("");
+        comboBoxSortFilter.addItem("sort alphabetically");
+        comboBoxSortFilter.addItem("Sort by deadline");
+
+
 
         frame.setVisible(true);
 
@@ -105,7 +118,10 @@ public class BoardGui {
         //apertura della finestra e Condizione per non farla aprire piu volte
         shareButton.addActionListener(e -> {
             if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
-                sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard);
+                sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard,()->{
+                    updateToDoList(controller, email, nameBoard);
+                });
+
             } else {
                 sharingWindow.getFrame().toFront();
                 sharingWindow.getFrame().requestFocus();
@@ -150,7 +166,6 @@ public class BoardGui {
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton deleteBtn = new JButton("Delete");
 
-            // Pulsante normale (niente colore rosso)
             deleteBtn.addActionListener(ev -> {
                 String selected = (String) toDoComboBox.getSelectedItem();
                 if (selected != null && !selected.trim().isEmpty()) {
@@ -175,7 +190,18 @@ public class BoardGui {
             toDoComboBox.requestFocusInWindow();
         });
 
+        searchButton.addActionListener(src ->{
+           updateToDoList(controller,email,nameBoard);
+        });
 
+        comboBoxSortFilter.addActionListener(boxSort ->{
+            updateToDoList(controller,email,nameBoard);
+        });
+
+        buttonTodayFilter.addActionListener(todayFilter ->{
+            filter.setText("todayFilter");
+            updateToDoList(controller,email,nameBoard);
+        });
 
         updateToDoList(controller,email,nameBoard);
     }
@@ -186,7 +212,10 @@ public class BoardGui {
         JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         int count = 0;
 
-        for (ToDo t : controller.getVisibleToDos(controller.findUserByEmail(email), nameBoard)) {
+
+
+        for (ToDo t : controller.orderedVisibleToDos(comboBoxSortFilter.getSelectedItem().toString(),controller.getVisibleToDos(controller.findUserByEmail(email), nameBoard,filter.getText()))) {
+
 
             JPanel titleToDo = new JPanel(new BorderLayout());
             JPanel ToDoButton = new JPanel();
@@ -195,7 +224,7 @@ public class BoardGui {
                 sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
                 ToDoButton.add(sharingInformationButton);
 
-                //ActionListener bottone 👥
+                //ActionListener bottone 👥-----------------------------------
                 sharingInformationButton.addActionListener(e -> {
                     if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
                         sharingInfoFrame = new JFrame("Sharing Information");
@@ -205,6 +234,8 @@ public class BoardGui {
 
                         SharingInformation sharingInformation = new SharingInformation(controller,frame,email,t.getTitle());
                         sharingInfoFrame.setContentPane(sharingInformation.getPanel());
+                        sharingInfoFrame.setSize(500, 300);
+                        sharingInfoFrame.setLocationRelativeTo(frame);
 
                         // Quando viene chiusa, resetta il riferimento
                         sharingInfoFrame.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -236,6 +267,10 @@ public class BoardGui {
 
             JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
             titleLabel.setFont(new Font(null, Font.BOLD, 20));
+            if(t.getExpiration()!=null) {
+                if(t.getExpiration().isBefore(LocalDate.now()))
+                    titleLabel.setForeground(Color.RED);
+            }
             JButton propertiesButton = new JButton("≡");
             propertiesButton.setFont(new Font(null, Font.BOLD, 20));
 
@@ -304,6 +339,7 @@ public class BoardGui {
 
             JPanel todoPanel = new JPanel(new BorderLayout(5, 5));
             todoPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            todoPanel.setBackground(controller.getColorOfToDo(nameBoard,email,t.getTitle(),t.isCondiviso()));
             todoPanel.add(titleToDo, BorderLayout.NORTH);
 
             todoPanel.setPreferredSize(new Dimension(495, 300)); // dimensione fissa iniziale
@@ -367,7 +403,7 @@ public class BoardGui {
                     }
                     String activityName = (String) table.getValueAt(rowTable, 0);
 
-                    // 🔑 Usa l'owner per rimuovere globalmente l'attività
+                    // Usa l'owner per rimuovere globalmente l'attività
                     controller.removeActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activityName);
 
                     updateToDoList(controller, email, nameBoard);
@@ -398,23 +434,24 @@ public class BoardGui {
                 propertiesDialog.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
 
-                // Title
+                // Title--------------------------------------------------
                 JPanel titlePanel = new JPanel(new BorderLayout(5, 2));
                 titlePanel.add(new JLabel("Title:"), BorderLayout.WEST);
                 JTextField titleField = new JTextField(t.getTitle(), 20);
                 titlePanel.add(titleField, BorderLayout.CENTER);
                 propertiesDialog.add(titlePanel);
 
-                // Expiration
+                // Expiration--------------------------------------------------
                 JPanel expirationPanel = new JPanel(new BorderLayout(5, 2));
                 expirationPanel.add(new JLabel("Expiration:"), BorderLayout.WEST);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                 JTextField expirationField = new JTextField(
-                        t.getExpiration() != null ? t.getExpiration().toString() : "", 20
+                        t.getExpiration() != null ? t.getExpiration().format(formatter).toString() : "", 20
                 );
                 expirationPanel.add(expirationField, BorderLayout.CENTER);
                 propertiesDialog.add(expirationPanel);
 
-                // Description
+                // Description--------------------------------------------------
                 JPanel descriptionPanel = new JPanel(new BorderLayout(5, 2));
                 descriptionPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
                 JTextArea descriptionArea = new JTextArea(t.getDescription(), 3, 20);
@@ -476,28 +513,31 @@ public class BoardGui {
                 // Aggiungi il pannello al dialog
                 propertiesDialog.add(imagePanel);
 
-
-
-
-                // Color
+                // Color--------------------------------------------------2
                 JPanel colorPanel = new JPanel(new BorderLayout(5, 2));
                 colorPanel.add(new JLabel("Color:"), BorderLayout.WEST);
                 JButton selectColor = new JButton("Color background");
                 colorPanel.add(selectColor, BorderLayout.CENTER);
                 propertiesDialog.add(colorPanel);
 
-                selectColor.addActionListener(h->{
-                    Color selectedColor = JColorChooser.showDialog(null, "Scegli colore", Color.WHITE);
+                selectColor.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e){
+                        Color colorSelected = JColorChooser.showDialog(null, "Scegli colore", Color.WHITE);
+                        color = colorSelected;
+                    }
                 });
 
-                // State
+
+
+                // State--------------------------------------------------
                 JPanel statePanel = new JPanel(new BorderLayout(5, 2));
                 statePanel.add(new JLabel("State:"), BorderLayout.WEST);
                 JLabel stateField = new JLabel(t.isState() ? "✅" : "❌");
                 statePanel.add(stateField, BorderLayout.CENTER);
                 propertiesDialog.add(statePanel);
 
-                //Board also if want change
+                //Board also if want change--------------------------------------------------
                 JPanel baordPanel = new JPanel(new BorderLayout(5,2));
                 JLabel boardLabel = new JLabel("in Board:");
                 JComboBox boardComboBox = new JComboBox();
@@ -532,7 +572,6 @@ public class BoardGui {
 
                     if (!expirationString.isEmpty()) {
                         try {
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                             date = LocalDate.parse(expirationString, formatter);
 
                             // Controllo che la data non sia nel passato
@@ -547,7 +586,6 @@ public class BoardGui {
                         }
                     }
 
-                    Color color = Color.BLACK;
                     // se ritorna true ha torvato un altro to-do con lo stesso nome
                     if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), color )){
                         JOptionPane.showMessageDialog(saveButton,"name already in use");
@@ -581,6 +619,8 @@ public class BoardGui {
                 rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
             }
         }
+
+        filter.setText("");
 
         if (count % 3 != 0) {
             panelToDoMain.add(rowPanel);

@@ -19,6 +19,9 @@ public class SharingInformation {
     private DefaultTableModel defaultTableModel;
 
     public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo) {
+
+
+
         // Imposta nome e email dell'amministratore
         String adminName = controller.getToAdministratorNick(emailUtente, nomeTodo);
         String adminEmail = controller.getToAdministratorMail(emailUtente, nomeTodo);
@@ -61,6 +64,7 @@ public class SharingInformation {
                 }
             }
         });
+
     }
 
     public JPanel getPanel() {

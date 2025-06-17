@@ -4,6 +4,7 @@ import controller.ApplicationManagement;
 import model.*;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -18,19 +19,23 @@ public class Sharing {
     private ApplicationManagement controller;
     private String emailUtente;
     private String tipoBacheca;
+    private Runnable onShareSuccess;
 
-    public Sharing(ApplicationManagement controller, String emailUtente, JFrame vecchioFrame, String tipoBacheca){
+    public Sharing(ApplicationManagement controller, String emailUtente, JFrame vecchioFrame, String tipoBacheca, Runnable onShareSuccess){
         this.controller = controller;
         this.emailUtente = emailUtente;
         this.tipoBacheca = tipoBacheca;
+        this.onShareSuccess = onShareSuccess;
 
         // Mostra la GUI
         nuovoFrame = new JFrame("Sharing ToDo");
         nuovoFrame.setContentPane(panelSharing);
         nuovoFrame.pack();
-        nuovoFrame.setSize(500, 300);
+        nuovoFrame.setSize(400, 200);
         nuovoFrame.setLocationRelativeTo(null);
         nuovoFrame.setVisible(true);
+
+
 
         //-----------Popolamento Combo Box---------
         popolaComboBox();
@@ -82,6 +87,10 @@ public class Sharing {
             JOptionPane.showMessageDialog(panelSharing, "ToDo shared successfully!", "Sharing completed", JOptionPane.INFORMATION_MESSAGE);
             nuovoFrame.setVisible(false);
             nuovoFrame.dispose();
+
+            if (onShareSuccess != null) {
+                onShareSuccess.run();
+            }
         }
     }
 

@@ -125,7 +125,7 @@ public class Home {
 
                     // Recupera ToDo visibili per questa board e mostra (temporaneo in console)
                     String boardName = board.getType().name();
-                    ArrayList<ToDo> toDoList = controller.getVisibleToDos(user, boardName);
+                    ArrayList<ToDo> toDoList = controller.getVisibleToDos(user, boardName,"");
                     mostraToDoInUI(toDoList);
                 }
             }
