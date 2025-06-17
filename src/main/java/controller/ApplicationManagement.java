@@ -10,6 +10,11 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import dao.UserDAO;
+
+import java.sql.Connection;
+import java.util.ArrayList;
+
 public class ApplicationManagement {
 
     private ArrayList<User> users = new ArrayList<>();
@@ -42,6 +47,25 @@ public class ApplicationManagement {
         }
         return false;
     }
+
+    /*
+      public boolean addUser(User u) {
+        if (u.getNickname().isBlank() || u.getEmail().isBlank() || u.getPassword().isBlank()) {
+            System.out.println("Utente non creato: campi vuoti.");
+            return false;
+        }
+
+        boolean added = userDAO.addUser(u);
+        if (added) {
+            System.out.println("Utente aggiunto correttamente!");
+            return true;
+        } else {
+            System.out.println("Utente non aggiunto (forse email già presente).");
+            return false;
+        }
+    }
+}
+     */
 
     public boolean login(String email, String password) {
         int notFound = 0;
@@ -446,29 +470,6 @@ public class ApplicationManagement {
         return new ArrayList<>(); // Ritorna lista vuota
     }
 
-
-    public void printArchive(String email, String board) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].getToDoArchiveCompleted().print();
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].getToDoArchiveCompleted().print();
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].getToDoArchiveCompleted().print();
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
-
     public void rmvHistoryAct(String email, String nmAct) {
         int notFound = 0;
 
@@ -710,7 +711,7 @@ public class ApplicationManagement {
 
         Board boardDaCondividere = admin.getBoards()[boardIndex];
 
-        // Cerca il ToDo da condividere
+        // Cerca il To-Do da condividere
         ToDo toShare = null;
         for (ToDo t : boardDaCondividere.getToDo()) {
             if (t.getTitle().equalsIgnoreCase(toDoName)) {
@@ -766,8 +767,6 @@ public class ApplicationManagement {
             Board nuovaBoard = new Board(boardDaCondividere.getType(), "");
             destinatario.getBoards()[boardIndex] = nuovaBoard;
         }
-
-
         return true;
     }
 
@@ -797,7 +796,7 @@ public class ApplicationManagement {
 
         for (ToDo t : board.getToDo()) {
             if (t.getTitle().equalsIgnoreCase(toDoTitle)) {
-                // Utente possiede questo ToDo nella board: è admin
+                // Utente possiede questo To-Do nella board: è admin
                 return true;
             }
         }

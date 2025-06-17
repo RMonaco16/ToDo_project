@@ -451,7 +451,7 @@ public class BoardGui {
                 expirationPanel.add(expirationField, BorderLayout.CENTER);
                 propertiesDialog.add(expirationPanel);
 
-                // Description--------------------------------------------------
+            // Description--------------------------------------------------
                 JPanel descriptionPanel = new JPanel(new BorderLayout(5, 2));
                 descriptionPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
                 JTextArea descriptionArea = new JTextArea(t.getDescription(), 3, 20);
@@ -461,7 +461,15 @@ public class BoardGui {
                 descriptionPanel.add(scrollPane, BorderLayout.CENTER);
                 propertiesDialog.add(descriptionPanel);
 
+            // ── Disabilita modifica se non admin
+                boolean isAdmin = controller.isUserAdminOfToDo(email, nameBoard, t.getTitle());
+                titleField.setEditable(isAdmin);
+                expirationField.setEditable(isAdmin);
+                descriptionArea.setEditable(isAdmin);
+
+
                 // Pannello per immagine---------------------------------------------------------------
+
                 JPanel imagePanel = new JPanel(new BorderLayout(5, 5));
                 imagePanel.add(new JLabel("Image:"), BorderLayout.NORTH);
 
@@ -508,17 +516,26 @@ public class BoardGui {
                         imagePreview.setIcon(new ImageIcon(img));
                     }
                 });
+
+                // Abilitadisabilita campo e bottone
+                url.setEditable(isAdmin);
+                browseButton.setEnabled(isAdmin);
+
+
                 imagePanel.add(browseButton, BorderLayout.EAST);
 
                 // Aggiungi il pannello al dialog
                 propertiesDialog.add(imagePanel);
 
-                // Color--------------------------------------------------2
+                // Color--------------------------------------------------
                 JPanel colorPanel = new JPanel(new BorderLayout(5, 2));
                 colorPanel.add(new JLabel("Color:"), BorderLayout.WEST);
                 JButton selectColor = new JButton("Color background");
                 colorPanel.add(selectColor, BorderLayout.CENTER);
                 propertiesDialog.add(colorPanel);
+
+                // Disabilita il bottone se non è admin
+                selectColor.setEnabled(isAdmin);
 
                 selectColor.addActionListener(new ActionListener() {
                     @Override
@@ -527,7 +544,6 @@ public class BoardGui {
                         color = colorSelected;
                     }
                 });
-
 
 
                 // State--------------------------------------------------
@@ -554,6 +570,10 @@ public class BoardGui {
 
                 JButton saveButton = new JButton("Save");
                 propertiesDialog.add(saveButton, BorderLayout.EAST);
+
+
+               // Disabilita il bottone se l'utente non è amministratore del To-Do
+                saveButton.setEnabled(isAdmin);
 
                 dialog.add(propertiesDialog);
                 dialog.setContentPane(propertiesDialog);

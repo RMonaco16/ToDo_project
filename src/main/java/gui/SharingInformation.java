@@ -32,7 +32,7 @@ public class SharingInformation {
         textNickname.setEditable(false);
         textEmail.setEditable(false);
 
-        // Recupera gli utenti con cui è condiviso il ToDo
+        // Recupera gli utenti con cui è condiviso il To-Do
         ArrayList<User> sharedUsers = controller.getToDoUserShared(emailUtente, nomeTodo);
 
         // Configura la tabella

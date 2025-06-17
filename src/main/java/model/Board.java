@@ -12,7 +12,6 @@ public class Board {
     private TypeBoard type;
     private String description;
     private ArrayList<ToDo> toDo = new ArrayList<>();
-    private ToDoArchiveCompleted toDoArchiveCompleted;
 
     public Board(TypeBoard type, String description) {
         this.type = type;
@@ -42,14 +41,6 @@ public class Board {
 
     public void setToDo(ArrayList<ToDo> toDo) {
         this.toDo = toDo;
-    }
-
-    public ToDoArchiveCompleted getToDoArchiveCompleted() {
-        return toDoArchiveCompleted;
-    }
-
-    public void setToDoArchiveCompleted(ToDoArchiveCompleted toDoArchiveCompleted) {
-        this.toDoArchiveCompleted = toDoArchiveCompleted;
     }
 
     public void searchToDoAddActivity(String titleToDo, Activity a) {
