@@ -636,6 +636,7 @@ public class ApplicationManagement {
             }
             }else if(filter.equals("todayFilter")){
                 visibleToDos.addAll(toDoExpiresToday(user.getEmail(),boardName));
+
             }else{
                 try{
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -1049,25 +1050,27 @@ public class ApplicationManagement {
     //restituisce i to-DO che scadono in giornata
     public ArrayList<ToDo> toDoExpiresToday(String email, String boardName) {
         int boardIndex = getBoardIndex(boardName);
-        int notFound = 0;
         ArrayList<ToDo> toDoExpires = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
         for (int i = 0; i < users.size(); i++) {
             if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-                LocalDate today = LocalDate.now();
-                for (int x = 0; x < users.get(i).getBoards()[boardIndex].getToDo().size(); x++) {
-                    if (users.get(i).getBoards()[boardIndex].getToDo().get(x) != null && users.get(i).getBoards()[boardIndex].getToDo().get(x).getExpiration().equals(today)) {
-                        toDoExpires.add(users.get(i).getBoards()[boardIndex].getToDo().get(x));
+                Board[] boards = users.get(i).getBoards();
+                if (boardIndex >= 0 && boardIndex < boards.length && boards[boardIndex] != null) {
+                    ArrayList<ToDo> todos = boards[boardIndex].getToDo();
+                    for (ToDo todo : todos) {
+                        if (todo != null && todo.getExpiration() != null && todo.getExpiration().equals(today)) {
+                            toDoExpires.add(todo);
+                        }
                     }
                 }
+                break; // utente trovato, esco dal ciclo
             }
         }
 
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
         return toDoExpires;
     }
+
 
     //restituisce tutti i to-Do che scadono entro la data inserita
     public ArrayList<ToDo> toDoDueBy(String email, String boardName, LocalDate expirationDate) {
@@ -1100,7 +1103,7 @@ public class ApplicationManagement {
     public ArrayList<ToDo> getSortedTodosByName(ArrayList<ToDo> visibleToDos) {
         ArrayList<ToDo> sortedTodos = new ArrayList<>();
         sortedTodos.addAll( visibleToDos);
-        // Ordina i ToDo in ordine alfabetico per titolo
+        // Ordina i To-Do in ordine alfabetico per titolo
         sortedTodos.sort(Comparator.comparing(ToDo::getTitle, String.CASE_INSENSITIVE_ORDER));
         return sortedTodos;
     }
@@ -1109,7 +1112,7 @@ public class ApplicationManagement {
     public ArrayList<ToDo> getTodosOrderedByExpiration(ArrayList<ToDo> visibleToDos) {
         ArrayList<ToDo> todosWithDate = new ArrayList<>();
 
-        // Aggiunge solo i ToDo con expiration non null
+        // Aggiunge solo i To-Do con expiration non null
         for (ToDo t : visibleToDos) {
             if (t.getExpiration() != null) {
                 todosWithDate.add(t);
