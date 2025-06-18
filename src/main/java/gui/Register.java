@@ -35,7 +35,7 @@ public class Register {
                 }else{
                     User u = new User(textNickName.getText(), textEmail.getText(),passwordStr);
                     boolean esistente = controller.addUser(u);
-                    if(esistente == true){
+                    if(esistente == false){
                         JOptionPane.showMessageDialog(panelRegister,"email already exists","This email is already in use",JOptionPane.WARNING_MESSAGE);
                     }
 

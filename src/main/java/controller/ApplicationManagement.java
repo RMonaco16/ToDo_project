@@ -1,9 +1,11 @@
 package controller;
 
+import dao.BoardDAO;
+import db.ConnessioneDatabase;
 import model.*;
 
 import java.awt.*;
-import java.sql.SQLOutput;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -12,7 +14,6 @@ import java.util.Comparator;
 
 import dao.UserDAO;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 
 public class ApplicationManagement {
@@ -31,71 +32,79 @@ public class ApplicationManagement {
     }
 
     public boolean addUser(User u) {
-        if (u.getNickname().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("") || u.getEmail().equalsIgnoreCase("")) {
-            System.out.println("Utente non creato");
-        } else {
-            boolean nuovo = false;
-            for (int i = 0; i < users.size(); i++) {
-                if (users.get(i).getEmail().equalsIgnoreCase(u.getEmail())) {
-                    System.out.println("Mail gia esistente");
-                    return true;
-                }
-            }
-            users.add(u);
-            System.out.println("Utente Aggiunto Correttamente!!");
-            return false;
-        }
-        return false;
-    }
-
-    /*
-      public boolean addUser(User u) {
         if (u.getNickname().isBlank() || u.getEmail().isBlank() || u.getPassword().isBlank()) {
             System.out.println("Utente non creato: campi vuoti.");
             return false;
         }
 
-        boolean added = userDAO.addUser(u);
-        if (added) {
-            System.out.println("Utente aggiunto correttamente!");
-            return true;
-        } else {
-            System.out.println("Utente non aggiunto (forse email già presente).");
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            UserDAO userDAO = new UserDAO(conn);
+
+            // 1. Controlla se l'email esiste
+            if (userDAO.emailEsiste(u.getEmail())) {
+                System.out.println("Email già presente!");
+                return false;
+            }
+
+            // 2. Inserisce utente se email non esiste
+            boolean added = userDAO.creaUser(u);
+
+            if (added) {
+                System.out.println("Utente aggiunto correttamente!");
+            } else {
+                System.out.println("Errore nell'aggiunta dell'utente.");
+            }
+
+            return added;
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
-}
-     */
 
     public boolean login(String email, String password) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail()) && password.equals(users.get(i).getPassword())) {
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            UserDAO userDAO = new UserDAO(conn);
+
+            boolean loggedIn = userDAO.checkLogin(email, password);
+            if (loggedIn) {
                 System.out.println("Login effettuato con Successo!!");
-                notFound = 1;
-                return true;
+            } else {
+                System.out.println("Email o password errati.");
             }
+            return loggedIn;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
-        return false;
     }
 
+
     public boolean addBoard(String email, Board b) {
-        int notFound = 0;
-        boolean creato = false;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1;
-                creato = users.get(i).addBoard(b);
+        try {
+            // Ottieni connessione dal singleton
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+
+            // Crea DAO della board e inserisci board nel database
+            BoardDAO boardDAO = new BoardDAO(conn);
+            boolean created = boardDAO.creaBoard(b, email); // passa l'email al DAO
+
+            if (created) {
+                System.out.println("Board creata correttamente.");
+            } else {
+                System.out.println("Board NON creata.");
             }
+            return created;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-        return creato;
     }
+
 
     public void deleteBoard(String email, String type) {
         int notFound = 0;
@@ -319,7 +328,7 @@ public class ApplicationManagement {
         }
 
         if (target == null) {
-            // Cerca anche tra i ToDo condivisi
+            // Cerca anche tra i To-Do condivisi
             for (Sharing s : user.getSharing()) {
                 if (s.getToDo().getTitle().equalsIgnoreCase(todo)) {
                     target = s.getToDo();

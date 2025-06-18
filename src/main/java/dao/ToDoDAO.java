@@ -31,7 +31,6 @@ public class ToDoDAO {
             stmt.setString(1, todo.getTitle());
             stmt.setString(2, todo.getDescription());
             stmt.setString(3, colorToHex(todo.getColor()));
-            stmt.setInt(4, todo.getPosition());
             stmt.setString(5, todo.getImage());
             stmt.setDate(6, todo.getExpiration() != null ? Date.valueOf(todo.getExpiration()) : null);
             stmt.setBoolean(7, todo.isState());
@@ -61,7 +60,6 @@ public class ToDoDAO {
                 );
                 todo.setDescription(rs.getString("description"));
                 todo.setColor(hexToColor(rs.getString("color")));
-                todo.setPosition(rs.getInt("position"));
                 todo.setImage(rs.getString("image"));
                 todo.setExpiration(rs.getDate("expiration") != null ? rs.getDate("expiration").toLocalDate() : null);
 
@@ -78,7 +76,6 @@ public class ToDoDAO {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, todo.getDescription());
             stmt.setString(2, colorToHex(todo.getColor()));
-            stmt.setInt(3, todo.getPosition());
             stmt.setString(4, todo.getImage());
             stmt.setDate(5, todo.getExpiration() != null ? Date.valueOf(todo.getExpiration()) : null);
             stmt.setBoolean(6, todo.isState());

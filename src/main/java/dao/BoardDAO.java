@@ -12,25 +12,30 @@ public class BoardDAO {
 
     private final Connection conn;
 
-    public BoardDAO() {
+    public BoardDAO(Connection conn) {
         this.conn = ConnessioneDatabase.getInstance().getConnection();
     }
 
     // Crea una nuova board
-    public void creaBoard(Board board) {
-        String sql = "INSERT INTO board (type, description) VALUES (?, ?)";
+    public boolean creaBoard(Board board, String userEmail) {
+        String sql = "INSERT INTO boards (type, description, user_email) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, board.getType().name());
             stmt.setString(2, board.getDescription());
-            stmt.executeUpdate();
+            stmt.setString(3, userEmail);
+            int rows = stmt.executeUpdate();
+            return rows > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
+
+
     // Leggi una board per tipo
     public Board leggiBoard(String type) {
-        String sql = "SELECT * FROM board WHERE type = ?";
+        String sql = "SELECT * FROM boards WHERE type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, type);
             ResultSet rs = stmt.executeQuery();
@@ -53,7 +58,7 @@ public class BoardDAO {
 
     // Elimina board per tipo
     public void eliminaBoard(String type) {
-        String sql = "DELETE FROM board WHERE type = ?";
+        String sql = "DELETE FROM boards WHERE type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, type);
             stmt.executeUpdate();
@@ -64,7 +69,7 @@ public class BoardDAO {
 
     // Aggiorna descrizione (o altri dati) di una board identificata dal tipo
     public void aggiornaBoard(Board board) {
-        String sql = "UPDATE board SET description = ? WHERE type = ?";
+        String sql = "UPDATE boards SET description = ? WHERE type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, board.getDescription());
             stmt.setString(2, board.getType().name());
@@ -92,4 +97,6 @@ public class BoardDAO {
         }
         return boards;
     }
+
+
 }

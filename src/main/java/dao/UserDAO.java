@@ -87,6 +87,35 @@ public class UserDAO {
         return false;
     }
 
+    //comntrolla se un utente gia esisten all'interno del db restituendo il risultato al controller
+    public boolean emailEsiste(String email) {
+        String sql = "SELECT 1 FROM users WHERE email = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // true se l'email esiste
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //verifica se esistono l' email e la password associati ad un utente nel db
+    public boolean checkLogin(String email, String password) {
+        String sql = "SELECT 1 FROM users WHERE email = ? AND password = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // true se esiste una riga con email e password corrispondenti
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
     // Metodo di esempio per leggere boards (da implementare)
     // Nota: devi avere DAO Board con metodo leggiBoardsPerUtente(email)
     /*

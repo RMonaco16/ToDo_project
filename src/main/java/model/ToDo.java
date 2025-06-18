@@ -7,7 +7,6 @@ public class ToDo {
     private String title;
     private String description;
     private Color color;
-    private int position;
     private String image;
     private LocalDate expiration;
     private boolean state;
@@ -48,14 +47,6 @@ public class ToDo {
 
     public void setColor(Color color) {
         this.color = color;
-    }
-
-    public int getPosition() {
-        return position;
-    }
-
-    public void setPosition(int position) {
-        this.position = position;
     }
 
     public String getImage() {
