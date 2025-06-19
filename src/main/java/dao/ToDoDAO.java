@@ -23,24 +23,55 @@ public class ToDoDAO {
     }
 
 
-    public boolean creaToDo(ToDo todo) {
-        String sql = "INSERT INTO todo (title, description, color, position, image, expiration, state, condiviso, owner_email) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
+        // 1. Verifica esistenza board per quell'utente e tipo
+        String boardSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
+        int boardId = -1;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todo.getTitle());
-            stmt.setString(2, todo.getDescription());
-            stmt.setString(3, colorToHex(todo.getColor()));
-            stmt.setString(5, todo.getImage());
-            stmt.setDate(6, todo.getExpiration() != null ? Date.valueOf(todo.getExpiration()) : null);
-            stmt.setBoolean(7, todo.isState());
-            stmt.setBoolean(8, todo.isCondiviso());
-            stmt.setString(9, todo.getOwnerEmail());
+        try (PreparedStatement boardStmt = conn.prepareStatement(boardSql)) {
+            boardStmt.setString(1, email);
+            boardStmt.setString(2, tipoEnum);
+            ResultSet boardRs = boardStmt.executeQuery();
 
-            stmt.executeUpdate();
-            return true;
+            if (boardRs.next()) {
+                boardId = boardRs.getInt("id");
+            } else {
+                System.out.println("Board non trovata per l’utente: " + email);
+                return false;
+            }
         } catch (SQLException e) {
-            System.out.println("Errore durante inserimento ToDo: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+        // 2. Inserisci il ToDo nella tabella "todos"
+        String insertSql = """
+        INSERT INTO todos (board_id, title, description, color, position, image, expiration, state, condiviso, owner_email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+            insertStmt.setInt(1, boardId);
+            insertStmt.setString(2, toDo.getTitle());
+            insertStmt.setString(3, toDo.getDescription() != null ? toDo.getDescription() : null);
+            insertStmt.setString(4, toDo.getColor() != null ? toDo.getColor().toString() : null); // es. "#FF0000"
+            insertStmt.setObject(5, null); // position (da gestire in futuro)
+            insertStmt.setString(6, toDo.getImage() != null ? toDo.getImage() : null);
+            if (toDo.getExpiration() != null) {
+                insertStmt.setDate(7, Date.valueOf(toDo.getExpiration()));
+            } else {
+                insertStmt.setNull(7, Types.DATE);
+            }
+            insertStmt.setBoolean(8, toDo.isState());
+            insertStmt.setBoolean(9, toDo.isCondiviso());
+            insertStmt.setString(10, toDo.getOwnerEmail());
+
+            insertStmt.executeUpdate();
+            System.out.println("ToDo inserito con successo.");
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -114,6 +145,7 @@ public class ToDoDAO {
         return Color.decode(hex);
     }
 
+    /*
     //serve per caricare automaticamente tutti i To-Do collegati a una specifica Board.
     public ArrayList<ToDo> leggiToDoPerBoard(String boardType) {
         ArrayList<ToDo> listaToDo = new ArrayList<>();
@@ -151,6 +183,8 @@ public class ToDoDAO {
 
         return listaToDo;
     }
+
+    */
 
     public CheckList leggiCheckListPerToDo(String todoTitle) {
         CheckList checkList = new CheckList();

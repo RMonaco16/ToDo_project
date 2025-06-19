@@ -43,6 +43,7 @@ public class Home {
             jFrame.setVisible(false);
             jFrame.dispose();
             frameVecchio.setVisible(true);
+            controller.logout();
         });
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         leftPanel.setBorder(new EmptyBorder(5, 10, 5, 0));
@@ -122,11 +123,6 @@ public class Home {
             for (Board board : userBoards) {
                 if (board != null) {
                     addBoardButton(board, controller, emailUtente);
-
-                    // Recupera ToDo visibili per questa board e mostra (temporaneo in console)
-                    String boardName = board.getType().name();
-                    ArrayList<ToDo> toDoList = controller.getVisibleToDos(user, boardName,"");
-                    mostraToDoInUI(toDoList);
                 }
             }
         }
@@ -188,14 +184,6 @@ public class Home {
     //setta deleteBoardFormWindow a null.
     public void clearDeleteBoardFormWindow() {
         deleteBoardFormWindow = null;
-    }
-
-    // Metodo temporaneo per mostrare ToDo in console (da sostituire con GUI)
-    private void mostraToDoInUI(ArrayList<ToDo> toDoList) {
-        System.out.println("ToDo visibili:");
-        for (ToDo todo : toDoList) {
-            System.out.println("- " + todo.getTitle());
-        }
     }
 
 }

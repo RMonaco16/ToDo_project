@@ -4,6 +4,7 @@ import db.ConnessioneDatabase;
 import model.Board;
 import model.ToDo;
 import model.TypeBoard;
+import model.User;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ public class BoardDAO {
     private final Connection conn;
 
     public BoardDAO(Connection conn) {
-        this.conn = ConnessioneDatabase.getInstance().getConnection();
+        this.conn = conn; // usa quella che ti viene passata
     }
 
     // Crea una nuova board
@@ -32,7 +33,7 @@ public class BoardDAO {
     }
 
 
-
+/*
     // Leggi una board per tipo
     public Board leggiBoard(String type) {
         String sql = "SELECT * FROM boards WHERE type = ?";
@@ -55,17 +56,19 @@ public class BoardDAO {
         }
         return null;
     }
-
+*/
     // Elimina board per tipo
-    public void eliminaBoard(String type) {
-        String sql = "DELETE FROM boards WHERE type = ?";
+    public void eliminaBoard(String email, String type) {
+        String sql = "DELETE FROM boards WHERE user_email = ? AND type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, type);
+            stmt.setString(1, email);
+            stmt.setString(2, type);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
 
     // Aggiorna descrizione (o altri dati) di una board identificata dal tipo
     public void aggiornaBoard(Board board) {
@@ -95,6 +98,32 @@ public class BoardDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return boards;
+    }
+
+    public ArrayList<Board> getBoardsByEmail(String email) {
+        ArrayList<Board> boards = new ArrayList<>();
+        String sql = "SELECT type, description FROM boards WHERE user_email = ?";
+
+        try (Connection conn = ConnessioneDatabase.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String typeStr = rs.getString("type");
+                TypeBoard type = TypeBoard.valueOf(typeStr); // enum: UNIVERSITY, WORK, FREETIME
+                String description = rs.getString("description");
+
+                Board board = new Board(type, description);
+                boards.add(board);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return boards;
     }
 

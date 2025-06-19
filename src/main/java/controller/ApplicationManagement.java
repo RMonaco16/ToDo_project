@@ -1,6 +1,7 @@
 package controller;
 
 import dao.BoardDAO;
+import dao.ToDoDAO;
 import db.ConnessioneDatabase;
 import model.*;
 
@@ -18,17 +19,11 @@ import java.util.ArrayList;
 
 public class ApplicationManagement {
 
-    private ArrayList<User> users = new ArrayList<>();
+    ArrayList<User> users = new ArrayList<>();
+
+    private User currentUser;
 
     public ApplicationManagement() {
-    }
-
-    public ArrayList<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
     }
 
     public boolean addUser(User u) {
@@ -69,19 +64,24 @@ public class ApplicationManagement {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
-            boolean loggedIn = userDAO.checkLogin(email, password);
-            if (loggedIn) {
+            User user = userDAO.getUserByEmailAndPassword(email, password);
+            if (user != null) {
+                this.currentUser = user;
                 System.out.println("Login effettuato con Successo!!");
+                return true;
             } else {
                 System.out.println("Email o password errati.");
+                return false;
             }
-            return loggedIn;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
+    public void logout() {
+        this.currentUser = null;
+    }
 
     public boolean addBoard(String email, Board b) {
         try {
@@ -105,17 +105,46 @@ public class ApplicationManagement {
         }
     }
 
-
     public void deleteBoard(String email, String type) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1;
-                users.get(i).deleteBoard(type);
-            }
+        try {
+            // Ottieni connessione dal singleton
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+
+            // Crea DAO della board e inserisci board nel database
+            BoardDAO boardDAO = new BoardDAO(conn);
+            boardDAO.eliminaBoard(email, type); // passa l'email al DAO
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+    }
+
+    public ArrayList<Board> printBoard(String email) {
+        BoardDAO boardDAO = new BoardDAO(ConnessioneDatabase.getInstance().getConnection());
+        return boardDAO.getBoardsByEmail(email);
+    }
+
+    public boolean addToDoInBoard(String email,String tipoEnum, ToDo toDo) {
+        if (currentUser == null) {
+            System.out.println("Utente non loggato...");
+            return false;
+        }
+
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            ToDoDAO toDoDAO = new ToDoDAO(conn);
+            boolean success = toDoDAO.addToDoInBoard(email, tipoEnum, toDo);
+
+            if (success) {
+                System.out.println("ToDo aggiunto correttamente.");
+            } else {
+                System.out.println("Errore nell'aggiunta del ToDo.");
+            }
+
+            return success;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -194,42 +223,6 @@ public class ApplicationManagement {
         System.out.println("ToDo non trovato o utente non autorizzato.");
         return false;
     }
-
-
-    public ArrayList<Board> printBoard(String email) {
-        ArrayList<Board> popolaLista = new ArrayList<>();
-
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                Board[] boards = users.get(i).getBoards();
-                if (boards != null) {
-                    for (int x = 0; x < boards.length; x++) {
-                        popolaLista.add(boards[x]);
-                    }
-                }
-                return popolaLista;
-            }
-        }
-        System.out.println("Utente non loggato...");
-        return new ArrayList<>();
-    }
-
-
-    public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
-        int notFound = 0;
-        boolean nuova = true;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1;
-                nuova = users.get(i).searchBoardAddToDo(tipoEnum, toDo);
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-        return nuova;
-    }
-
 
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
         int notFound = 0;
@@ -538,51 +531,6 @@ public class ApplicationManagement {
         }
         return listaVuota;
     }
-
-    public void swapToDo(String email, String board, String todo, int j) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; //trovato
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodoSwap(todo, j);
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodoSwap(todo, j);
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodoSwap(todo, j);
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
-
-    public void printTodoRange(String email, String board, LocalDate range) { //per parametro range o data di oggi decisa nel main
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].printRange(range);
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].printRange(range);
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].printRange(range);
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
-    }
-
 
     public ArrayList<Activity> printActs(String email, String board, String todo) {
         int notFound = 0;
