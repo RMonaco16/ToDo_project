@@ -1,6 +1,7 @@
 package controller;
 
 import dao.BoardDAO;
+import dao.ToDoDAO;
 import db.ConnessioneDatabase;
 import model.*;
 
@@ -539,51 +540,6 @@ public class ApplicationManagement {
         return listaVuota;
     }
 
-    public void swapToDo(String email, String board, String todo, int j) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; //trovato
-                if (board.equalsIgnoreCase("universita") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].srcTodoSwap(todo, j);
-                    return;
-                } else if (board.equalsIgnoreCase("lavoro") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodoSwap(todo, j);
-                    return;
-                } else if (board.equalsIgnoreCase("tempo libero") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodoSwap(todo, j);
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
-
-    public void printTodoRange(String email, String board, LocalDate range) { //per parametro range o data di oggi decisa nel main
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].printRange(range);
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].printRange(range);
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].printRange(range);
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
-    }
-
-
     public ArrayList<Activity> printActs(String email, String board, String todo) {
         int notFound = 0;
         ArrayList<Activity> listaVuota = new ArrayList<>();
@@ -615,79 +571,37 @@ public class ApplicationManagement {
     public ArrayList<ToDo> getVisibleToDos(User user, String boardName,String filter) {
         ArrayList<ToDo> visibleToDos = new ArrayList<>();
 
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            UserDAO userDAO = new UserDAO(conn);
+            if(!userDAO.checkBoard(user.getEmail(),boardName)){ // se la bacheca non esiste crea exception
+                throw new Exception();
+            }else {
+                BoardDAO boardDAO = new BoardDAO(conn);
+                if (filter.isBlank()) {       // vuole tutti i to-do locali e condivisi
+                    //aggiunge tutti i to-do creati localmente dell'utente
+                    visibleToDos.addAll(boardDAO.getAllLocalToDos(user.getEmail(), boardName));
+                    //aggiunge tutti i to-do che sono stati condivisi all'utente
+                    visibleToDos.addAll(boardDAO.getAllSharedToDos(user.getEmail(), boardName));
+                } else if (filter.equals("todayFilter")) {
+                    visibleToDos.addAll(boardDAO.getLocalTodosByExpirationDate(user.getEmail(),boardName));
+                }else{
+                    try{
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                        LocalDate date = LocalDate.parse(filter, formatter);
 
-        if(filter.equals("")){
-            int boardIndex = getBoardIndex(boardName);
-            // Aggiungi i To-Do della board dell’utente (se esiste)
-            if (boardIndex != -1 && user.getBoards()[boardIndex] != null) {
-                visibleToDos.addAll(user.getBoards()[boardIndex].getToDo());
-            }
+                        visibleToDos.addAll(boardDAO.getLocalTodosExpiringBeforeOrOn(user.getEmail(), boardName,date));
+                        visibleToDos.addAll(boardDAO.getSharedTodosExpiringBeforeOrOn(user.getEmail(), boardName,date));
 
-            // Aggiungi i To-Do condivisi per quell’utente nella stessa board
-            for (Sharing s : user.getSharing()) {
-                ToDo sharedToDo = s.getToDo();
-                if (sharedToDo != null) {
-                    // Verifica che il To-Do condiviso appartenga alla board con quel nome
-                    User admin = s.getAdministrator();
-                    if (admin != null) {
-                        int adminBoardIndex = getBoardIndex(boardName);
-                        if (adminBoardIndex != -1 && admin.getBoards()[adminBoardIndex] != null) {
-                            Board adminBoard = admin.getBoards()[adminBoardIndex];
-                            if (adminBoard.getToDo().contains(sharedToDo)) {
-                                // Aggiungi solo se non è già nella lista (evita duplicati)
-                                if (!visibleToDos.contains(sharedToDo)) {
-                                    visibleToDos.add(sharedToDo);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            }else if(filter.equals("todayFilter")){
-                visibleToDos.addAll(toDoExpiresToday(user.getEmail(),boardName));
-
-            }else{
-                try{
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                    LocalDate date = LocalDate.parse(filter, formatter);
-
-                    visibleToDos = toDoDueBy(user.getEmail(), boardName,date);
-                }catch (DateTimeParseException e){
-
-                    int boardIndex = getBoardIndex(boardName);
-                    // Aggiungi i To-Do della board dell’utente (se esiste)
-                    if (boardIndex != -1 && user.getBoards()[boardIndex] != null) {
-                        for(ToDo t: user.getBoards()[boardIndex].getToDo()){
-                            if(t.getTitle().equalsIgnoreCase(filter)){
-                                visibleToDos.add(t);
-                            }
-                        }
-                    }
-
-                    // Aggiungi i To-Do condivisi per quell’utente nella stessa board
-                    for (Sharing s : user.getSharing()) {
-                        ToDo sharedToDo = s.getToDo();
-                        if (sharedToDo != null) {
-                            // Verifica che il To-Do condiviso appartenga alla board con quel nome
-                            User admin = s.getAdministrator();
-                            if (admin != null) {
-                                int adminBoardIndex = getBoardIndex(boardName);
-                                if (adminBoardIndex != -1 && admin.getBoards()[adminBoardIndex] != null) {
-                                    Board adminBoard = admin.getBoards()[adminBoardIndex];
-                                    if (adminBoard.getToDo().contains(sharedToDo)) {
-                                        // Aggiungi solo se non è già nella lista (evita duplicati)
-                                        if (!visibleToDos.contains(sharedToDo) && sharedToDo.getTitle().equalsIgnoreCase(filter)) {
-                                            visibleToDos.add(sharedToDo);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    }catch (DateTimeParseException e) {
+                        visibleToDos.add(boardDAO.findToDoByTitleInBoard(user.getEmail(),boardName,filter));
                     }
                 }
             }
 
-
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
         return visibleToDos;
     }
@@ -797,20 +711,13 @@ public class ApplicationManagement {
     }
 
     public boolean isUserAdminOfToDo(String emailUtente, String boardName, String toDoTitle) {
-        User user = findUserByEmail(emailUtente);
-        if (user == null) return false;
-
-        int boardIndex = getBoardIndex(boardName);
-        if (boardIndex == -1) return false;
-
-        Board board = user.getBoards()[boardIndex];
-        if (board == null) return false;
-
-        for (ToDo t : board.getToDo()) {
-            if (t.getTitle().equalsIgnoreCase(toDoTitle)) {
-                // Utente possiede questo To-Do nella board: è admin
-                return true;
-            }
+        try{
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            ToDoDAO toDoDAO = new ToDoDAO();
+            return toDoDAO.isUserAdminOfToDo(emailUtente,boardName,toDoTitle);
+        }catch(Exception e){
+            System.out.println("Errore verfica se Utente è anche admin");
+            e.printStackTrace();
         }
         return false;
     }
@@ -1057,56 +964,56 @@ public class ApplicationManagement {
     }
 
     //restituisce i to-DO che scadono in giornata
-    public ArrayList<ToDo> toDoExpiresToday(String email, String boardName) {
-        int boardIndex = getBoardIndex(boardName);
-        ArrayList<ToDo> toDoExpires = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                Board[] boards = users.get(i).getBoards();
-                if (boardIndex >= 0 && boardIndex < boards.length && boards[boardIndex] != null) {
-                    ArrayList<ToDo> todos = boards[boardIndex].getToDo();
-                    for (ToDo todo : todos) {
-                        if (todo != null && todo.getExpiration() != null && todo.getExpiration().equals(today)) {
-                            toDoExpires.add(todo);
-                        }
-                    }
-                }
-                break; // utente trovato, esco dal ciclo
-            }
-        }
-
-        return toDoExpires;
-    }
+//    public ArrayList<ToDo> toDoExpiresToday(String email, String boardName) {
+//        int boardIndex = getBoardIndex(boardName);
+//        ArrayList<ToDo> toDoExpires = new ArrayList<>();
+//        LocalDate today = LocalDate.now();
+//
+//        for (int i = 0; i < users.size(); i++) {
+//            if (email.equals(users.get(i).getEmail())) {
+//                Board[] boards = users.get(i).getBoards();
+//                if (boardIndex >= 0 && boardIndex < boards.length && boards[boardIndex] != null) {
+//                    ArrayList<ToDo> todos = boards[boardIndex].getToDo();
+//                    for (ToDo todo : todos) {
+//                        if (todo != null && todo.getExpiration() != null && todo.getExpiration().equals(today)) {
+//                            toDoExpires.add(todo);
+//                        }
+//                    }
+//                }
+//                break; // utente trovato, esco dal ciclo
+//            }
+//        }
+//
+//        return toDoExpires;
+//    }
 
 
     //restituisce tutti i to-Do che scadono entro la data inserita
-    public ArrayList<ToDo> toDoDueBy(String email, String boardName, LocalDate expirationDate) {
-        int boardIndex = getBoardIndex(boardName);
-        int notFound = 0;
-        ArrayList<ToDo> toDoExpires = new ArrayList<>();
-
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-
-                for (int x = 0; x < users.get(i).getBoards()[boardIndex].getToDo().size(); x++) {
-                    ToDo t = users.get(i).getBoards()[boardIndex].getToDo().get(x);
-                    if (t != null && t.getExpiration() != null
-                            && !t.getExpiration().isAfter(expirationDate)) {
-                        toDoExpires.add(t);
-                    }
-                }
-            }
-        }
-
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
-
-        return toDoExpires;
-    }
+//    public ArrayList<ToDo> toDoDueBy(String email, String boardName, LocalDate expirationDate) {
+//        int boardIndex = getBoardIndex(boardName);
+//        int notFound = 0;
+//        ArrayList<ToDo> toDoExpires = new ArrayList<>();
+//
+//        for (int i = 0; i < users.size(); i++) {
+//            if (email.equals(users.get(i).getEmail())) {
+//                notFound = 1; // utente trovato
+//
+//                for (int x = 0; x < users.get(i).getBoards()[boardIndex].getToDo().size(); x++) {
+//                    ToDo t = users.get(i).getBoards()[boardIndex].getToDo().get(x);
+//                    if (t != null && t.getExpiration() != null
+//                            && !t.getExpiration().isAfter(expirationDate)) {
+//                        toDoExpires.add(t);
+//                    }
+//                }
+//            }
+//        }
+//
+//        if (notFound == 0) {
+//            System.out.println("Utente non trovato...");
+//        }
+//
+//        return toDoExpires;
+//    }
 
     //ordina i to-do alfabeticamente
     public ArrayList<ToDo> getSortedTodosByName(ArrayList<ToDo> visibleToDos) {

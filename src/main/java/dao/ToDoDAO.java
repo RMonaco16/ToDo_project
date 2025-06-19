@@ -177,5 +177,33 @@ public class ToDoDAO {
         return checkList;
     }
 
+    public boolean isUserAdminOfToDo(String email, String boardType, String todoTitle) {
+        String sql = """
+        SELECT 1
+        FROM todos
+        JOIN boards ON todos.board_id = boards.id
+        WHERE todos.title = ?
+          AND boards.type = ?
+          AND boards.user_email = ?
+          AND todos.owner_email = ?
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, todoTitle);
+            stmt.setString(2, boardType);
+            stmt.setString(3, email); // proprietario della bacheca
+            stmt.setString(4, email); // utente da verificare come admin
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // ritorna true se l'utente è admin
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false; // se errore o non trovato
+    }
+
+
 
 }

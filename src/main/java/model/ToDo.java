@@ -14,6 +14,8 @@ public class ToDo {
     private CheckList checkList;
     private String ownerEmail;  // Nuovo campo per identificare l'amministratore/proprietario
 
+    public ToDo(){}
+
     public ToDo(String title, /*String description,*/ boolean state, CheckList checkList, boolean condiviso, String ownerEmail) {
         this.title = title;
         // this.description = description;  // Se vuoi tenerla, abilita
