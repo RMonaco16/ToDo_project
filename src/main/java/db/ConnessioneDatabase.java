@@ -34,6 +34,14 @@ public class ConnessioneDatabase {
     }
 
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                // (Re)instanzia la connessione se è nulla o chiusa
+                connection = DriverManager.getConnection(url, nome, password);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return connection;
     }
 }
