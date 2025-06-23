@@ -120,26 +120,28 @@ public class UserDAO {
         return null;
     }
     // ritorna falso se non trova la bacheca
-    public boolean checkBoard(String email, String nameBoard)throws Exception{
+    public boolean checkBoard(String email, String nameBoard) throws Exception {
+        // Controllo nomi validi
         if (!nameBoard.equals("UNIVERSITY") && !nameBoard.equals("WORK") && !nameBoard.equals("FREETIME")) {
             throw new IllegalArgumentException("Nome bacheca non valido.");
         }
 
-        String sql = "SELECT 1 FROM bacheche WHERE user_id = ? AND nome_bacheca = ? LIMIT 1";
+        String sql = "SELECT 1 FROM boards WHERE user_email = ? AND type = ? LIMIT 1";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, nameBoard);
+            stmt.setString(1, email);       // imposta l'email utente
+            stmt.setString(2, nameBoard);   // imposta il nome della bacheca
 
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); // true se esiste almeno una riga
+                return rs.next();  // true se esiste almeno una riga
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Bacheca non trovata");
             e.printStackTrace();
         }
         return false;
     }
+
 
 
     // Metodo di esempio per leggere boards (da implementare)

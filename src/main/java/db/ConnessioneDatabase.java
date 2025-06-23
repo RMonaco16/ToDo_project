@@ -7,8 +7,8 @@ import java.sql.SQLException;
 public class ConnessioneDatabase {
     private static ConnessioneDatabase instance;
     private Connection connection;
-    private final String nome = "admin";
-    private final String password = "admin";
+    private final String nome = "postgres";
+    private final String password = "posgre321";
     private final String url = "jdbc:postgresql://localhost:5432/ToDo";
     private final String driver = "org.postgresql.Driver";
 

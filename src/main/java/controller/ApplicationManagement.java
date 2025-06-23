@@ -1,6 +1,7 @@
 package controller;
 
 import dao.BoardDAO;
+import dao.CheckListDAO;
 import dao.ToDoDAO;
 import db.ConnessioneDatabase;
 import model.*;
@@ -125,11 +126,6 @@ public class ApplicationManagement {
     }
 
     public boolean addToDoInBoard(String email,String tipoEnum, ToDo toDo) {
-        if (currentUser == null) {
-            System.out.println("Utente non loggato...");
-            return false;
-        }
-
         try {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             ToDoDAO toDoDAO = new ToDoDAO(conn);
@@ -149,102 +145,27 @@ public class ApplicationManagement {
     }
 
     public boolean deleteToDo(String email, String nameBoard, String nomeToDo) {
-        int boardIndex = getBoardIndex(nameBoard);
-
-        for (int i = 0; i < users.size(); i++) {
-            User user = users.get(i);
-            if (!user.getEmail().equalsIgnoreCase(email)) continue;
-
-            Board board = user.getBoards()[boardIndex];
-            if (board == null) continue;
-
-            for (int t = 0; t < board.getToDo().size(); t++) {
-                ToDo todo = board.getToDo().get(t);
-                if (!todo.getTitle().equalsIgnoreCase(nomeToDo)) continue;
-
-                if (todo.isCondiviso()) {
-                    // Trova la condivisione di cui è amministratore
-                    Sharing sharingToRemove = null;
-
-                    for (int s = 0; s < user.getSharing().size(); s++) {
-                        Sharing sharing = user.getSharing().get(s);
-                        if (sharing.getToDo().getTitle().equalsIgnoreCase(nomeToDo)
-                                && sharing.getAdministrator().getEmail().equalsIgnoreCase(email)) {
-                            sharingToRemove = sharing;
-                            break;
-                        }
-                    }
-
-                    if (sharingToRemove == null) {
-                        System.out.println("Solo l'amministratore può eliminare un ToDo condiviso.");
-                        return false;
-                    }
-
-                    // Rimuovi il ToDo condiviso da ogni membro
-                    for (int m = 0; m < sharingToRemove.getMembers().size(); m++) {
-                        User membro = sharingToRemove.getMembers().get(m);
-
-                        // Rimuovi ToDo dalla board del membro
-                        Board[] boards = membro.getBoards();
-                        for (int b = 0; b < boards.length; b++) {
-                            if (boards[b] != null) {
-                                for (int td = 0; td < boards[b].getToDo().size(); td++) {
-                                    ToDo tRemove = boards[b].getToDo().get(td);
-                                    if (tRemove.getTitle().equalsIgnoreCase(nomeToDo) && tRemove.isCondiviso()) {
-                                        boards[b].getToDo().remove(td);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Rimuovi sharing dal membro
-                        for (int s = 0; s < membro.getSharing().size(); s++) {
-                            Sharing sRef = membro.getSharing().get(s);
-                            if (sRef.getToDo().getTitle().equalsIgnoreCase(nomeToDo)
-                                    && sRef.getAdministrator().getEmail().equalsIgnoreCase(email)) {
-                                membro.getSharing().remove(s);
-                                break;
-                            }
-                        }
-                    }
-
-                    // Rimuovi sharing da admin
-                    user.getSharing().remove(sharingToRemove);
-                }
-
-                // Elimina definitivamente il ToDo dalla board dell’amministratore
-                board.getToDo().remove(t);
-                System.out.println("ToDo eliminato con successo.");
-                return true;
-            }
+        try {
+            return new ToDoDAO().deleteToDo(email, nameBoard, nomeToDo);
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'eliminazione del ToDo: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-
-        System.out.println("ToDo non trovato o utente non autorizzato.");
-        return false;
     }
 
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1;
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    users.get(i).getBoards()[0].searchToDoAddActivity(titleToDo, activity);
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].searchToDoAddActivity(titleToDo, activity);
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].searchToDoAddActivity(titleToDo, activity);
-                    return;
-                }
-            }
+        if (!board.equalsIgnoreCase("UNIVERSITY") && !board.equalsIgnoreCase("WORK") && !board.equalsIgnoreCase("FREETIME")) {
+            System.out.println("Tipo di bacheca non valido.");
+            return;
         }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
+
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        CheckListDAO checkListDAO = new CheckListDAO(conn);
+        checkListDAO.addActivity(email, titleToDo, board, activity);
+    }//activity va ma nn escono
+
+
 
     public void removeActivity(String email, String titleToDo, String board, String nameActivity) {
         int notFound = 0;
@@ -715,13 +636,20 @@ public class ApplicationManagement {
     }
 
     public User findUserByEmail(String email) {
-        for (User u : users) {
-            if (u.getEmail().equals(email)) {
-                return u;
-            }
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            UserDAO userDAO = new UserDAO(conn);
+
+            User u = userDAO.leggiUserPerEmail(email); // già ti restituisce un oggetto User, non serve ricrearlo
+            return u;
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return null;
+
+        return null; // solo se c’è errore
     }
+
 
     public ArrayList<ToDo> getToDoAdminNonCondivisi(String emailUtente, String tipoBacheca) {
         ArrayList<ToDo> filteredToDos = new ArrayList<>();
