@@ -137,4 +137,55 @@ public class SharingDAO {
             e.printStackTrace();
         }
     }
+
+    public Sharing checkSharingExists(User admin, ToDo todo) {
+        String sql = """
+        SELECT 1
+        FROM sharings s
+        JOIN todos t ON s.todo_id = t.id
+        WHERE s.administrator_email = ? AND t.title = ?
+        LIMIT 1
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, admin.getEmail());
+            stmt.setString(2, todo.getTitle());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Sharing(admin, todo);
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean checkUserAlreadySharing(String memberEmail, String todoTitle, String adminEmail) {
+        String sql = """
+        SELECT 1
+        FROM sharing_members sm
+        JOIN sharings s ON sm.sharing_id = s.id
+        JOIN todos t ON s.todo_id = t.id
+        WHERE sm.member_email = ? AND t.title = ? AND s.administrator_email = ?
+        LIMIT 1
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, memberEmail);
+            stmt.setString(2, todoTitle);
+            stmt.setString(3, adminEmail);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();  // true se l'utente è già membro
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
