@@ -520,7 +520,7 @@ public class ApplicationManagement {
 
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
 
-        if(conn!= null){
+        if(conn != null){
             if (!isUserAdminOfToDo(mailAmministratore, boardName, toDoName)) {
                 System.out.println("Errore: l'utente non è amministratore del ToDo e non può condividerlo.");
                 return false;
@@ -650,21 +650,21 @@ public class ApplicationManagement {
 //            destinatario.getBoards()[boardIndex] = nuovaBoard;
 //        }
 //        return true;
+//    }
+//
+//
+//    private int getBoardIndex(String boardName){
+//            switch (boardName.toUpperCase()) {
+//                case "UNIVERSITY":
+//                    return 0;
+//                case "WORK":
+//                    return 1;
+//                case "FREETIME":
+//                    return 2;
+//                default:
+//                    return -1;
+//            }
     }
-
-
-    private int getBoardIndex(String boardName){
-            switch (boardName.toUpperCase()) {
-                case "UNIVERSITY":
-                    return 0;
-                case "WORK":
-                    return 1;
-                case "FREETIME":
-                    return 2;
-                default:
-                    return -1;
-            }
-        }
 
 
     public boolean isUserAdminOfToDo(String emailUtente, String boardName, String toDoTitle) {
