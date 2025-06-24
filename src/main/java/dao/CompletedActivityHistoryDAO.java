@@ -75,4 +75,62 @@ public class CompletedActivityHistoryDAO {
             e.printStackTrace();
         }
     }
+
+    // Metodo per aggiungere una attività completata nella cronologia
+    public void addActivityToHistory(String email, String activityName, Date completionDate) throws SQLException {
+        String sql = "INSERT INTO completed_activities (user_email, activity_name, completion_date) VALUES (?, ?, ?)";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, activityName);
+            stmt.setDate(3, new java.sql.Date(completionDate.getTime()));
+
+            stmt.executeUpdate();
+            System.out.println("Attività aggiunta alla cronologia nel DB");
+        }
+    }
+
+    // Metodo per ottenere la lista delle attività completate di un utente
+    public ArrayList<String> getActivitiesHistory(String email) throws SQLException {
+        ArrayList<String> history = new ArrayList<>();
+        String sql = "SELECT activity_name FROM completed_activities WHERE user_email = ? ORDER BY completion_date DESC";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                history.add(rs.getString("activity_name"));
+            }
+        }
+
+        return history;
+    }
+
+    public ArrayList<Activity> getCompletedActivitiesByUser(String email) throws SQLException {
+        ArrayList<Activity> activities = new ArrayList<>();
+
+        String sql = "SELECT activity_name, completion_date FROM completed_activity_history WHERE user_email = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String name = rs.getString("activity_name");
+                    Date completionDate = rs.getDate("completion_date");
+
+                    Activity activity = new Activity();
+                    activity.setName(name);
+                    activity.setCompletionDate(String.valueOf(completionDate));
+                    activity.setState(true); // già completata
+
+                    activities.add(activity);
+                }
+            }
+        }
+
+        return activities;
+    }
+
 }

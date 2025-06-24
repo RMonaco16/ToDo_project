@@ -130,12 +130,13 @@ public class BoardDAO {
 
     public ArrayList<ToDo> getAllLocalToDos(String email, String nameBoard) {
         String sql = """
-        SELECT todos.*
-        FROM todos
-        JOIN boards ON todos.board_id = boards.id
-        JOIN users ON boards.user_email = users.email
-        WHERE users.email = ? AND boards.type = ?
-    """;
+            SELECT todos.*
+            FROM todos
+            JOIN boards ON todos.board_id = boards.id
+            JOIN users ON boards.user_email = users.email
+            WHERE users.email = ? AND boards.type = ?
+            ORDER BY todos.title ASC
+        """;
 
         ArrayList<ToDo> todos = new ArrayList<>();
 
@@ -182,13 +183,15 @@ public class BoardDAO {
 
     public ArrayList<ToDo> getAllSharedToDos(String email, String boardType) {
         String sql = """
-        SELECT todos.*
-        FROM todos
-        JOIN sharings ON todos.id = sharings.todo_id
-        JOIN sharing_members ON sharings.id = sharing_members.sharing_id
-        JOIN boards ON todos.board_id = boards.id
-        WHERE sharing_members.member_email = ? AND boards.type = ?
-    """;
+            SELECT todos.*
+            FROM todos
+            JOIN sharings ON todos.id = sharings.todo_id
+            JOIN sharing_members ON sharings.id = sharing_members.sharing_id
+            JOIN boards ON todos.board_id = boards.id
+            WHERE sharing_members.member_email = ? AND boards.type = ?
+            ORDER BY todos.title ASC
+        """;
+
 
         ArrayList<ToDo> sharedTodos = new ArrayList<>();
 

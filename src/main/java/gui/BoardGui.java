@@ -607,7 +607,7 @@ public class BoardGui {
                     }
 
                     // se ritorna true ha torvato un altro to-do con lo stesso nome
-                    if (controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), color )){
+                    if (!controller.editToDo(email, nameBoard, t.getTitle(), titleField.getText(), descriptionArea.getText(), date, url.getText(), color )){
                         JOptionPane.showMessageDialog(saveButton,"name already in use");
                     }
 
