@@ -12,6 +12,8 @@ public class Activity {
         this.state = state;
     }
 
+    public Activity(){}
+
     // getter and setter
     public String getName() {
         return name;

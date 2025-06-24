@@ -6,11 +6,13 @@ import model.*;
 
 import java.awt.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.text.ParseException;
 
 import java.util.ArrayList;
 
@@ -140,15 +142,16 @@ public class ApplicationManagement {
         }
     }
 
-    public boolean deleteToDo(String email, String nameBoard, String nomeToDo) {
+    public boolean deleteToDo(String email, String board, String title) {
         try {
-            return new ToDoDAO().deleteToDo(email, nameBoard, nomeToDo);
+            ToDoDAO dao = new ToDoDAO(ConnessioneDatabase.getInstance().getConnection());
+            return dao.deleteToDo(email, board, title);
         } catch (SQLException e) {
             System.err.println("Errore durante l'eliminazione del ToDo: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
     }
+
 
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
         if (!board.equalsIgnoreCase("UNIVERSITY") && !board.equalsIgnoreCase("WORK") && !board.equalsIgnoreCase("FREETIME")) {
@@ -164,157 +167,71 @@ public class ApplicationManagement {
 
 
     public void removeActivity(String email, String titleToDo, String board, String nameActivity) {
-        int notFound = 0;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1;
-                User u = users.get(i);
-                if (board.equalsIgnoreCase("UNIVERSITY") && u.getBoards()[0] != null) {
-                    u.getBoards()[0].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[0].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
-                    return;
-                } else if (board.equalsIgnoreCase("WORK") && u.getBoards()[1] != null) {
-                    u.getBoards()[1].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[1].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
-                    return;
-                } else if (board.equalsIgnoreCase("FREETIME") && u.getBoards()[2] != null) {
-                    u.getBoards()[2].searchToDoRemoveActivity(titleToDo, nameActivity);
-                    u.getBoards()[2].srcToDoifComplete(titleToDo, getVisibleToDos(findUserByEmail(email),board,""));
-                    return;
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            CheckListDAO dao = new CheckListDAO(conn);
+            dao.removeActivity(email, titleToDo, board, nameActivity);
+        } catch (SQLException e) {
+            System.err.println("Errore nella connessione al database: " + e.getMessage());
         }
     }
 
-    public boolean editToDo(String email, String board, String ToDoToSrc, String newNameToDo, String description, LocalDate expiration, String image, Color color) {
-        int notFound = 0;
-        boolean result = false;
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    result = users.get(i).getBoards()[0].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    result = users.get(i).getBoards()[1].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    result = users.get(i).getBoards()[2].srcToDoToEdit(ToDoToSrc, newNameToDo, description, expiration, image, color);
-                }
-            }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-        return result;
+
+
+    public boolean editToDo(String email, String board, String toDoTitleOld, String newTitle,
+                            String description, LocalDate expiration, String image, Color color) {
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        ToDoDAO dao = new ToDoDAO(conn);
+
+        return dao.updateToDo(email, board, toDoTitleOld, newTitle, description, expiration, image, color);
     }
+
+
 
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
-        User user = findUserByEmail(email);
-        if (user == null) {
-            System.out.println("Utente non Loggato...");
-            return;
-        }
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        CheckListDAO dao = new CheckListDAO(conn);
 
-        int boardIndex = getBoardIndex(board);
-        if (boardIndex == -1) {
-            System.out.println("Board non valida.");
-            return;
-        }
+        try {
+            dao.checkActivity(email, board, todo, activity, dataCompletamento);
 
-        Board bacheca = user.getBoards()[boardIndex];
-        if (bacheca == null) {
-            System.out.println("Bacheca non trovata.");
-            return;
-        }
+            if (dataCompletamento != null && !dataCompletamento.isEmpty()) {
+                // Converti stringa in java.sql.Date
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                java.util.Date utilDate = sdf.parse(dataCompletamento);
+                Date sqlDate = new Date(utilDate.getTime()); // java.sql.Date
 
-        ToDo target = null;
-        for (ToDo t : bacheca.getToDo()) {
-            if (t.getTitle().equalsIgnoreCase(todo)) {
-                target = t;
-                break;
+                addHistoryAct(email, activity, sqlDate);
+            } else {
+                System.out.println("Data di completamento non fornita, cronologia non aggiornata.");
             }
-        }
 
-        if (target == null) {
-            // Cerca anche tra i To-Do condivisi
-            for (Sharing s : user.getSharing()) {
-                if (s.getToDo().getTitle().equalsIgnoreCase(todo)) {
-                    target = s.getToDo();
-                    break;
-                }
-            }
+        } catch (ParseException e) {
+            System.out.println("Errore nel parsing della data: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Errore SQL: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Errore generico nel controller durante checkActivity");
         }
-
-        if (target == null) {
-            System.out.println("ToDo non trovato.");
-            return;
-        }
-
-        // Controlla i permessi
-        if (!canUserModifyToDo(email, target)) {
-            System.out.println("Permessi insufficienti per modificare questo ToDo.");
-            return;
-        }
-
-        // Esegui l’azione
-        target.checkActivity(activity, dataCompletamento);
-        addHistoryAct(email, board, todo, activity);
-        target.checkIfComplete();
-        user.getBoards()[boardIndex].srcToDoifComplete(target.getTitle(), getVisibleToDos(findUserByEmail(email),board,""));
     }
 
-    public void deCheckActivity(String email, String board, String todo, String activity) {
-        User user = findUserByEmail(email);
-        if (user == null) {
-            System.out.println("Utente non Loggato...");
-            return;
-        }
 
-        int boardIndex = getBoardIndex(board);
-        if (boardIndex == -1) {
-            System.out.println("Board non valida.");
-            return;
-        }
 
-        Board bacheca = user.getBoards()[boardIndex];
-        if (bacheca == null) {
-            System.out.println("Bacheca non trovata.");
-            return;
-        }
+    public boolean deCheckActivity(String email, String board, String todo, String activity) {
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        CheckListDAO dao = new CheckListDAO(conn);
 
-        ToDo target = null;
-        for (ToDo t : bacheca.getToDo()) {
-            if (t.getTitle().equalsIgnoreCase(todo)) {
-                target = t;
-                t.setState(false);
-                break;
-            }
+        try {
+            // Chiama il metodo per decheckare l'attività (senza data)
+            return dao.uncheckActivity(email, board, todo, activity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Errore nel controller durante deCheckActivity");
+            return false;
         }
-
-        if (target == null) {
-            for (Sharing s : user.getSharing()) {
-                if (s.getToDo().getTitle().equalsIgnoreCase(todo)) {
-                    target = s.getToDo();
-                    break;
-                }
-            }
-        }
-
-        if (target == null) {
-            System.out.println("ToDo non trovato.");
-            return;
-        }
-
-        if (!canUserModifyToDo(email, target)) {
-            System.out.println("Permessi insufficienti per modificare questo ToDo.");
-            return;
-        }
-
-        target.deCheckActivity(activity);
-        user.getBoards()[boardIndex].srcToDoifComplete(target.getTitle(), getVisibleToDos(findUserByEmail(email),board,""));
     }
+
 
     public boolean canUserModifyToDo(String userEmail, ToDo toDo) {
         if (toDo.getOwnerEmail().equalsIgnoreCase(userEmail)) {
@@ -337,59 +254,32 @@ public class ApplicationManagement {
         return false; // Non è né proprietario né membro
     }
 
-    public void addHistoryAct(String email, String board, String todo, String activity) {
-        int notFound = 0;
-
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-
-                int boardIndex = -1;
-                if (board.equalsIgnoreCase("UNIVERSITY")) {
-                    boardIndex = 0;
-                } else if (board.equalsIgnoreCase("WORK")) {
-                    boardIndex = 1;
-                } else if (board.equalsIgnoreCase("FREETIME")) {
-                    boardIndex = 2;
-                }
-
-                if (boardIndex != -1 && users.get(i).getBoards()[boardIndex] != null) {
-                    Board currentBoard = users.get(i).getBoards()[boardIndex];
-
-                    for (int x = 0; x < currentBoard.getToDo().size(); x++) {
-                        if (currentBoard.getToDo().get(x).getTitle().equalsIgnoreCase(todo)) {
-
-                            for (int y = 0; y < currentBoard.getToDo().get(x).getCheckList().getActivities().size(); y++) {
-                                if (currentBoard.getToDo().get(x).getCheckList().getActivities().get(y).getName().equalsIgnoreCase(activity)) {
-
-                                    users.get(i).getActivityHistory().AddActivityHistory(
-                                            currentBoard.getToDo().get(x).getCheckList().getActivities().get(y)
-                                    );
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-    }
-
     public ArrayList<Activity> returnCompletedActivity(String email) {
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                // Utente trovato: ritorna la lista di attività completate
-                return users.get(i).getActivityHistory().print();
-            }
+        ArrayList<Activity> completedActivities = new ArrayList<>();
+
+        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+            CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
+            completedActivities = dao.getCompletedActivitiesByUser(email);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Errore nel recupero delle attività completate da DB");
         }
-        // Utente non trovato
-        System.out.println("Utente non loggato...");
-        return new ArrayList<>(); // Ritorna lista vuota
+
+        return completedActivities;
     }
+
+
+    public void addHistoryAct(String email, String activityName, Date completionDate) throws SQLException {
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
+            dao.addActivityToHistory(email, activityName, completionDate);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Errore nel controller durante l'aggiunta alla cronologia");
+        }
+    }
+
 
     public void rmvHistoryAct(String email, String nmAct) {
         int notFound = 0;
@@ -424,57 +314,15 @@ public class ApplicationManagement {
     }
 
     public ArrayList<ToDo> printTodo(String email, String board) {
-        int notFound = 0;
-        ArrayList<ToDo> listaVuota = new ArrayList<>();
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    return users.get(i).getBoards()[0].getToDo();
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    return users.get(i).getBoards()[1].getToDo();
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    return users.get(i).getBoards()[2].getToDo();
-                } else {
-                    System.out.println("Bacheca non trovata o vuota.");
-                    return listaVuota;
-                }
-            }
-        }
-
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
-        }
-        return listaVuota;
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        ToDoDAO toDoDAO = new ToDoDAO(conn);
+        return toDoDAO.getTodosByUserAndBoard(email, board);
     }
 
-    public ArrayList<Activity> printActs(String email, String board, String todo) {
-        int notFound = 0;
-        ArrayList<Activity> listaVuota = new ArrayList<>();
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // utente trovato
-
-                if (board.equalsIgnoreCase("UNIVERSITY") && users.get(i).getBoards()[0] != null) {
-                    return users.get(i).getBoards()[0].srcTodoPrint(todo);
-                } else if (board.equalsIgnoreCase("WORK") && users.get(i).getBoards()[1] != null) {
-                    users.get(i).getBoards()[1].srcTodoPrint(todo);
-                    return users.get(i).getBoards()[1].srcTodoPrint(todo);
-                } else if (board.equalsIgnoreCase("FREETIME") && users.get(i).getBoards()[2] != null) {
-                    users.get(i).getBoards()[2].srcTodoPrint(todo);
-                    return users.get(i).getBoards()[2].srcTodoPrint(todo);
-                } else {
-                    System.out.println("Bacheca non trovata o vuota.");
-                    return listaVuota;
-                }
-            }
-        }
-
-        if (notFound == 0) {
-            System.out.println("Utente non trovato...");
-        }
-        return listaVuota;
+    public ArrayList<Activity> printActs(String email, String board, String todoTitle) {
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        CheckListDAO dao = new CheckListDAO(conn);
+        return dao.getActivities(email, board, todoTitle);
     }
 
     public ArrayList<ToDo> getVisibleToDos(User user, String boardName,String filter) {

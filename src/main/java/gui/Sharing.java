@@ -62,7 +62,7 @@ public class Sharing {
     }
 
     private void popolaComboBox() {
-        ArrayList<ToDo> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
+        ArrayList<ToDo> listaToDo = controller.printTodo(emailUtente, tipoBacheca);//ArrayList<ToDo> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
 
         comboBoxToDo.removeAllItems();
         comboBoxToDo.addItem("--");
@@ -71,8 +71,6 @@ public class Sharing {
             comboBoxToDo.addItem(todo.getTitle());
         }
     }
-
-
 
     public void condividiToDo(String emailCreatore, String emailDaCondividere, String bacheca, String toDoName){
         if (!controller.isUserAdminOfToDo(emailCreatore, bacheca, toDoName)) {

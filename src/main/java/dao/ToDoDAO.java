@@ -43,7 +43,22 @@ public class ToDoDAO {
             return false;
         }
 
-        // 1️⃣ Inserisci checklist vuota
+        //  CONTROLLO ESISTENZA ToDo CON STESSO TITOLO
+        String checkSql = "SELECT id FROM todos WHERE board_id = ? AND LOWER(title) = LOWER(?)";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, boardId);
+            checkStmt.setString(2, toDo.getTitle());
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                System.out.println("ToDo con lo stesso titolo già presente nella board.");
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        //  Inserisci checklist vuota
         int checklistId = -1;
         String insertChecklistSql = "INSERT INTO checklists DEFAULT VALUES RETURNING id";
 
@@ -60,7 +75,7 @@ public class ToDoDAO {
             return false;
         }
 
-        // 2️⃣ Inserisci ToDo con la checklist appena creata
+        //Inserisci ToDo con la checklist appena creata
         String insertSql = """
         INSERT INTO todos (board_id, title, description, color, position, image, expiration, state, condiviso, owner_email, checklist_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -139,16 +154,16 @@ public class ToDoDAO {
             return false;
         }
     }
-    public boolean deleteToDo(String email, String nameBoard, String nomeToDo) throws SQLException {
-        Connection conn = this.conn; // o passa conn come parametro
+    public boolean deleteToDo(String email, String boardType, String todoTitle) throws SQLException {
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
 
-        // Step 1: Prendi l'ID della bacheca
-        String boardQuery = "SELECT id FROM boards WHERE user_email = ? AND name = ?";
+        // 1. Recupera l'ID della bacheca
+        String boardQuery = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         try (PreparedStatement boardStmt = conn.prepareStatement(boardQuery)) {
             boardStmt.setString(1, email);
-            boardStmt.setString(2, nameBoard);
-            ResultSet rsBoard = boardStmt.executeQuery();
+            boardStmt.setString(2, boardType.toUpperCase());
 
+            ResultSet rsBoard = boardStmt.executeQuery();
             if (!rsBoard.next()) {
                 System.out.println("Bacheca non trovata.");
                 return false;
@@ -156,13 +171,13 @@ public class ToDoDAO {
 
             int boardId = rsBoard.getInt("id");
 
-            // Step 2: Cerca il ToDo nella bacheca
-            String todoQuery = "SELECT id, condiviso FROM todos WHERE title = ? AND board_id = ?";
+            // 2. Cerca il ToDo
+            String todoQuery = "SELECT id, condiviso FROM todos WHERE LOWER(title) = LOWER(?) AND board_id = ?";
             try (PreparedStatement todoStmt = conn.prepareStatement(todoQuery)) {
-                todoStmt.setString(1, nomeToDo);
+                todoStmt.setString(1, todoTitle);
                 todoStmt.setInt(2, boardId);
-                ResultSet rsTodo = todoStmt.executeQuery();
 
+                ResultSet rsTodo = todoStmt.executeQuery();
                 if (!rsTodo.next()) {
                     System.out.println("ToDo non trovato.");
                     return false;
@@ -171,14 +186,14 @@ public class ToDoDAO {
                 int todoId = rsTodo.getInt("id");
                 boolean isCondiviso = rsTodo.getBoolean("condiviso");
 
+                // 3. Se condiviso, verifica i permessi e rimuovi sharing
                 if (isCondiviso) {
-                    // Step 3: Verifica se l’utente è l’amministratore del ToDo condiviso
                     String checkAdminQuery = "SELECT id FROM sharings WHERE todo_id = ? AND admin_email = ?";
                     try (PreparedStatement adminStmt = conn.prepareStatement(checkAdminQuery)) {
                         adminStmt.setInt(1, todoId);
                         adminStmt.setString(2, email);
-                        ResultSet rsAdmin = adminStmt.executeQuery();
 
+                        ResultSet rsAdmin = adminStmt.executeQuery();
                         if (!rsAdmin.next()) {
                             System.out.println("Solo l'amministratore può eliminare un ToDo condiviso.");
                             return false;
@@ -186,14 +201,12 @@ public class ToDoDAO {
 
                         int sharingId = rsAdmin.getInt("id");
 
-                        // Step 4: Rimuovi tutte le relazioni dai membri
                         try (PreparedStatement delMembers = conn.prepareStatement(
                                 "DELETE FROM sharing_members WHERE sharing_id = ?")) {
                             delMembers.setInt(1, sharingId);
                             delMembers.executeUpdate();
                         }
 
-                        // Step 5: Rimuovi la condivisione
                         try (PreparedStatement delSharing = conn.prepareStatement(
                                 "DELETE FROM sharings WHERE id = ?")) {
                             delSharing.setInt(1, sharingId);
@@ -202,19 +215,18 @@ public class ToDoDAO {
                     }
                 }
 
-                // Step 6: Rimuovi il ToDo dalla tabella
-                try (PreparedStatement deleteTodoStmt = conn.prepareStatement(
-                        "DELETE FROM todos WHERE id = ?")) {
-                    deleteTodoStmt.setInt(1, todoId);
-                    deleteTodoStmt.executeUpdate();
+                // 4. Elimina il ToDo
+                try (PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM todos WHERE id = ?")) {
+                    deleteStmt.setInt(1, todoId);
+                    deleteStmt.executeUpdate();
                 }
 
                 System.out.println("ToDo eliminato con successo.");
                 return true;
-
             }
         }
     }
+
 
 
     // Utilità per convertire il colore
@@ -321,6 +333,95 @@ public class ToDoDAO {
         return false; // se errore o non trovato
     }
 
-    
+    public ArrayList<ToDo> getTodosByUserAndBoard(String email, String boardType) {
+        ArrayList<ToDo> todos = new ArrayList<>();
+
+        String sql = """
+            SELECT t.id, t.title, t.description, t.color, t.image, t.expiration, 
+                   t.state, t.condiviso, t.owner_email, t.checklist_id
+            FROM todos t
+            JOIN boards b ON t.board_id = b.id
+            WHERE b.user_email = ? AND b.type = ?
+            ORDER BY t.id ASC
+        """;
+
+
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, boardType.toUpperCase());
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ToDo todo = new ToDo();
+                todo.setTitle(rs.getString("title"));
+                todo.setDescription(rs.getString("description"));
+
+                String colorHex = rs.getString("color");
+                if (colorHex != null) {
+                    todo.setColor(Color.decode(colorHex)); // es. "#FF0000"
+                }
+
+                todo.setImage(rs.getString("image"));
+
+                Date expDate = rs.getDate("expiration");
+                if (expDate != null) {
+                    todo.setExpiration(expDate.toLocalDate());
+                }
+
+                todo.setState(rs.getBoolean("state"));
+                todo.setCondiviso(rs.getBoolean("condiviso"));
+                todo.setOwnerEmail(rs.getString("owner_email"));
+
+                // Checklist vuota per ora (non carichiamo le attività qui)
+                CheckList checkList = new CheckList();
+                todo.setCheckList(checkList);
+
+                todos.add(todo);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return todos;
+    }
+
+    public boolean updateToDo(String email, String boardType, String oldTitle,
+                              String newTitle, String description, LocalDate expiration,
+                              String image, Color color) {
+
+        String sql = """
+        UPDATE todos
+        SET title = ?, description = ?, expiration = ?, image = ?, color = ?
+        WHERE id = (
+            SELECT t.id
+            FROM todos t
+            JOIN boards b ON t.board_id = b.id
+            WHERE b.user_email = ? AND b.type = ? AND LOWER(t.title) = LOWER(?)
+        )
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newTitle);
+            stmt.setString(2, description);
+            stmt.setDate(3, expiration != null ? Date.valueOf(expiration) : null);
+            stmt.setString(4, image);
+            stmt.setString(5, color != null ? String.format("#%06X", (0xFFFFFF & color.getRGB())) : null);
+            stmt.setString(6, email);
+            stmt.setString(7, boardType.toUpperCase());
+            stmt.setString(8, oldTitle);
+
+            int affected = stmt.executeUpdate();
+            return affected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
 
 }
