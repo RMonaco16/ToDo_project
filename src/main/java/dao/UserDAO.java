@@ -87,8 +87,8 @@ public class UserDAO {
         return false;
     }
 
-    //comntrolla se un utente gia esisten all'interno del db restituendo il risultato al controller
-    public boolean emailEsiste(String email) {
+    //comntrolla se un utente gia esiste all'interno del db restituendo il risultato al controller
+    public boolean emailExists(String email) {
         String sql = "SELECT 1 FROM users WHERE email = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
@@ -120,10 +120,11 @@ public class UserDAO {
         return null;
     }
     // ritorna falso se non trova la bacheca
-    public boolean checkBoard(String email, String nameBoard) throws Exception {
+    public boolean checkBoard(String email, String nameBoard){
         // Controllo nomi validi
         if (!nameBoard.equals("UNIVERSITY") && !nameBoard.equals("WORK") && !nameBoard.equals("FREETIME")) {
-            throw new IllegalArgumentException("Nome bacheca non valido.");
+            System.out.println("Nome bacheca non valido.");
+            return false;
         }
 
         String sql = "SELECT 1 FROM boards WHERE user_email = ? AND type = ? LIMIT 1";

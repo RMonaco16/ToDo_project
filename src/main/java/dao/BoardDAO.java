@@ -1,10 +1,7 @@
 package dao;
 
 import db.ConnessioneDatabase;
-import model.Board;
-import model.ToDo;
-import model.TypeBoard;
-import model.User;
+import model.*;
 
 import java.awt.*;
 import java.sql.*;
@@ -100,6 +97,60 @@ public class BoardDAO {
             e.printStackTrace();
         }
         return boards;
+    }
+
+    public ToDo checkToDoExists(String email, String boardType, String todoTitle){
+        String sql = """
+        SELECT t.title, t.description, t.color, t.image, t.expiration,
+               t.state, t.condiviso, t.owner_email
+        FROM todos t
+        JOIN boards b ON t.board_id = b.id
+        WHERE b.type = ? AND t.title = ? AND b.user_email = ?
+        LIMIT 1
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, boardType);
+            stmt.setString(2, todoTitle);
+            stmt.setString(3, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String title = rs.getString("title");
+                    boolean state = rs.getBoolean("state");
+                    boolean condiviso = rs.getBoolean("condiviso");
+                    String ownerEmail = rs.getString("owner_email");
+
+                    // Supponiamo di non avere ancora una CheckList associata qui
+                    CheckList checkList = null;
+
+                    // Costruttore base
+                    ToDo todo = new ToDo(title, state, checkList, condiviso, ownerEmail);
+
+                    // Aggiunta campi opzionali
+                    todo.setDescription(rs.getString("description"));
+
+                    String hexColor = rs.getString("color");
+                    if (hexColor != null) {
+                        todo.setColor(Color.decode(hexColor));
+                    }
+
+                    todo.setImage(rs.getString("image"));
+
+                    Date expDate = rs.getDate("expiration");
+                    if (expDate != null) {
+                        todo.setExpiration(expDate.toLocalDate());
+                    }
+
+                    return todo;
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public ArrayList<Board> getBoardsByEmail(String email) {
