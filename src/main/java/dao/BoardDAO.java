@@ -443,9 +443,9 @@ public class BoardDAO {
         FROM todos
         JOIN boards ON todos.board_id = boards.id
         WHERE boards.user_email = ?
-          AND boards.type = ?
-          AND todos.title = ?
-    """;
+        AND LOWER(boards.type) = LOWER(?)
+        AND LOWER(todos.title) = LOWER(?)
+        """;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);

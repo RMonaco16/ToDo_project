@@ -306,32 +306,36 @@ public class ToDoDAO {
         return checkList;
     }
 
-    public boolean isUserAdminOfToDo(String email, String boardType, String todoTitle) {
+    public boolean isUserAdminOfToDo(String email, String boardName, String toDoTitle) {
         String sql = """
-        SELECT 1
-        FROM todos
-        JOIN boards ON todos.board_id = boards.id
-        WHERE todos.title = ?
-          AND boards.type = ?
-          AND boards.user_email = ?
-          AND todos.owner_email = ?
+        SELECT COUNT(*) as total
+        FROM todos t
+        JOIN boards b ON t.board_id = b.id
+        WHERE LOWER(t.owner_email) = LOWER(?)
+          AND LOWER(t.title) = LOWER(?)
+          AND LOWER(b.type) = LOWER(?)
+          AND LOWER(b.user_email) = LOWER(?)
     """;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todoTitle);
-            stmt.setString(2, boardType);
-            stmt.setString(3, email); // proprietario della bacheca
-            stmt.setString(4, email); // utente da verificare come admin
+            stmt.setString(1, email);
+            stmt.setString(2, toDoTitle);
+            stmt.setString(3, boardName.toUpperCase());
+            stmt.setString(4, email);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); // ritorna true se l'utente è admin
+                if (rs.next()) {
+                    return rs.getInt("total") > 0;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return false; // se errore o non trovato
+        return false;
     }
+
+
 
     public ArrayList<ToDo> getTodosByUserAndBoard(String email, String boardType) {
         ArrayList<ToDo> todos = new ArrayList<>();
@@ -421,7 +425,97 @@ public class ToDoDAO {
         }
     }
 
+    public Integer getTodoIdByTitleUserAndBoard(String title, String adminEmail, String boardName) {
+        String sql = """
+        SELECT t.id
+        FROM todos t
+        JOIN boards b ON t.board_id = b.id
+        WHERE LOWER(t.title) = LOWER(?) 
+          AND LOWER(b.type) = LOWER(?) 
+          AND b.user_email = ?
+          AND t.owner_email = ?
+    """;
 
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, title);
+            stmt.setString(2, boardName);
+            stmt.setString(3, adminEmail); // verifica che la board appartenga all'utente
+            stmt.setString(4, adminEmail); // verifica che il todo sia suo
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+    public boolean setCondivisoTrueById(int todoId) {
+        String sql = """
+        UPDATE todos
+        SET condiviso = TRUE
+        WHERE id = ?
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, todoId);
+
+            int affected = stmt.executeUpdate();
+            return affected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Color getColorOfToDo(String boardType, String email, String toDoTitle, boolean shared) {
+        String sql = """
+        SELECT t.color
+        FROM todos t
+        JOIN boards b ON t.board_id = b.id
+        WHERE b.user_email = ?
+          AND b.type = ?
+          AND LOWER(t.title) = LOWER(?)
+          AND t.condiviso = ?
+        LIMIT 1
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, boardType.toUpperCase());
+            stmt.setString(3, toDoTitle);
+            stmt.setBoolean(4, shared);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String hexColor = rs.getString("color");
+                    if (hexColor != null && hexColor.matches("#[0-9A-Fa-f]{6}")) {
+                        return Color.decode(hexColor);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public void setCondivisoFalseById(int todoId) {
+        String sql = "UPDATE todos SET condiviso = FALSE WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, todoId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }

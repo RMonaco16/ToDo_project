@@ -216,69 +216,68 @@ public class BoardGui {
 
         for (ToDo t : controller.orderedVisibleToDos(comboBoxSortFilter.getSelectedItem().toString(),controller.getVisibleToDos(controller.findUserByEmail(email), nameBoard,filter.getText()))) {
 
+                JPanel titleToDo = new JPanel(new BorderLayout());
+                JPanel ToDoButton = new JPanel();
 
-            JPanel titleToDo = new JPanel(new BorderLayout());
-            JPanel ToDoButton = new JPanel();
-            if(t.isCondiviso()){
-                JButton sharingInformationButton = new JButton("👥");
-                sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
-                ToDoButton.add(sharingInformationButton);
+                JButton sharingInformationButton = null;
 
-                //ActionListener bottone 👥-----------------------------------
-                sharingInformationButton.addActionListener(e -> {
-                    if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
-                        sharingInfoFrame = new JFrame("Sharing Information");
-                        sharingInfoFrame.setSize(300, 150);
-                        sharingInfoFrame.setLocationRelativeTo(frame);
-                        sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                if (t.isCondiviso()) {
+                    sharingInformationButton = new JButton("👥");
+                    sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
+                    ToDoButton.add(sharingInformationButton);
 
-                        SharingInformation sharingInformation = new SharingInformation(controller,frame,email,t.getTitle());
-                        sharingInfoFrame.setContentPane(sharingInformation.getPanel());
-                        sharingInfoFrame.setSize(500, 300);
-                        sharingInfoFrame.setLocationRelativeTo(frame);
+                    sharingInformationButton.addActionListener(e -> {
+                        if (sharingInfoFrame == null || !sharingInfoFrame.isVisible()) {
+                            sharingInfoFrame = new JFrame("Sharing Information");
+                            sharingInfoFrame.setSize(300, 150);
+                            sharingInfoFrame.setLocationRelativeTo(frame);
+                            sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-                        // Quando viene chiusa, resetta il riferimento
-                        sharingInfoFrame.addWindowListener(new java.awt.event.WindowAdapter() {
-                            @Override
-                            public void windowClosing(java.awt.event.WindowEvent e) {
-                                sharingInfoFrame = null;
-                            }
+                            SharingInformation sharingInformation = new SharingInformation(controller, frame, email, t.getTitle(), nameBoard);
+                            sharingInfoFrame.setContentPane(sharingInformation.getPanel());
+                            sharingInfoFrame.setSize(500, 300);
+                            sharingInfoFrame.setLocationRelativeTo(frame);
 
-                            @Override
-                            public void windowClosed(java.awt.event.WindowEvent e) {
-                                sharingInfoFrame = null;
-                            }
-                        });
+                            sharingInfoFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+                                @Override
+                                public void windowClosing(java.awt.event.WindowEvent e) {
+                                    sharingInfoFrame = null;
+                                }
 
-                        sharingInfoFrame.setVisible(true);
-                    } else {
-                        // Porta la finestra già aperta in primo piano
-                        sharingInfoFrame.toFront();
-                        sharingInfoFrame.requestFocus();
+                                @Override
+                                public void windowClosed(java.awt.event.WindowEvent e) {
+                                    sharingInfoFrame = null;
+                                }
+                            });
+                            sharingInfoFrame.setVisible(true);
+                        } else {
+                            sharingInfoFrame.toFront();
+                            sharingInfoFrame.requestFocus();
+                        }
+                    });
+                } else {
+                    // Se non condiviso, verifica se c'è un bottone di condivisione da rimuovere
+                    for (Component comp : ToDoButton.getComponents()) {
+                        if (comp instanceof JButton btn && "👥".equals(btn.getText())) {
+                            ToDoButton.remove(comp);
+                            break;
+                        }
                     }
-                });
+                }
 
+                JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
+                titleLabel.setFont(new Font(null, Font.BOLD, 20));
 
-            }else{
-                JLabel label = new JLabel();
-                ToDoButton.add(label);
-            }
-
-
-            JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
-            titleLabel.setFont(new Font(null, Font.BOLD, 20));
-            if(t.getExpiration()!=null) {
-                if(t.getExpiration().isBefore(LocalDate.now()))
+                if (t.getExpiration() != null && t.getExpiration().isBefore(LocalDate.now())) {
                     titleLabel.setForeground(Color.RED);
-            }
-            JButton propertiesButton = new JButton("≡");
-            propertiesButton.setFont(new Font(null, Font.BOLD, 20));
+                }
 
+                JButton propertiesButton = new JButton("≡");
+                propertiesButton.setFont(new Font(null, Font.BOLD, 20));
+                ToDoButton.add(propertiesButton);
 
-            ToDoButton.add(propertiesButton);
-
-            titleToDo.add(titleLabel, BorderLayout.WEST);
-            titleToDo.add(ToDoButton, BorderLayout.EAST);
+                titleToDo.add(titleLabel, BorderLayout.WEST);
+                titleToDo.add(ToDoButton, BorderLayout.EAST);
 
 
             DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Attività", "Fatto"}, 0) {

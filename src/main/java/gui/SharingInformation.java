@@ -16,13 +16,36 @@ public class SharingInformation {
     private JTextField textEmail;
     private JTable tableInformazioniUsers;
     private JButton deleteSelectedButton;
-    private DefaultTableModel defaultTableModel;
 
-    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo) {
+    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName) {
 
+        // Inizializza la tabella con i membri attuali
+        updateSharingMember(controller, emailUtente, boardName, nomeTodo);
 
+        // Azione bottone elimina
+        deleteSelectedButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = tableInformazioniUsers.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String emailDaEliminare = tableInformazioniUsers.getValueAt(selectedRow, 1).toString();
 
-        // Imposta nome e email dell'amministratore
+                    boolean successo = controller.rimuoviUtenteDaSharing(emailUtente, emailDaEliminare, boardName, nomeTodo);
+                    if (successo) {
+                        JOptionPane.showMessageDialog(null, "User removed from sharing!");
+                        updateSharingMember(controller, emailUtente, boardName, nomeTodo);  // Ricarica la tabella aggiornata
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Only the administrator can manage users", "Administrator Only", JOptionPane.WARNING_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select a row before proceeding.");
+                }
+            }
+        });
+    }
+
+    public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo) {
+        // Recupera info amministratore
         String adminName = controller.getToAdministratorNick(emailUtente, nomeTodo);
         String adminEmail = controller.getToAdministratorMail(emailUtente, nomeTodo);
 
@@ -32,10 +55,9 @@ public class SharingInformation {
         textNickname.setEditable(false);
         textEmail.setEditable(false);
 
-        // Recupera gli utenti con cui è condiviso il To-Do
+        // Recupera utenti condivisi
         ArrayList<User> sharedUsers = controller.getToDoUserShared(emailUtente, nomeTodo);
 
-        // Configura la tabella
         String[] columnNames = {"Name", "Email"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
@@ -44,31 +66,9 @@ public class SharingInformation {
         }
 
         tableInformazioniUsers.setModel(model);
-
-        deleteSelectedButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = tableInformazioniUsers.getSelectedRow();//prende la riga selezionata
-                if (selectedRow >= 0) {
-                    // Supponiamo che l'email sia nella colonna 1
-                    String emailDaEliminare = tableInformazioniUsers.getValueAt(selectedRow, 1).toString();//prende lattributo alla riga selezionata in base alla colonna
-
-                    boolean successo = controller.rimuoviUtenteDaCondivisione(emailUtente, nomeTodo, emailDaEliminare);
-                    if (successo) {
-                        JOptionPane.showMessageDialog(null, "User removed from sharing!");
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Only the administrator can manage users", "administrator only",JOptionPane.WARNING_MESSAGE);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select a row before proceeding.");
-                }
-            }
-        });
-
     }
 
     public JPanel getPanel() {
         return panelSharingInformation;
     }
-
 }
