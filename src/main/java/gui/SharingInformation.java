@@ -5,6 +5,7 @@ import model.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -58,6 +59,17 @@ public class SharingInformation {
         // Recupera utenti condivisi
         ArrayList<User> sharedUsers = controller.getToDoUserShared(emailUtente, nomeTodo);
 
+        // 🔒 Chiude la finestra se non ci sono più utenti condivisi
+        if (sharedUsers == null || sharedUsers.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No more shared users. The Sharing was deleted.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            Window window = SwingUtilities.getWindowAncestor(panelSharingInformation);
+            if (window != null) {
+                window.dispose();
+            }
+            return;
+        }
+
+        // Altrimenti aggiorna la tabella
         String[] columnNames = {"Name", "Email"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
