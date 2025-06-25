@@ -186,7 +186,7 @@ public class BoardDAO {
             JOIN boards ON todos.board_id = boards.id
             JOIN users ON boards.user_email = users.email
             WHERE users.email = ? AND boards.type = ?
-            ORDER BY todos.title ASC
+            ORDER BY todos.id ASC
         """;
 
         ArrayList<ToDo> todos = new ArrayList<>();
@@ -240,7 +240,7 @@ public class BoardDAO {
             JOIN sharing_members ON sharings.id = sharing_members.sharing_id
             JOIN boards ON todos.board_id = boards.id
             WHERE sharing_members.member_email = ? AND boards.type = ?
-            ORDER BY todos.title ASC
+            ORDER BY todos.id ASC
         """;
 
 
@@ -337,14 +337,14 @@ public class BoardDAO {
 
     public ArrayList<ToDo> getLocalTodosExpiringBeforeOrOn(String email, String boardType, LocalDate date) {
         String sql = """
-        SELECT todos.*
-        FROM todos
-        JOIN boards ON todos.board_id = boards.id
-        WHERE boards.user_email = ?
-          AND boards.type = ?
-          AND todos.expiration IS NOT NULL
-          AND todos.expiration <= ?
-    """;
+            SELECT todos.*
+            FROM todos
+            JOIN boards ON todos.board_id = boards.id
+            WHERE boards.user_email = ?
+              AND boards.type = ?
+              AND todos.expiration IS NOT NULL
+              AND todos.expiration <= ?
+        """;
 
         ArrayList<ToDo> todos = new ArrayList<>();
 

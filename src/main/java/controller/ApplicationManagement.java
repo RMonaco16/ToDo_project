@@ -161,8 +161,22 @@ public class ApplicationManagement {
 
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
         CheckListDAO checkListDAO = new CheckListDAO(conn);
-        checkListDAO.addActivity(email, titleToDo, board, activity);
-    }//activity va ma nn escono
+        ToDoDAO toDoDAO = new ToDoDAO(conn);
+
+        try {
+            checkListDAO.addActivity(email, titleToDo, board, activity);
+
+            // Controllo e aggiornamento dello stato del ToDo dopo aggiunta attività
+            int toDoId = checkListDAO.getToDoId(email, board, titleToDo);
+            toDoDAO.checkIfComplete(toDoId);
+
+        } catch (SQLException e) {
+            System.err.println("Errore SQL durante addActivity: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Errore generico durante addActivity");
+        }
+    }
 
 
 
@@ -170,7 +184,14 @@ public class ApplicationManagement {
         try {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             CheckListDAO dao = new CheckListDAO(conn);
+            ToDoDAO toDoDAO = new ToDoDAO(conn);
+
             dao.removeActivity(email, titleToDo, board, nameActivity);
+
+            // Aggiorna lo stato del ToDo dopo la rimozione
+            int toDoId = dao.getToDoId(email, board, titleToDo);
+            toDoDAO.checkIfComplete(toDoId);
+
         } catch (SQLException e) {
             System.err.println("Errore nella connessione al database: " + e.getMessage());
         }
@@ -186,11 +207,10 @@ public class ApplicationManagement {
         return dao.updateToDo(email, board, toDoTitleOld, newTitle, description, expiration, image, color);
     }
 
-
-
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
         CheckListDAO dao = new CheckListDAO(conn);
+        ToDoDAO toDoDAO = new ToDoDAO(conn);
 
         try {
             dao.checkActivity(email, board, todo, activity, dataCompletamento);
@@ -200,11 +220,14 @@ public class ApplicationManagement {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
                 java.util.Date utilDate = sdf.parse(dataCompletamento);
                 Date sqlDate = new Date(utilDate.getTime()); // java.sql.Date
-
                 addHistoryAct(email, activity, sqlDate);
             } else {
                 System.out.println("Data di completamento non fornita, cronologia non aggiornata.");
             }
+
+            // Controllo e aggiornamento dello stato del ToDo
+            int toDoId = dao.getToDoId(email, board, todo);
+            toDoDAO.checkIfComplete(toDoId);
 
         } catch (ParseException e) {
             System.out.println("Errore nel parsing della data: " + e.getMessage());
@@ -217,20 +240,26 @@ public class ApplicationManagement {
     }
 
 
-
     public boolean deCheckActivity(String email, String board, String todo, String activity) {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
         CheckListDAO dao = new CheckListDAO(conn);
+        ToDoDAO toDoDAO = new ToDoDAO(conn);
 
         try {
-            // Chiama il metodo per decheckare l'attività (senza data)
-            return dao.uncheckActivity(email, board, todo, activity);
+            boolean result = dao.uncheckActivity(email, board, todo, activity);
+
+            // Aggiorna lo stato del ToDo dopo la modifica
+            int toDoId = dao.getToDoId(email, board, todo);
+            toDoDAO.checkIfComplete(toDoId);
+
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Errore nel controller durante deCheckActivity");
             return false;
         }
     }
+
 
 
     public boolean canUserModifyToDo(String userEmail, ToDo toDo) {
@@ -282,34 +311,30 @@ public class ApplicationManagement {
 
 
     public void rmvHistoryAct(String email, String nmAct) {
-        int notFound = 0;
+        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+            CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
+            boolean removed = dao.removeActivityFromHistory(email, nmAct);
 
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                users.get(i).getActivityHistory().rmvAct(nmAct);
-                return;
+            if (!removed) {
+                System.out.println("Attività non trovata nella cronologia per l'utente: " + email);
             }
-        }
-
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Errore durante la rimozione dalla cronologia");
         }
     }
 
-
     public void dltHistory(String email) {
-        int notFound = 0;
+        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+            CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
+            boolean deleted = dao.deleteAllActivitiesFromHistory(email);
 
-        for (int i = 0; i < users.size(); i++) {
-            if (email.equals(users.get(i).getEmail())) {
-                notFound = 1; // trovato
-                users.get(i).getActivityHistory().dltActs();
-                return;
+            if (!deleted) {
+                System.out.println("Nessuna attività trovata o utente non esistente: " + email);
             }
-        }
-        if (notFound == 0) {
-            System.out.println("Utente non Loggato...");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Errore durante l'eliminazione della cronologia");
         }
     }
 
@@ -694,86 +719,31 @@ public class ApplicationManagement {
     }
 
     public int spostaToDoInBacheca(String email, String nomeToDo, String nomeBachecaInCuiSpostare, String nomeBachecaDiOrigine) {
-        // return 0 = tutto ok
-        // return 1 = to-do già esistente nella bacheca di destinazione
-        // return 2 = to-do condiviso, non puoi spostarlo
-        // return 3 = utente o bacheca non trovati
+        ToDoDAO toDoDAO = new ToDoDAO();
 
-        User utente = null;
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getEmail().equalsIgnoreCase(email)) {
-                utente = users.get(i);
+        int risultato = toDoDAO.spostaToDoInBacheca(email, nomeToDo, nomeBachecaInCuiSpostare, nomeBachecaDiOrigine);
+
+        switch (risultato) {
+            case 0:
+                System.out.println("ToDo spostato correttamente");
                 break;
-            }
-        }
-        if (utente == null) {
-            System.out.println("Utente non trovato...");
-            return 3;
-        }
-
-        int boardIndexOrigine = getBoardIndex(nomeBachecaDiOrigine);
-        int boardIndexDestinazione = getBoardIndex(nomeBachecaInCuiSpostare);
-
-        if (boardIndexOrigine == -1 || boardIndexDestinazione == -1) {
-            System.out.println("Bacheca origine o destinazione non valida");
-            return 3;
-        }
-
-        Board boardOrigine = utente.getBoards()[boardIndexOrigine];
-        Board boardDestinazione = utente.getBoards()[boardIndexDestinazione];
-
-        if (boardOrigine == null || boardDestinazione == null) {
-            System.out.println("Una delle due bacheche non è presente per l'utente");
-            return 3;
-        }
-
-        ToDo toDoDaSpostare = null;
-        for (int i = 0; i < boardOrigine.getToDo().size(); i++) {
-            if (boardOrigine.getToDo().get(i).getTitle().equalsIgnoreCase(nomeToDo)) {
-                toDoDaSpostare = boardOrigine.getToDo().get(i);
-                break;
-            }
-        }
-
-        if (toDoDaSpostare == null) {
-            System.out.println("ToDo non trovato nella bacheca di origine");
-            return 3;
-        }
-
-        if (toDoDaSpostare.isCondiviso()) {
-            System.out.println("ToDo condiviso, non puoi spostarlo");
-            return 2;
-        }
-
-        for (int i = 0; i < boardDestinazione.getToDo().size(); i++) {
-            if (boardDestinazione.getToDo().get(i).getTitle().equalsIgnoreCase(nomeToDo)) {
+            case 1:
                 System.out.println("ToDo già presente nella bacheca di destinazione");
-                return 1;
-            }
+                break;
+            case 2:
+                System.out.println("ToDo condiviso, impossibile spostarlo");
+                break;
+            case 3:
+                System.out.println("Utente, bacheca o ToDo non trovati, oppure errore");
+                break;
+            default:
+                System.out.println("Errore sconosciuto");
         }
 
-        // Copia checklist
-        CheckList nuovaCheckList = new CheckList();
-        for (int i = 0; i < toDoDaSpostare.getCheckList().getActivities().size(); i++) {
-            Activity a = toDoDaSpostare.getCheckList().getActivities().get(i);
-            Activity copiaAttivita = new Activity(a.getName(), a.getState());
-            nuovaCheckList.addActivity(copiaAttivita);
-        }
-
-        ToDo copiaToDo = new ToDo(
-                toDoDaSpostare.getTitle(),
-                toDoDaSpostare.isState(),
-                nuovaCheckList,
-                false,  // dopo lo spostamento non è condiviso
-                toDoDaSpostare.getOwnerEmail()
-        );
-
-        boardDestinazione.getToDo().add(copiaToDo);
-        boardOrigine.getToDo().remove(toDoDaSpostare);
-
-        System.out.println("ToDo spostato con successo");
-        return 0;
+        return risultato;
     }
+
+
 
     //restituisce i to-DO che scadono in giornata
 //    public ArrayList<ToDo> toDoExpiresToday(String email, String boardName) {

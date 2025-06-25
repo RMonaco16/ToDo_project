@@ -1,6 +1,9 @@
 package gui;
 
 import controller.ApplicationManagement;
+import dao.CheckListDAO;
+import dao.ToDoDAO;
+import db.ConnessioneDatabase;
 import model.Activity;
 import model.Board;
 import model.CheckList;
@@ -13,6 +16,7 @@ import java.awt.*;
 import java.io.File;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -38,6 +42,7 @@ public class BoardGui {
     private JFrame sharingInfoFrame = null;
     private JDialog dialog = null;
     private Color color;
+    private JLabel stateField;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
         frame = new JFrame(nameBoard);
@@ -258,7 +263,6 @@ public class BoardGui {
                     }
                 });
 
-
             }else{
                 JLabel label = new JLabel();
                 ToDoButton.add(label);
@@ -305,6 +309,9 @@ public class BoardGui {
                     } else {
                         controller.deCheckActivity(email, nameBoard, t.getTitle(), nomeAttivita);
                     }
+                    // ✅ aggiorna stato dopo rimozione
+                    updateToDoList(controller, email, nameBoard);
+                    aggiornaStatoToDo(stateField ,email, nameBoard, t);
                 }
             });
 
@@ -385,6 +392,10 @@ public class BoardGui {
                         Activity activity = new Activity(nameToDoText, false);
                         controller.addActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activity);
                         updateToDoList(controller, email, nameBoard);
+
+                        //aggiorna lo stato
+                        aggiornaStatoToDo(stateField ,email, nameBoard, t);
+
                         newAct.dispose();
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(newAct, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -407,6 +418,8 @@ public class BoardGui {
                     controller.removeActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activityName);
 
                     updateToDoList(controller, email, nameBoard);
+                    aggiornaStatoToDo(stateField ,email, nameBoard, t);
+
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(table,
                             "First select an activity to remove.",
@@ -432,6 +445,9 @@ public class BoardGui {
                 JPanel propertiesDialog = new JPanel();
                 propertiesDialog.setLayout(new BoxLayout(propertiesDialog, BoxLayout.Y_AXIS));
                 propertiesDialog.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+
+
+
 
 
                 // Title--------------------------------------------------
@@ -547,9 +563,10 @@ public class BoardGui {
 
 
                 // State--------------------------------------------------
+
                 JPanel statePanel = new JPanel(new BorderLayout(5, 2));
                 statePanel.add(new JLabel("State:"), BorderLayout.WEST);
-                JLabel stateField = new JLabel(t.isState() ? "✅" : "❌");
+                stateField = new JLabel(t.isState() ? "✅" : "❌");
                 statePanel.add(stateField, BorderLayout.CENTER);
                 propertiesDialog.add(statePanel);
 
@@ -648,5 +665,30 @@ public class BoardGui {
 
         panelToDoMain.revalidate();
         panelToDoMain.repaint();
+
     }
+
+    private void aggiornaStatoToDo(JLabel stateField, String email, String nameBoard, ToDo t) {
+        try {
+            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            ToDoDAO dao = new ToDoDAO(conn);
+            CheckListDAO daoChecklist = new CheckListDAO(conn);
+
+            int toDoId = daoChecklist.getToDoId(email, nameBoard, t.getTitle());
+            boolean statoAggiornato = dao.getStateById(toDoId);
+
+            // Aggiorna GUI nel thread corretto
+            SwingUtilities.invokeLater(() -> {
+                stateField.setText(statoAggiornato ? "✅" : "❌");
+                stateField.revalidate();
+                stateField.repaint();
+            });
+
+        } catch (Exception e) {
+            System.err.println("Errore durante aggiornamento stato: " + e.getMessage());
+        }
+    }
+
+
+
 }
