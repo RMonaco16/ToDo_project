@@ -281,6 +281,27 @@ public class CheckListDAO {
         }
     }
 
+    public int getToDoId(String email, String boardType, String todoTitle) throws SQLException {
+        String sql = """
+        SELECT t.id
+        FROM todos t
+        JOIN boards b ON t.board_id = b.id
+        WHERE b.user_email = ? AND b.type = ? AND t.title = ?
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, boardType.toUpperCase());
+            ps.setString(3, todoTitle);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                } else {
+                    throw new SQLException("ToDo non trovato");
+                }
+            }
+        }
+    }
 
 
 }

@@ -227,8 +227,6 @@ public class ToDoDAO {
         }
     }
 
-
-
     // Utilità per convertire il colore
     private String colorToHex(Color color) {
         if (color == null) return null;
@@ -240,71 +238,6 @@ public class ToDoDAO {
         return Color.decode(hex);
     }
 
-    /*
-    //serve per caricare automaticamente tutti i To-Do collegati a una specifica Board.
-    public ArrayList<ToDo> leggiToDoPerBoard(String boardType) {
-        ArrayList<ToDo> listaToDo = new ArrayList<>();
-        String sql = "SELECT * FROM todo WHERE type = ?";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, boardType);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String title = rs.getString("title");
-                boolean state = rs.getBoolean("state");
-                boolean condiviso = rs.getBoolean("condiviso");
-                String ownerEmail = rs.getString("owner_email");
-
-                // Carica la checklist tramite il metodo DAO
-                CheckList checkList = leggiCheckListPerToDo(title);
-
-                ToDo todo = new ToDo(title, state, checkList, condiviso, ownerEmail);
-
-                // ...altri campi
-                todo.setDescription(rs.getString("description"));
-                todo.setImage(rs.getString("image"));
-                Date date = rs.getDate("expiration");
-                if (date != null) {
-                    todo.setExpiration(date.toLocalDate());
-                }
-
-                listaToDo.add(todo);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return listaToDo;
-    }
-
-    */
-
-    public CheckList leggiCheckListPerToDo(String todoTitle) {
-        CheckList checkList = new CheckList();
-        String sql = "SELECT * FROM activity WHERE todo_title = ?";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todoTitle);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String name = rs.getString("name");
-                boolean state = rs.getBoolean("state");
-                String completionDate = rs.getString("completionDate");
-
-                Activity activity = new Activity(name, state);
-                activity.setCompletionDate(completionDate);
-
-                checkList.addActivity(activity);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return checkList;
-    }
 
     public boolean isUserAdminOfToDo(String email, String boardName, String toDoTitle) {
         String sql = """
@@ -514,6 +447,162 @@ public class ToDoDAO {
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    //--------------abominio sposta to-Do
+
+    public int spostaToDoInBacheca(String email, String nomeToDo, String nomeBachecaInCuiSpostare, String nomeBachecaDiOrigine) {
+        // codici di ritorno:
+        // 0 = successo
+        // 1 = to-do già presente nella bacheca di destinazione
+        // 2 = to-do condiviso, non puoi spostarlo
+        // 3 = utente o bacheca non trovati
+        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+
+            // 1. Verifica esistenza utente
+            String sqlCheckUser = "SELECT email FROM users WHERE email = ?";
+            try (PreparedStatement psUser = conn.prepareStatement(sqlCheckUser)) {
+                psUser.setString(1, email);
+                try (ResultSet rsUser = psUser.executeQuery()) {
+                    if (!rsUser.next()) {
+                        System.out.println("Utente non trovato...");
+                        return 3;
+                    }
+                }
+            }
+
+            // 2. Prendi ID board origine
+            Integer boardIdOrigine = getBoardId(conn, email, nomeBachecaDiOrigine);
+            Integer boardIdDestinazione = getBoardId(conn, email, nomeBachecaInCuiSpostare);
+
+            if (boardIdOrigine == null || boardIdDestinazione == null) {
+                System.out.println("Bacheca origine o destinazione non valida");
+                return 3;
+            }
+
+            // 3. Verifica che ToDo esista nella board di origine e ne prendi i dati (compreso 'condiviso')
+            String sqlCheckToDoOrigine = "SELECT id, condiviso FROM todos WHERE board_id = ? AND title = ?";
+            Integer todoId = null;
+            boolean condiviso = false;
+            try (PreparedStatement psToDo = conn.prepareStatement(sqlCheckToDoOrigine)) {
+                psToDo.setInt(1, boardIdOrigine);
+                psToDo.setString(2, nomeToDo);
+                try (ResultSet rsToDo = psToDo.executeQuery()) {
+                    if (rsToDo.next()) {
+                        todoId = rsToDo.getInt("id");
+                        condiviso = rsToDo.getBoolean("condiviso");
+                    } else {
+                        System.out.println("ToDo non trovato nella bacheca di origine");
+                        return 3;
+                    }
+                }
+            }
+
+            if (condiviso) {
+                System.out.println("ToDo condiviso, non puoi spostarlo");
+                return 2;
+            }
+
+            // 4. Verifica che ToDo non esista già nella board destinazione
+            String sqlCheckToDoDest = "SELECT id FROM todos WHERE board_id = ? AND title = ?";
+            try (PreparedStatement psCheckDest = conn.prepareStatement(sqlCheckToDoDest)) {
+                psCheckDest.setInt(1, boardIdDestinazione);
+                psCheckDest.setString(2, nomeToDo);
+                try (ResultSet rsCheckDest = psCheckDest.executeQuery()) {
+                    if (rsCheckDest.next()) {
+                        System.out.println("ToDo già presente nella bacheca di destinazione");
+                        return 1;
+                    }
+                }
+            }
+
+            // 5. Aggiorna il board_id del todo per spostarlo
+            String sqlUpdateToDo = "UPDATE todos SET board_id = ?, condiviso = false WHERE id = ?";
+            try (PreparedStatement psUpdate = conn.prepareStatement(sqlUpdateToDo)) {
+                psUpdate.setInt(1, boardIdDestinazione);
+                psUpdate.setInt(2, todoId);
+                int rows = psUpdate.executeUpdate();
+                if (rows == 0) {
+                    System.out.println("Errore nello spostamento del ToDo");
+                    return 3;
+                }
+            }
+
+            System.out.println("ToDo spostato con successo");
+            return 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Errore database durante spostamento ToDo");
+            return 3;
+        }
+    }
+
+    // Metodo di supporto per recuperare ID board dato email e tipo (nomeBacheca)
+    private Integer getBoardId(Connection conn, String email, String nomeBacheca) throws SQLException {
+        String sql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, nomeBacheca.toUpperCase()); // assumendo valori in maiuscolo
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
+    public void checkIfComplete(int toDoId) throws SQLException {
+        String checkSql = """
+        SELECT a.state
+        FROM activities a
+        JOIN todos t ON a.checklist_id = t.checklist_id
+        WHERE t.id = ?
+    """;
+
+        String updateSql = "UPDATE todos SET state = ? WHERE id = ?";
+
+        Connection conn = this.conn;
+
+        boolean allComplete = true;
+        boolean hasActivities = false;
+
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, toDoId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            while (rs.next()) {
+                hasActivities = true; // almeno un'attività esiste
+                boolean stato = rs.getBoolean("state");
+                if (!stato) {
+                    allComplete = false;
+                    break;
+                }
+            }
+        }
+
+        // Se non ci sono attività, considera il ToDo incompleto
+        boolean newState = hasActivities && allComplete;
+
+        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+            updateStmt.setBoolean(1, newState);
+            updateStmt.setInt(2, toDoId);
+            updateStmt.executeUpdate();
+        }
+    }
+    public boolean getStateById(int toDoId) throws SQLException {
+        String sql = "SELECT state FROM todos WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, toDoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("state");
+                } else {
+                    throw new SQLException("ToDo non trovato");
+                }
+            }
         }
     }
 
