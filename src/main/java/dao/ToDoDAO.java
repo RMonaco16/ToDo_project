@@ -413,10 +413,9 @@ public class ToDoDAO {
         FROM todos t
         JOIN boards b ON t.board_id = b.id
         WHERE b.user_email = ?
-          AND b.type = ?
-          AND LOWER(t.title) = LOWER(?)
-          AND t.condiviso = ?
-        LIMIT 1
+        AND b.type = ?
+        AND LOWER(t.title) = LOWER(?)
+        AND t.condiviso = ?
     """;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

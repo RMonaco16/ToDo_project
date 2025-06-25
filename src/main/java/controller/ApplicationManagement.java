@@ -616,10 +616,15 @@ public class ApplicationManagement {
     }
 
     public Color getColorOfToDo(String board, String email, String toDo, boolean shared) {
+        if (shared) {
+            // Trova l'email dell'amministratore del ToDo condiviso
+            email = getToAdministratorMail(email, toDo); // questo metodo esiste già nel tuo controller
+        }
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
         ToDoDAO todoDAO = new ToDoDAO(conn);
         return todoDAO.getColorOfToDo(board, email, toDo, shared);
     }
+
 
     public ArrayList<ToDo> orderedVisibleToDos(String order,ArrayList<ToDo> visibleToDos){
         switch (order){

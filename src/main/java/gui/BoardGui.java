@@ -346,7 +346,13 @@ public class BoardGui {
 
             JPanel todoPanel = new JPanel(new BorderLayout(5, 5));
             todoPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            todoPanel.setBackground(controller.getColorOfToDo(nameBoard,email,t.getTitle(),t.isCondiviso()));
+
+            Color colorBackground = controller.getColorOfToDo(nameBoard, email, t.getTitle(), t.isCondiviso());
+            if (colorBackground == null) {
+                colorBackground = Color.WHITE; // oppure qualsiasi colore di default
+            }
+            todoPanel.setBackground(colorBackground);
+
             todoPanel.add(titleToDo, BorderLayout.NORTH);
 
             todoPanel.setPreferredSize(new Dimension(495, 300)); // dimensione fissa iniziale
@@ -560,7 +566,6 @@ public class BoardGui {
                         color = colorSelected;
                     }
                 });
-
 
                 // State--------------------------------------------------
 
