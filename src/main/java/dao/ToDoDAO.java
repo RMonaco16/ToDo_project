@@ -187,7 +187,7 @@ public class ToDoDAO {
 
                 // 3. Se condiviso, verifica i permessi e rimuovi sharing
                 if (isCondiviso) {
-                    String checkAdminQuery = "SELECT id FROM sharings WHERE todo_id = ? AND admin_email = ?";
+                    String checkAdminQuery = "SELECT id FROM sharings WHERE todo_id = ? AND administrator_email = ?";
                     try (PreparedStatement adminStmt = conn.prepareStatement(checkAdminQuery)) {
                         adminStmt.setInt(1, todoId);
                         adminStmt.setString(2, email);
@@ -265,62 +265,6 @@ public class ToDoDAO {
         }
 
         return false;
-    }
-
-
-
-    public ArrayList<ToDo> getTodosByUserAndBoard(String email, String boardType) {
-        ArrayList<ToDo> todos = new ArrayList<>();
-
-        String sql = """
-            SELECT t.id, t.title, t.description, t.color, t.image, t.expiration, 
-                   t.state, t.condiviso, t.owner_email, t.checklist_id
-            FROM todos t
-            JOIN boards b ON t.board_id = b.id
-            WHERE b.user_email = ? AND b.type = ?
-            ORDER BY t.id ASC
-        """;
-
-
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, boardType.toUpperCase());
-
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ToDo todo = new ToDo();
-                todo.setTitle(rs.getString("title"));
-                todo.setDescription(rs.getString("description"));
-
-                String colorHex = rs.getString("color");
-                if (colorHex != null) {
-                    todo.setColor(Color.decode(colorHex)); // es. "#FF0000"
-                }
-
-                todo.setImage(rs.getString("image"));
-
-                Date expDate = rs.getDate("expiration");
-                if (expDate != null) {
-                    todo.setExpiration(expDate.toLocalDate());
-                }
-
-                todo.setState(rs.getBoolean("state"));
-                todo.setCondiviso(rs.getBoolean("condiviso"));
-                todo.setOwnerEmail(rs.getString("owner_email"));
-
-                // Checklist vuota per ora (non carichiamo le attività qui)
-                CheckList checkList = new CheckList();
-                todo.setCheckList(checkList);
-
-                todos.add(todo);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return todos;
     }
 
     public boolean updateToDo(String email, String boardType, String oldTitle,

@@ -62,7 +62,7 @@ public class Sharing {
     }
 
     private void popolaComboBox() {
-        ArrayList<String> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);//ArrayList<ToDo> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
+        ArrayList<String> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
 
         comboBoxToDo.removeAllItems();
         comboBoxToDo.addItem("--");
