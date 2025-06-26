@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.awt.Color;
+import org.jdesktop.swingx.prompt.PromptSupport;
 
 
 public class BoardGui {
@@ -194,6 +195,11 @@ public class BoardGui {
 
             toDoComboBox.requestFocusInWindow();
         });
+
+        //suggerimento filtro
+        PromptSupport.setPrompt("Name To-Do / (dd-MM-yyyy)", filter);
+        PromptSupport.setForeground(Color.DARK_GRAY, filter);
+        PromptSupport.setFontStyle(Font.ITALIC, filter);
 
         searchButton.addActionListener(src ->{
            updateToDoList(controller,email,nameBoard);
@@ -469,9 +475,18 @@ public class BoardGui {
                 JPanel expirationPanel = new JPanel(new BorderLayout(5, 2));
                 expirationPanel.add(new JLabel("Expiration:"), BorderLayout.WEST);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                JTextField expirationField = new JTextField(
-                        t.getExpiration() != null ? t.getExpiration().format(formatter).toString() : "", 20
-                );
+                JTextField expirationField = new JTextField();
+                if(t.getExpiration()!=null){
+                    expirationField.setText(t.getExpiration().format(formatter).toString());
+                }else{
+                    PromptSupport.setPrompt("(dd-MM-yyyy)", expirationField);
+                    PromptSupport.setForeground(Color.DARK_GRAY, expirationField);
+                    PromptSupport.setFontStyle(Font.ITALIC, expirationField);
+                }
+
+
+
+
                 expirationPanel.add(expirationField, BorderLayout.CENTER);
                 propertiesDialog.add(expirationPanel);
 

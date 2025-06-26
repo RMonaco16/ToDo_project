@@ -413,12 +413,6 @@ public class ApplicationManagement {
             return false;
         }
 
-        // verifica esistenza board mittente
-        if (!userDao.checkBoard(mailAmministratore, boardName)) {
-            System.out.println("Bacheca del mittente non trovata");
-            return false;
-        }
-
         // verifica esistenza ToDo
         ToDo todo = boardDAO.checkToDoExists(mailAmministratore, boardName, toDoName);
         if (todo == null) {
@@ -443,6 +437,17 @@ public class ApplicationManagement {
 
         // verifica se l'utente destinatario è già membro della condivisione
         if (!sharingDAO.checkUserAlreadySharing(mailUtenteDestinatario, toDoName, mailAmministratore)) {
+            // verifica esistenza board mittente
+            if (!userDao.checkBoard(mailUtenteDestinatario, boardName)) {
+                Board board;
+                switch (boardName){
+                    case "UNIVERSITY": board = new Board(TypeBoard.UNIVERSITY,"");break;
+                    case "WORK": board = new Board(TypeBoard.WORK,"");break;
+                    case "FREETIME": board = new Board(TypeBoard.FREETIME,"");break;
+                    default: return false;
+                }
+                boardDAO.creaBoard(board,mailUtenteDestinatario);
+            }
             sharingDAO.aggiungiMembroSharing(mailUtenteDestinatario, mailAmministratore, toDoName);
             System.out.println("Utente aggiunto come partecipante alla condivisione");
             // imposta flag condiviso nel ToDo

@@ -38,7 +38,11 @@ public class SharingInformation {
                         JOptionPane.showMessageDialog(null, "User removed from sharing!");
                         updateSharingMember(controller, emailUtente, boardName, nomeTodo);  // Ricarica la tabella aggiornata
                     } else {
-                        JOptionPane.showMessageDialog(null, "Only the administrator can manage users", "Administrator Only", JOptionPane.WARNING_MESSAGE);
+                        if(emailUtente.equalsIgnoreCase(emailDaEliminare) && emailUtente.equalsIgnoreCase(controller.getToAdministratorMail(emailUtente,nomeTodo))){
+                            JOptionPane.showMessageDialog(null, "you cannot eliminate yourself", "Warning", JOptionPane.WARNING_MESSAGE);
+                        }else{
+                            JOptionPane.showMessageDialog(null, "Only the administrator can manage users", "Administrator Only", JOptionPane.WARNING_MESSAGE);
+                        }
                     }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select a row before proceeding.");
@@ -63,7 +67,7 @@ public class SharingInformation {
         // Recupera utenti condivisi
         ArrayList<User> sharedUsers = controller.getToDoUserShared(emailUtente, nomeTodo);
 
-        // 🔒 Chiude la finestra se non ci sono più utenti condivisi
+        //  Chiude la finestra se non ci sono più utenti condivisi
         if (sharedUsers == null || sharedUsers.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No more shared users. The Sharing was deleted.", "Info", JOptionPane.INFORMATION_MESSAGE);
 
