@@ -17,8 +17,10 @@ public class SharingInformation {
     private JTextField textEmail;
     private JTable tableInformazioniUsers;
     private JButton deleteSelectedButton;
+    private Runnable onSharingEnded;
 
-    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName) {
+
+    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
 
         // Inizializza la tabella con i membri attuali
         updateSharingMember(controller, emailUtente, boardName, nomeTodo);
@@ -43,6 +45,8 @@ public class SharingInformation {
                 }
             }
         });
+        this.onSharingEnded = onSharingEnded;
+
     }
 
     public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo) {
@@ -62,6 +66,13 @@ public class SharingInformation {
         // 🔒 Chiude la finestra se non ci sono più utenti condivisi
         if (sharedUsers == null || sharedUsers.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No more shared users. The Sharing was deleted.", "Info", JOptionPane.INFORMATION_MESSAGE);
+
+
+            // NOTIFICA alla GUI principale di aggiornare
+            if (onSharingEnded != null) {
+                onSharingEnded.run();
+            }
+
             Window window = SwingUtilities.getWindowAncestor(panelSharingInformation);
             if (window != null) {
                 window.dispose();

@@ -238,8 +238,10 @@ public class BoardGui {
                             sharingInfoFrame.setLocationRelativeTo(frame);
                             sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-                            SharingInformation sharingInformation = new SharingInformation(controller, frame, email, t.getTitle(), nameBoard);
-                            sharingInfoFrame.setContentPane(sharingInformation.getPanel());
+                            SharingInformation sharingInformation = new SharingInformation(
+                                    controller, frame, email, t.getTitle(), nameBoard,
+                                    () -> updateToDoList(controller, email, nameBoard) // callback per aggiornare la lista
+                            );                            sharingInfoFrame.setContentPane(sharingInformation.getPanel());
                             sharingInfoFrame.setSize(500, 300);
                             sharingInfoFrame.setLocationRelativeTo(frame);
 
@@ -309,7 +311,7 @@ public class BoardGui {
                     } else {
                         controller.deCheckActivity(email, nameBoard, t.getTitle(), nomeAttivita);
                     }
-                    // ✅ aggiorna stato dopo rimozione
+                    // aggiorna stato dopo rimozione
                     updateToDoList(controller, email, nameBoard);
                     aggiornaStatoToDo(stateField ,email, nameBoard, t);
                 }
