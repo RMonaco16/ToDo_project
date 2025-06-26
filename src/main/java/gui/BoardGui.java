@@ -8,7 +8,6 @@ import model.Activity;
 import model.Board;
 import model.CheckList;
 import model.ToDo;
-
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
@@ -23,7 +22,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.awt.Color;
 import org.jdesktop.swingx.prompt.PromptSupport;
-
 
 public class BoardGui {
     private JButton undoButton;
@@ -53,20 +51,18 @@ public class BoardGui {
         frame.setLocationRelativeTo(null);
         vecchioFrame.setVisible(false);
 
-        // Set layout verticale per contenitore principale
+        //--Set layout verticale per contenitore principale--
         panelToDoMain.setLayout(new BoxLayout(panelToDoMain, BoxLayout.Y_AXIS));
 
-        // Collega panelToDoMain allo scroll pane
+        //--Collega panelToDoMain allo scroll pane--
         scrollPanelToDo.setViewportView(panelToDoMain);
         scrollPanelToDo.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPanelToDo.getVerticalScrollBar().setUnitIncrement(16);
 
-        //aggiunta ricerca con filtri
+        //--aggiunta ricerca con filtri--
         comboBoxSortFilter.addItem("");
         comboBoxSortFilter.addItem("sort alphabetically");
         comboBoxSortFilter.addItem("Sort by deadline");
-
-
 
         frame.setVisible(true);
 
@@ -77,6 +73,7 @@ public class BoardGui {
         });
 
         addButton.addActionListener(e -> {
+            //--dialog per creazione di un to-do--
             JDialog newToDo = new JDialog(frame, "New ToDo", true);
             newToDo.setSize(300, 150);
             newToDo.setLocationRelativeTo(frame);
@@ -105,9 +102,9 @@ public class BoardGui {
 
                     CheckList checkList = new CheckList();
                     ToDo todo = new ToDo(nameToDoText, false, checkList, false, email);
+                    //--Controllo che non esista già un to-do con lo stesso nome nella stessa bacheca--
                     if(!controller.addToDoInBoard(email, nameBoard, todo))
                         JOptionPane.showMessageDialog(newToDo, "Name already used","Errore", JOptionPane.ERROR_MESSAGE);
-
 
                     updateToDoList(controller, email, nameBoard);
 
@@ -121,7 +118,7 @@ public class BoardGui {
             newToDo.setVisible(true);
         });
 
-        //apertura della finestra e Condizione per non farla aprire piu volte
+        //--apertura della finestra e Condizione per non farla aprire piu volte--
         shareButton.addActionListener(e -> {
             if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
                 sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard,()->{
@@ -174,6 +171,7 @@ public class BoardGui {
 
             deleteBtn.addActionListener(ev -> {
                 String selected = (String) toDoComboBox.getSelectedItem();
+                //--verifica che sia stato selezionato qualcosa
                 if (selected != null && !selected.trim().isEmpty()) {
                     controller.deleteToDo(email, nameBoard, selected);
                     updateToDoList(controller, email, nameBoard);
@@ -217,14 +215,14 @@ public class BoardGui {
         updateToDoList(controller,email,nameBoard);
     }
 
+    //--metodo che serve ad aggiornare la grafica
     private void updateToDoList(ApplicationManagement controller, String email, String nameBoard) {
         panelToDoMain.removeAll();
 
         JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         int count = 0;
 
-
-
+        //-stampa dei to-do
         for (ToDo t : controller.orderedVisibleToDos(comboBoxSortFilter.getSelectedItem().toString(),controller.getVisibleToDos(controller.findUserByEmail(email), nameBoard,filter.getText()))) {
 
                 JPanel titleToDo = new JPanel(new BorderLayout());
@@ -232,6 +230,7 @@ public class BoardGui {
 
                 JButton sharingInformationButton = null;
 
+                //-verifica se il to-do è stato condiviso e in tal caso gli aggiunge il pulsante SharingInformation--
                 if (t.isCondiviso()) {
                     sharingInformationButton = new JButton("👥");
                     sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
@@ -269,7 +268,7 @@ public class BoardGui {
                         }
                     });
                 } else {
-                    // Se non condiviso, verifica se c'è un bottone di condivisione da rimuovere
+                    //--Se non condiviso, verifica se c'è un bottone di condivisione da rimuovere--
                     for (Component comp : ToDoButton.getComponents()) {
                         if (comp instanceof JButton btn && "👥".equals(btn.getText())) {
                             ToDoButton.remove(comp);
@@ -281,10 +280,12 @@ public class BoardGui {
                 JLabel titleLabel = new JLabel("ToDo: " + t.getTitle());
                 titleLabel.setFont(new Font(null, Font.BOLD, 20));
 
+                //--Se il to-do è scaduto il nome del colore appare in ROSSO
                 if (t.getExpiration() != null && t.getExpiration().isBefore(LocalDate.now())) {
                     titleLabel.setForeground(Color.RED);
                 }
 
+                //--Bottone delle proprietà del to-do
                 JButton propertiesButton = new JButton("≡");
                 propertiesButton.setFont(new Font(null, Font.BOLD, 20));
                 ToDoButton.add(propertiesButton);
@@ -292,8 +293,8 @@ public class BoardGui {
                 titleToDo.add(titleLabel, BorderLayout.WEST);
                 titleToDo.add(ToDoButton, BorderLayout.EAST);
 
-
-            DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Attività", "Fatto"}, 0) {
+            //--creazione di un tableModel per l'inserimento delle attività del to-do--
+            DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Activity", "State"}, 0) {
                 @Override
                 public Class<?> getColumnClass(int columnIndex) {
                     return columnIndex == 1 ? Boolean.class : String.class;
@@ -323,13 +324,13 @@ public class BoardGui {
                 }
             });
 
+            //--Popolamento del tableMOdel con le attività--
             ArrayList<Activity> activities = controller.printActs(t.getOwnerEmail(), nameBoard, t.getTitle());
             if (!activities.isEmpty()) {
                 for (Activity a : activities) {
                     tableModel.addRow(new Object[]{a.getName(), a.getState()});
                 }
             }
-
 
             JTable table = new JTable(tableModel);
 
@@ -359,6 +360,9 @@ public class BoardGui {
             if (colorBackground == null) {
                 colorBackground = Color.WHITE; // oppure qualsiasi colore di default
             }
+
+            // Colora solo lo sfondo del pannello.
+            // Il to-do viene colorato solo in parte per fornire una visione chiara del to-do e le sue attivià all'utente,
             todoPanel.setBackground(colorBackground);
 
             todoPanel.add(titleToDo, BorderLayout.NORTH);
@@ -375,7 +379,6 @@ public class BoardGui {
             buttonInToDo.add(rmvActivityButton);
 
             centerPanel.add(buttonInToDo, BorderLayout.SOUTH);
-
             todoPanel.add(centerPanel, BorderLayout.CENTER);
 
             addActivityButton.addActionListener(e -> {
@@ -441,14 +444,6 @@ public class BoardGui {
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
-
-            /*  •	Titolo (obbligatorio)
-                •	Data di scadenza
-                •	Descrizione dettagliata
-                •	Immagine
-                •	Colore di sfondo personalizzabile
-                •	Stato di completament
-            */
 
             propertiesButton.addActionListener(e -> {
                 if (dialog != null && dialog.isShowing()) {
@@ -592,7 +587,7 @@ public class BoardGui {
                 statePanel.add(stateField, BorderLayout.CENTER);
                 propertiesDialog.add(statePanel);
 
-                //Board also if want change--------------------------------------------------
+                //Indica la bacheca in cui si trova e può cambiarla per spostare il to-do---------------------------
                 JPanel baordPanel = new JPanel(new BorderLayout(5,2));
                 JLabel boardLabel = new JLabel("in Board:");
                 JComboBox boardComboBox = new JComboBox();

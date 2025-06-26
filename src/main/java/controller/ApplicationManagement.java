@@ -454,8 +454,6 @@ public class ApplicationManagement {
         } else {
             System.out.println("Utente già partecipante alla condivisione");
         }
-
-
         return true;
     }
 
