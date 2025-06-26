@@ -79,11 +79,11 @@
       <component id="41c96" class="javax.swing.JLabel">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="75" height="-1"/>
+            <preferred-size width="85" height="-1"/>
           </grid>
         </constraints>
         <properties>
-          <font name="MS PGothic" size="28" style="3"/>
+          <font name="MS PGothic" size="30" style="3"/>
           <text value="Login"/>
         </properties>
       </component>

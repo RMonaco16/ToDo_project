@@ -72,7 +72,7 @@ public class Login {
         });
 
 
-// (Opzionale) Colore campo testo e password
+// Colore campo testo e password
         textField1.setBackground(Color.WHITE);
         passwordField1.setBackground(Color.WHITE);
         textField1.setForeground(Color.decode("#374151"));       // Testo scuro neutro
