@@ -22,7 +22,6 @@ public class ToDoDAO {
         this.conn = conn;
     }
 
-
     public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
         String boardSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         int boardId = -1;
