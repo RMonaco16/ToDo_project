@@ -8,9 +8,6 @@
     <properties>
       <background color="-13156015"/>
     </properties>
-    <properties>
-      <background color="-1"/>
-    </properties>
     <border type="none"/>
     <children>
       <component id="fba66" class="javax.swing.JButton" binding="undoButton">
@@ -42,7 +39,8 @@
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints/>
             <properties>
-              <background color="-1"/>
+              <background color="-2436408"/>
+              <foreground color="-2436408"/>
             </properties>
             <border type="none"/>
             <children/>
@@ -72,6 +70,8 @@
           <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <background color="-1510401"/>
+          <foreground color="-394241"/>
           <text value="Search"/>
         </properties>
       </component>

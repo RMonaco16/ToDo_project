@@ -93,9 +93,35 @@ public class SharingInformation {
         }
 
         tableInformazioniUsers.setModel(model);
+        styleRedButton(deleteSelectedButton);
+
     }
 
     public JPanel getPanel() {
         return panelSharingInformation;
     }
+
+    private void styleRedButton(JButton button) {
+        Color baseColor = new Color(220, 53, 69); // Rosso acceso (Bootstrap-style)
+        Color hoverColor = baseColor.darker();
+
+        button.setBackground(baseColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createLineBorder(baseColor.darker(), 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setPreferredSize(new Dimension(160, 40));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor);
+                button.setBorder(BorderFactory.createLineBorder(baseColor.darker(), 2));
+            }
+        });
+    }
+
 }

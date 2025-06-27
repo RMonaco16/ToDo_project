@@ -99,7 +99,7 @@ public class Sharing {
 
         // Bottone share
         shareButton = new JButton("Share");
-        shareButton.setBackground(Color.decode("#2563EB"));
+        shareButton.setBackground(Color.decode("#A8BDB5"));
         shareButton.setForeground(Color.WHITE);
         shareButton.setFocusPainted(false);
         shareButton.setFont(new Font("SansSerif", Font.BOLD, 13));

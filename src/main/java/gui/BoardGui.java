@@ -75,28 +75,87 @@ public class BoardGui {
         });
 
         addButton.addActionListener(e -> {
-            //--dialog per creazione di un to-do--
-            JDialog newToDo = new JDialog(frame, "New ToDo", true);
-            newToDo.setSize(300, 150);
-            newToDo.setLocationRelativeTo(frame);
-            newToDo.setResizable(false);
+            // Creo la dialog personalizzata senza decorazioni (stile uniforme)
+            JDialog dialogAddToDo = new JDialog(frame, true);
+            dialogAddToDo.setUndecorated(true);
+            dialogAddToDo.setSize(370, 210);
+            dialogAddToDo.setLocationRelativeTo(frame);
+            dialogAddToDo.setLayout(new BorderLayout());
 
-            JPanel dialog = new JPanel();
-            dialog.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-            dialog.setLayout(new BorderLayout(10, 10));
+            // Barra titolo personalizzata
+            JPanel titleBar = new JPanel(new BorderLayout());
+            titleBar.setBackground(Color.decode("#374151"));
+            titleBar.setPreferredSize(new Dimension(dialogAddToDo.getWidth(), 40));
 
-            JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
-            inputPanel.add(new JLabel("Name:"), BorderLayout.NORTH);
+            JLabel titleLabel = new JLabel(" Add New ToDo");
+            titleLabel.setForeground(Color.WHITE);
+            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+            titleBar.add(titleLabel, BorderLayout.WEST);
+
+            JButton closeButton = new JButton("X");
+            closeButton.setForeground(Color.WHITE);
+            closeButton.setBackground(Color.decode("#374151"));
+            closeButton.setBorderPainted(false);
+            closeButton.setFocusPainted(false);
+            closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+            closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            closeButton.addActionListener(ev -> dialogAddToDo.dispose());
+            titleBar.add(closeButton, BorderLayout.EAST);
+
+            // Drag per spostare la finestra
+            final Point clickPoint = new Point();
+            titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mousePressed(java.awt.event.MouseEvent e) {
+                    clickPoint.setLocation(e.getPoint());
+                }
+            });
+            titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                public void mouseDragged(java.awt.event.MouseEvent e) {
+                    Point location = dialogAddToDo.getLocation();
+                    dialogAddToDo.setLocation(location.x + e.getX() - clickPoint.x,
+                            location.y + e.getY() - clickPoint.y);
+                }
+            });
+
+            // Pannello principale
+            JPanel panelAddToDo = new JPanel();
+            panelAddToDo.setLayout(new BoxLayout(panelAddToDo, BoxLayout.Y_AXIS));
+            panelAddToDo.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+            panelAddToDo.setBackground(Color.decode("#F3F4F6"));
+
+            panelAddToDo.add(Box.createRigidArea(new Dimension(0, 15)));
+
+            // Pannello input
+            JPanel inputPanel = new JPanel();
+            inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+            inputPanel.setOpaque(false);
+
+            JLabel label = new JLabel("Name:");
+            label.setAlignmentX(Component.CENTER_ALIGNMENT);
+            label.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            label.setForeground(Color.DARK_GRAY);
+
             JTextField nameToDo = new JTextField();
-            inputPanel.add(nameToDo, BorderLayout.CENTER);
+            nameToDo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+            nameToDo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            inputPanel.add(label);
+            inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+            inputPanel.add(nameToDo);
+
+            panelAddToDo.add(inputPanel);
+            panelAddToDo.add(Box.createRigidArea(new Dimension(0, 20)));
+
+            // Pannello bottoni
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setOpaque(false);
 
             JButton doneButton = new JButton("Done");
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            buttonPanel.add(doneButton);
-
-            dialog.add(inputPanel, BorderLayout.CENTER);
-            dialog.add(buttonPanel, BorderLayout.SOUTH);
-
+            doneButton.setBackground(Color.decode("#A8BDB5")); // rosso tenue
+            doneButton.setForeground(Color.WHITE);
+            doneButton.setFocusPainted(false);
+            doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
+            doneButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             doneButton.addActionListener(ae -> {
                 try {
@@ -104,21 +163,30 @@ public class BoardGui {
 
                     CheckList checkList = new CheckList();
                     ToDo todo = new ToDo(nameToDoText, false, checkList, false, email);
-                    //--Controllo che non esista già un to-do con lo stesso nome nella stessa bacheca--
-                    if(!controller.addToDoInBoard(email, nameBoard, todo))
-                        JOptionPane.showMessageDialog(newToDo, "Name already used","Errore", JOptionPane.ERROR_MESSAGE);
+
+                    // Controllo duplicati
+                    if (!controller.addToDoInBoard(email, nameBoard, todo)) {
+                        JOptionPane.showMessageDialog(dialogAddToDo, "Name already used", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
                     updateToDoList(controller, email, nameBoard);
-
-                    newToDo.dispose();
+                    dialogAddToDo.dispose();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(nameToDo, "Invalid date format!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialogAddToDo, "Invalid data!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
-            newToDo.setContentPane(dialog);
-            newToDo.setVisible(true);
+            buttonPanel.add(doneButton);
+            panelAddToDo.add(buttonPanel);
+
+            // Composizione finale
+            dialogAddToDo.add(titleBar, BorderLayout.NORTH);
+            dialogAddToDo.add(panelAddToDo, BorderLayout.CENTER);
+            dialogAddToDo.setMinimumSize(new Dimension(370, 210));
+            dialogAddToDo.setVisible(true);
         });
+
 
         //--apertura della finestra e Condizione per non farla aprire piu volte--
         shareButton.addActionListener(e -> {
@@ -134,38 +202,59 @@ public class BoardGui {
         });
 
         deleteButton.addActionListener(e -> {
-            JDialog dialogDeleteToDo = new JDialog(frame, "Delete ToDo", true);
-            dialogDeleteToDo.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialogDeleteToDo.setResizable(false);
+            // Creo la dialog personalizzata senza decorazioni (senza bordi/nativo)
+            JDialog dialogDeleteToDo = new JDialog(frame, true);
+            dialogDeleteToDo.setUndecorated(true);
+            dialogDeleteToDo.setSize(370, 210);
+            dialogDeleteToDo.setLocationRelativeTo(frame);
+            dialogDeleteToDo.setLayout(new BorderLayout());
 
-            // Pannello principale con sfondo sfumato
-            JPanel panelDeleteToDo = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    Graphics2D g2d = (Graphics2D) g.create();
-                    int width = getWidth();
-                    int height = getHeight();
-                    Color startColor = Color.decode("#F9F5F0");
-                    Color endColor = Color.decode("#D3C7B8");
-                    GradientPaint gp = new GradientPaint(0, 0, startColor, 0, height, endColor);
-                    g2d.setPaint(gp);
-                    g2d.fillRect(0, 0, width, height);
-                    g2d.dispose();
+            // Barra titolo personalizzata
+            JPanel titleBar = new JPanel(new BorderLayout());
+            titleBar.setBackground(Color.decode("#374151"));
+            titleBar.setPreferredSize(new Dimension(dialogDeleteToDo.getWidth(), 40));
+
+            JLabel titleLabel = new JLabel(" Delete ToDo");
+            titleLabel.setForeground(Color.WHITE);
+            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+            titleBar.add(titleLabel, BorderLayout.WEST);
+
+            JButton closeButton = new JButton("X");
+            closeButton.setForeground(Color.WHITE);
+            closeButton.setBackground(Color.decode("#374151"));
+            closeButton.setBorderPainted(false);
+            closeButton.setFocusPainted(false);
+            closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+            closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            closeButton.addActionListener(ev -> dialogDeleteToDo.dispose());
+            titleBar.add(closeButton, BorderLayout.EAST);
+
+            // Drag per spostare la finestra
+            final Point clickPoint = new Point();
+            titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mousePressed(java.awt.event.MouseEvent e) {
+                    clickPoint.setLocation(e.getPoint());
                 }
-            };
+            });
+            titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                public void mouseDragged(java.awt.event.MouseEvent e) {
+                    Point location = dialogDeleteToDo.getLocation();
+                    dialogDeleteToDo.setLocation(location.x + e.getX() - clickPoint.x,
+                            location.y + e.getY() - clickPoint.y);
+                }
+            });
+
+            // Pannello principale con sfondo uniforme #F3F4F6
+            JPanel panelDeleteToDo = new JPanel();
             panelDeleteToDo.setLayout(new BoxLayout(panelDeleteToDo, BoxLayout.Y_AXIS));
             panelDeleteToDo.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+            panelDeleteToDo.setBackground(Color.decode("#F3F4F6"));
 
-            // Titolo grande e in grassetto
-            JLabel titleLabel = new JLabel("Delete ToDo");
-            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
-            titleLabel.setForeground(Color.decode("#374151"));
-            panelDeleteToDo.add(titleLabel);
+            // Titolo interno grande e in grassetto (sotto barra titolo)
+
             panelDeleteToDo.add(Box.createRigidArea(new Dimension(0, 15)));
 
-            // Pannello selezione
+            // Pannello selezione To-Do
             JPanel selectionPanel = new JPanel();
             selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.Y_AXIS));
             selectionPanel.setOpaque(false);
@@ -202,6 +291,7 @@ public class BoardGui {
             deleteBtn.setForeground(Color.WHITE);
             deleteBtn.setFocusPainted(false);
             deleteBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
+            deleteBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             deleteBtn.addActionListener(ev -> {
                 String selected = (String) toDoComboBox.getSelectedItem();
@@ -217,16 +307,15 @@ public class BoardGui {
             buttonPanel.add(deleteBtn);
             panelDeleteToDo.add(buttonPanel);
 
-            // Setup dialog
-            dialogDeleteToDo.setContentPane(panelDeleteToDo);
-            dialogDeleteToDo.pack();
+            // Montaggio componenti nella dialog
+            dialogDeleteToDo.add(titleBar, BorderLayout.NORTH);
+            dialogDeleteToDo.add(panelDeleteToDo, BorderLayout.CENTER);
+
             dialogDeleteToDo.setMinimumSize(new Dimension(370, 210));
-            dialogDeleteToDo.setLocationRelativeTo(frame);
             dialogDeleteToDo.setVisible(true);
 
             toDoComboBox.requestFocusInWindow();
         });
-
 
 
         //suggerimento filtro
@@ -252,9 +341,14 @@ public class BoardGui {
         styleButton(addButton);
         styleButton(shareButton);
         styleButton(deleteButton);
+
         styleSmallButton(undoButton);
         styleSmallButton(searchButton);
         styleSmallButton(buttonTodayFilter);
+
+        buttonTodayFilter.setPreferredSize(new Dimension(100, 40));
+        buttonTodayFilter.setMargin(new Insets(10, 15, 10, 15));
+
 
     }
 
@@ -424,6 +518,11 @@ public class BoardGui {
             JPanel buttonInToDo = new JPanel(new FlowLayout(FlowLayout.CENTER));
             JButton addActivityButton = new JButton("Add Activity");
             JButton rmvActivityButton = new JButton("Remove Activity");
+
+            styleButton(addActivityButton);
+            styleButton(rmvActivityButton);
+
+
             buttonInToDo.add(addActivityButton);
             buttonInToDo.add(rmvActivityButton);
 
@@ -431,26 +530,79 @@ public class BoardGui {
             todoPanel.add(centerPanel, BorderLayout.CENTER);
 
             addActivityButton.addActionListener(e -> {
-                JDialog newAct = new JDialog(frame, "New Activity", true);
-                newAct.setSize(300, 150);
-                newAct.setLocationRelativeTo(frame);
-                newAct.setResizable(false);
+                JDialog dialogAddActivity = new JDialog(frame, true);
+                dialogAddActivity.setUndecorated(true);
+                dialogAddActivity.setSize(370, 180);
+                dialogAddActivity.setLocationRelativeTo(frame);
+                dialogAddActivity.setLayout(new BorderLayout());
 
-                JPanel dialog = new JPanel();
-                dialog.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-                dialog.setLayout(new BorderLayout(10, 10));
+                // Barra del titolo
+                JPanel titleBar = new JPanel(new BorderLayout());
+                titleBar.setBackground(Color.decode("#374151"));
+                titleBar.setPreferredSize(new Dimension(dialogAddActivity.getWidth(), 40));
 
-                JPanel inputPanel = new JPanel(new BorderLayout(5, 5));
-                inputPanel.add(new JLabel("Name:"), BorderLayout.NORTH);
+                titleLabel.setText("Add New Activity");
+                titleLabel.setForeground(Color.WHITE);
+                titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+                titleBar.add(titleLabel, BorderLayout.WEST);
+
+                JButton closeButton = new JButton("X");
+                closeButton.setForeground(Color.WHITE);
+                closeButton.setBackground(Color.decode("#374151"));
+                closeButton.setBorderPainted(false);
+                closeButton.setFocusPainted(false);
+                closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+                closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                closeButton.addActionListener(ev -> dialogAddActivity.dispose());
+                titleBar.add(closeButton, BorderLayout.EAST);
+
+                // Drag per spostare la finestra
+                final Point clickPoint = new Point();
+                titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mousePressed(java.awt.event.MouseEvent e) {
+                        clickPoint.setLocation(e.getPoint());
+                    }
+                });
+                titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                    public void mouseDragged(java.awt.event.MouseEvent e) {
+                        Point location = dialogAddActivity.getLocation();
+                        dialogAddActivity.setLocation(location.x + e.getX() - clickPoint.x,
+                                location.y + e.getY() - clickPoint.y);
+                    }
+                });
+
+                // Pannello principale
+                JPanel panelAddActivity = new JPanel();
+                panelAddActivity.setLayout(new BoxLayout(panelAddActivity, BoxLayout.Y_AXIS));
+                panelAddActivity.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+                panelAddActivity.setBackground(Color.decode("#F3F4F6"));
+
+                // Label e campo input
+                JLabel nameLabel = new JLabel("Name:");
+                nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                nameLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
+                nameLabel.setForeground(Color.decode("#111827")); // scuro
+
                 JTextField nameAct = new JTextField();
-                inputPanel.add(nameAct, BorderLayout.CENTER);
+                nameAct.setMaximumSize(new Dimension(250, 25));
+                nameAct.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+                panelAddActivity.add(Box.createVerticalGlue());
+                panelAddActivity.add(nameLabel);
+                panelAddActivity.add(Box.createRigidArea(new Dimension(0, 5)));
+                panelAddActivity.add(nameAct);
+                panelAddActivity.add(Box.createVerticalGlue());
+
+                // Pannello bottone
+                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                buttonPanel.setOpaque(false);
 
                 JButton doneButton = new JButton("Done");
-                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-                buttonPanel.add(doneButton);
-
-                dialog.add(inputPanel, BorderLayout.CENTER);
-                dialog.add(buttonPanel, BorderLayout.SOUTH);
+                doneButton.setBackground(Color.decode("#A8BDB5")); // Verde stile coerente
+                doneButton.setForeground(Color.WHITE);
+                doneButton.setFocusPainted(false);
+                doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
+                doneButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
                 doneButton.addActionListener(ae -> {
                     try {
@@ -458,19 +610,22 @@ public class BoardGui {
                         Activity activity = new Activity(nameToDoText, false);
                         controller.addActivity(t.getOwnerEmail(), t.getTitle(), nameBoard, activity);
                         updateToDoList(controller, email, nameBoard);
-
-                        //aggiorna lo stato
                         aggiornaStatoToDo(stateField ,email, nameBoard, t);
-
-                        newAct.dispose();
+                        dialogAddActivity.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(newAct, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(dialogAddActivity, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 });
 
-                newAct.setContentPane(dialog);
-                newAct.setVisible(true);
+                buttonPanel.add(doneButton);
+                panelAddActivity.add(Box.createRigidArea(new Dimension(0, 10)));
+                panelAddActivity.add(buttonPanel);
+
+                dialogAddActivity.add(titleBar, BorderLayout.NORTH);
+                dialogAddActivity.add(panelAddActivity, BorderLayout.CENTER);
+                dialogAddActivity.setVisible(true);
             });
+
 
             rmvActivityButton.addActionListener(e -> {
                 try {
@@ -664,10 +819,20 @@ public class BoardGui {
 
 
                 JButton saveButton = new JButton("Save");
-                propertiesDialog.add(saveButton, BorderLayout.EAST);
+                styleButton(saveButton); // Applica stile personalizzato
+
+                saveButton.setPreferredSize(new Dimension(200, 60)); // Più grande
+                saveButton.setMargin(new Insets(50, 50, 50, 50)); // Padding interno
+
+// Pannello contenitore per posizionamento e padding esterno
+                JPanel savePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                savePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                savePanel.add(saveButton);
+
+                propertiesDialog.add(savePanel, BorderLayout.SOUTH);
 
 
-               // Disabilita il bottone se l'utente non è amministratore del To-Do
+                // Disabilita il bottone se l'utente non è amministratore del To-Do
                 saveButton.setEnabled(isAdmin);
 
                 dialog.add(propertiesDialog);
@@ -722,6 +887,11 @@ public class BoardGui {
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();
                 });
+
+                styleSmallButton(browseButton);
+                styleSmallButton(selectColor);
+                styleSmallButton(saveButton);
+
             });
 
 
