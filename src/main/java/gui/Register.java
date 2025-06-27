@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 
 public class Register {
     private JTextField textNickName;
@@ -15,9 +17,20 @@ public class Register {
     private JButton registerButton;
     private JPanel panelRegister;
     private JButton loginButton;
+    private JLabel imageIcon;
     private JFrame frame;
 
     public Register (JFrame frameChiamante, ApplicationManagement controller) {
+
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/images/chat_image.png"));
+        Image originalImage = originalIcon.getImage();
+
+        int diameter = 100; // dimensione cerchio
+
+        Image scaledImage = getScaledImage(originalImage, diameter, diameter);
+        Image circularImage = makeCircularImage(scaledImage, diameter);
+
+        imageIcon.setIcon(new ImageIcon(circularImage));
         JFrame frame = new JFrame("Register");
         frame.setContentPane(panelRegister);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -114,6 +127,50 @@ public class Register {
         });
     }
 
+    public Image getScaledImage(Image srcImg, int w, int h){
+        BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = resizedImg.createGraphics();
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.drawImage(srcImg, 0, 0, w, h, null);
+        g2.dispose();
+
+        return resizedImg;
+    }
+
+
+    public Image makeCircularImage(Image image, int diameter) {
+        BufferedImage mask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = mask.createGraphics();
+        applyQualityRenderingHints(g2);
+
+        // Crea cerchio pieno come maschera
+        g2.fill(new Ellipse2D.Double(0, 0, diameter, diameter));
+        g2.dispose();
+
+        BufferedImage output = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
+        g2 = output.createGraphics();
+        applyQualityRenderingHints(g2);
+
+        // Imposta maschera come clip
+        g2.setClip(new Ellipse2D.Double(0, 0, diameter, diameter));
+
+        // Disegna immagine ridimensionata all’interno del cerchio
+        g2.drawImage(image, 0, 0, diameter, diameter, null);
+        g2.dispose();
+
+        return output;
+    }
+
+    private void applyQualityRenderingHints(Graphics2D g2) {
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+    }
 
 
 }

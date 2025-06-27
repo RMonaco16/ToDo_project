@@ -44,6 +44,8 @@ public class BoardGui {
     private JLabel stateField;
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
+
+
         frame = new JFrame(nameBoard);
         frame.setContentPane(BoardGui);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -246,6 +248,14 @@ public class BoardGui {
         });
 
         updateToDoList(controller,email,nameBoard);
+
+        styleButton(addButton);
+        styleButton(shareButton);
+        styleButton(deleteButton);
+        styleSmallButton(undoButton);
+        styleSmallButton(searchButton);
+        styleSmallButton(buttonTodayFilter);
+
     }
 
     //--metodo che serve ad aggiornare la grafica
@@ -759,6 +769,52 @@ public class BoardGui {
         } catch (Exception e) {
             System.err.println("Errore durante aggiornamento stato: " + e.getMessage());
         }
+    }
+
+    private void styleButton(JButton button) {
+        Color baseColor = Color.decode("#A8BDB5");
+        Color hoverColor = baseColor.darker();
+
+        button.setBackground(baseColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createLineBorder(baseColor, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setPreferredSize(new Dimension(160, 40));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor);
+                button.setBorder(BorderFactory.createLineBorder(baseColor, 2));
+            }
+        });
+    }
+
+    private void styleSmallButton(JButton button) {
+        Color baseColor = Color.decode("#6B7280");
+        Color hoverColor = baseColor.brighter();
+
+        button.setBackground(baseColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createLineBorder(baseColor, 1));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setPreferredSize(new Dimension(55, 12));  // più piccolo
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.setBorder(BorderFactory.createLineBorder(hoverColor, 1));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor);
+                button.setBorder(BorderFactory.createLineBorder(baseColor, 1));
+            }
+        });
     }
 
 
