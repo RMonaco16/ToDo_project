@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -41,7 +43,7 @@ public class BoardGui {
     private JFrame sharingInfoFrame = null;
     private JDialog dialog = null;
     private Color color;
-    private JLabel stateField;
+    private JLabel stateField = new JLabel("❌");
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
 
@@ -367,12 +369,14 @@ public class BoardGui {
                 JPanel titleToDo = new JPanel(new BorderLayout());
                 JPanel ToDoButton = new JPanel();
 
-                JButton sharingInformationButton = null;
-
                 //-verifica se il to-do è stato condiviso e in tal caso gli aggiunge il pulsante SharingInformation--
                 if (t.isCondiviso()) {
-                    sharingInformationButton = new JButton("👥");
+                    final JButton sharingInformationButton = new JButton("👥");
                     sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
+                    sharingInformationButton.setBorderPainted(false);  // Rimuove il bordo
+                    sharingInformationButton.setContentAreaFilled(false); // Rimuove lo sfondo colorato
+                    sharingInformationButton.setFocusPainted(false); // Rimuove il contorno quando il bottone è selezionato
+
                     ToDoButton.add(sharingInformationButton);
 
                     sharingInformationButton.addActionListener(e -> {
@@ -427,7 +431,11 @@ public class BoardGui {
                 //--Bottone delle proprietà del to-do
                 JButton propertiesButton = new JButton("≡");
                 propertiesButton.setFont(new Font(null, Font.BOLD, 20));
-                ToDoButton.add(propertiesButton);
+                propertiesButton.setBorderPainted(false);  // Rimuove il bordo
+                propertiesButton.setContentAreaFilled(false); // Rimuove lo sfondo colorato
+                propertiesButton.setFocusPainted(false); // Rimuove il contorno quando il bottone è selezionato
+
+            ToDoButton.add(propertiesButton);
 
                 titleToDo.add(titleLabel, BorderLayout.WEST);
                 titleToDo.add(ToDoButton, BorderLayout.EAST);
@@ -927,14 +935,19 @@ public class BoardGui {
             CheckListDAO daoChecklist = new CheckListDAO(conn);
 
             int toDoId = daoChecklist.getToDoId(email, nameBoard, t.getTitle());
-            boolean statoAggiornato = dao.getStateById(toDoId);
+            try{
+                boolean statoAggiornato = dao.getStateById(toDoId);
 
-            // Aggiorna GUI nel thread corretto
-            SwingUtilities.invokeLater(() -> {
-                stateField.setText(statoAggiornato ? "✅" : "❌");
-                stateField.revalidate();
-                stateField.repaint();
-            });
+                // Aggiorna GUI nel thread corretto
+                SwingUtilities.invokeLater(() -> {
+                    stateField.setText(statoAggiornato ? "✅" : "❌");
+                    stateField.revalidate();
+                    stateField.repaint();
+                });
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+
 
         } catch (Exception e) {
             System.err.println("Errore durante aggiornamento stato: " + e.getMessage());
