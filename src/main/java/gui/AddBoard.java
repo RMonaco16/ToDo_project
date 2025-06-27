@@ -3,10 +3,10 @@ package gui;
 import controller.ApplicationManagement;
 import model.Board;
 import model.TypeBoard;
+import org.jdesktop.swingx.prompt.PromptSupport;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 
 public class AddBoard {
     private JRadioButton universityRadioButton;
@@ -17,64 +17,159 @@ public class AddBoard {
     private JPanel panelAddBoard;
     private JFrame nuovoFrame;
 
-    private Home home;  // riferimento alla Home
+    private Home home;
 
     public AddBoard(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, Home home) {
+        this.home = home;
 
-        this.home = home;//creazione di home passata da parametro per metodi
-        // Mostra la GUI
-        nuovoFrame = new JFrame("Aggiungi bacheca");
-        nuovoFrame.setContentPane(panelAddBoard);
-        nuovoFrame.pack();
-        nuovoFrame.setSize(400, 200);
-        nuovoFrame.setLocationRelativeTo(null);
-        nuovoFrame.setVisible(true);
+        // Pannello principale con sfondo a gradiente
+        panelAddBoard = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                int width = getWidth();
+                int height = getHeight();
+                Color startColor = Color.decode("#F9F5F0");
+                Color endColor = Color.decode("#D3C7B8");
+                GradientPaint gp = new GradientPaint(0, 0, startColor, 0, height, endColor);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, width, height);
+                g2d.dispose();
+            }
+        };
+        panelAddBoard.setLayout(new BorderLayout(10, 10));
+        panelAddBoard.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Titolo
+        JLabel titleLabel = new JLabel("Add Board");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panelAddBoard.add(titleLabel, BorderLayout.NORTH);
 
-        // Rendi i radio button esclusivi
+        // Centro: radio button + descrizione
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Radio buttons
+        universityRadioButton = new JRadioButton("University");
+        workRadioButton = new JRadioButton("Work");
+        freeTimeRadioButton = new JRadioButton("Free Time");
+
+        Font radioFont = new Font("Segoe UI", Font.PLAIN, 16);
+        universityRadioButton.setFont(radioFont);
+        workRadioButton.setFont(radioFont);
+        freeTimeRadioButton.setFont(radioFont);
+
+        universityRadioButton.setOpaque(false);
+        workRadioButton.setOpaque(false);
+        freeTimeRadioButton.setOpaque(false);
+
         ButtonGroup group = new ButtonGroup();
         group.add(universityRadioButton);
         group.add(workRadioButton);
         group.add(freeTimeRadioButton);
 
-        // Azione sul bottone
-        createBoardButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addNewBoard(controller, emailUtente);
-                nuovoFrame.setVisible(false);
-                nuovoFrame.dispose();
+        // Aggiunta dei radio button
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        centerPanel.add(universityRadioButton, gbc);
+
+        gbc.gridy = 1;
+        centerPanel.add(workRadioButton, gbc);
+
+        gbc.gridy = 2;
+        centerPanel.add(freeTimeRadioButton, gbc);
+
+        // Campo descrizione
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        textDescription = new JTextField(20);
+        textDescription.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+
+        // Aggiungi il placeholder DOPO l'inizializzazione
+        PromptSupport.setPrompt("Insert Description", textDescription);
+        PromptSupport.setForeground(Color.GRAY, textDescription);
+        PromptSupport.setFontStyle(Font.ITALIC, textDescription);
+
+        centerPanel.add(textDescription, gbc);
+
+        panelAddBoard.add(centerPanel, BorderLayout.CENTER);
+
+        // Bottone
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setOpaque(false);
+
+        createBoardButton = new JButton("Create Board");
+        createBoardButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        createBoardButton.setBackground(Color.decode("#A8BDB5"));
+        createBoardButton.setForeground(Color.WHITE);
+        createBoardButton.setFocusPainted(false);
+        createBoardButton.setOpaque(true);
+        createBoardButton.setPreferredSize(new Dimension(140, 40));
+
+        Color baseColor = Color.decode("#A8BDB5");
+        Color hoverColor = baseColor.darker();
+        createBoardButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                createBoardButton.setBackground(hoverColor);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                createBoardButton.setBackground(baseColor);
             }
         });
+
+        buttonPanel.add(createBoardButton);
+        panelAddBoard.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Azione bottone
+        createBoardButton.addActionListener(e -> {
+            addNewBoard(controller, emailUtente);
+            nuovoFrame.setVisible(false);
+            nuovoFrame.dispose();
+        });
+
+        // JFrame
+        nuovoFrame = new JFrame("Add Board");
+        nuovoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        nuovoFrame.setContentPane(panelAddBoard);
+        nuovoFrame.pack();
+        nuovoFrame.setSize(450, 350);
+        nuovoFrame.setLocationRelativeTo(null);
+        nuovoFrame.setVisible(true);
     }
 
-    //Crea una una Board e chiama il metodo per aggiungerla ad Home
+    // Metodo per aggiungere la board
     public void addNewBoard(ApplicationManagement controller, String emailUtente) {
         String descrizione = textDescription.getText().trim();
         boolean creatoCorrettamente = false;
 
         if (universityRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.UNIVERSITY, descrizione);
-            creatoCorrettamente = controller.addBoard(emailUtente,b);
-            if(creatoCorrettamente){
-                home.addBoardButton(b,controller,emailUtente);
-            }else{
+            creatoCorrettamente = controller.addBoard(emailUtente, b);
+            if (creatoCorrettamente) {
+                home.addBoardButton(b, controller, emailUtente);
+            } else {
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }
         } else if (workRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.WORK, descrizione);
-            creatoCorrettamente = controller.addBoard(emailUtente,b);
-            if(creatoCorrettamente){
-                home.addBoardButton(b,controller,emailUtente);
-            }else{
+            creatoCorrettamente = controller.addBoard(emailUtente, b);
+            if (creatoCorrettamente) {
+                home.addBoardButton(b, controller, emailUtente);
+            } else {
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }
         } else if (freeTimeRadioButton.isSelected() && !descrizione.isEmpty()) {
             Board b = new Board(TypeBoard.FREETIME, descrizione);
-            creatoCorrettamente = controller.addBoard(emailUtente,b);
-            if(creatoCorrettamente){
-                home.addBoardButton(b,controller,emailUtente);
-            }else{
+            creatoCorrettamente = controller.addBoard(emailUtente, b);
+            if (creatoCorrettamente) {
+                home.addBoardButton(b, controller, emailUtente);
+            } else {
                 JOptionPane.showMessageDialog(null, "This board already exists!");
             }
         } else {
@@ -82,9 +177,7 @@ public class AddBoard {
         }
     }
 
-    //metodo per restituire ad home lo stato del frame
     public JFrame getFrame() {
         return nuovoFrame;
     }
-
 }
