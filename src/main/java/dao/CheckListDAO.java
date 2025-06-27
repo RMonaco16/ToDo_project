@@ -28,7 +28,8 @@ public class CheckListDAO {
         JOIN todos t ON t.checklist_id = c.id
         JOIN boards b ON t.board_id = b.id
         WHERE b.user_email = ? AND b.type = ? AND t.title = ?
-    """;
+        ORDER BY a.id
+        """;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
