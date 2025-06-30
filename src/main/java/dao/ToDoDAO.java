@@ -1,5 +1,6 @@
 package dao;
 
+import controller.ApplicationManagement;
 import db.ConnessioneDatabase;
 import model.Activity;
 import model.CheckList;
@@ -9,8 +10,12 @@ import java.awt.Color;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class ToDoDAO {
+
+    private static final Logger logger = Logger.getLogger(ToDoDAO.class.getName());
+
 
     private Connection conn;
 
@@ -34,7 +39,7 @@ public class ToDoDAO {
             if (boardRs.next()) {
                 boardId = boardRs.getInt("id");
             } else {
-                System.out.println("Board non trovata per l’utente: " + email);
+                 logger.info("Board non trovata per l’utente: " + email);
                 return false;
             }
         } catch (SQLException e) {
@@ -71,7 +76,7 @@ public class ToDoDAO {
 
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next()) {
-                System.out.println("Esiste già un ToDo con lo stesso titolo (locale o condiviso).");
+                 logger.info("Esiste già un ToDo con lo stesso titolo (locale o condiviso).");
                 return false;
             }
         } catch (SQLException e) {
@@ -88,7 +93,7 @@ public class ToDoDAO {
             if (rs.next()) {
                 checklistId = rs.getInt("id");
             } else {
-                System.out.println("Errore nella creazione della checklist.");
+                 logger.info("Errore nella creazione della checklist.");
                 return false;
             }
         } catch (SQLException e) {
@@ -120,7 +125,7 @@ public class ToDoDAO {
             insertStmt.setInt(11, checklistId);
 
             insertStmt.executeUpdate();
-            System.out.println("ToDo con checklist vuota inserito con successo.");
+             logger.info("ToDo con checklist vuota inserito con successo.");
             return true;
 
         } catch (SQLException e) {
@@ -140,7 +145,7 @@ public class ToDoDAO {
 
             ResultSet rsBoard = boardStmt.executeQuery();
             if (!rsBoard.next()) {
-                System.out.println("Bacheca non trovata.");
+                 logger.info("Bacheca non trovata.");
                 return false;
             }
 
@@ -154,7 +159,7 @@ public class ToDoDAO {
 
                 ResultSet rsTodo = todoStmt.executeQuery();
                 if (!rsTodo.next()) {
-                    System.out.println("ToDo non trovato.");
+                     logger.info("ToDo non trovato.");
                     return false;
                 }
 
@@ -170,7 +175,7 @@ public class ToDoDAO {
 
                         ResultSet rsAdmin = adminStmt.executeQuery();
                         if (!rsAdmin.next()) {
-                            System.out.println("Solo l'amministratore può eliminare un ToDo condiviso.");
+                             logger.info("Solo l'amministratore può eliminare un ToDo condiviso.");
                             return false;
                         }
 
@@ -196,7 +201,7 @@ public class ToDoDAO {
                     deleteStmt.executeUpdate();
                 }
 
-                System.out.println("ToDo eliminato con successo.");
+                 logger.info("ToDo eliminato con successo.");
                 return true;
             }
         }
@@ -372,7 +377,7 @@ public class ToDoDAO {
                 psUser.setString(1, email);
                 try (ResultSet rsUser = psUser.executeQuery()) {
                     if (!rsUser.next()) {
-                        System.out.println("Utente non trovato...");
+                         logger.info("Utente non trovato...");
                         return 3;
                     }
                 }
@@ -383,7 +388,7 @@ public class ToDoDAO {
             Integer boardIdDestinazione = getBoardId(conn, email, nomeBachecaInCuiSpostare);
 
             if (boardIdOrigine == null || boardIdDestinazione == null) {
-                System.out.println("Bacheca origine o destinazione non valida");
+                 logger.info("Bacheca origine o destinazione non valida");
                 return 3;
             }
 
@@ -399,14 +404,14 @@ public class ToDoDAO {
                         todoId = rsToDo.getInt("id");
                         condiviso = rsToDo.getBoolean("condiviso");
                     } else {
-                        System.out.println("ToDo non trovato nella bacheca di origine");
+                         logger.info("ToDo non trovato nella bacheca di origine");
                         return 3;
                     }
                 }
             }
 
             if (condiviso) {
-                System.out.println("ToDo condiviso, non puoi spostarlo");
+                 logger.info("ToDo condiviso, non puoi spostarlo");
                 return 2;
             }
 
@@ -417,7 +422,7 @@ public class ToDoDAO {
                 psCheckDest.setString(2, nomeToDo);
                 try (ResultSet rsCheckDest = psCheckDest.executeQuery()) {
                     if (rsCheckDest.next()) {
-                        System.out.println("ToDo già presente nella bacheca di destinazione");
+                         logger.info("ToDo già presente nella bacheca di destinazione");
                         return 1;
                     }
                 }
@@ -430,17 +435,17 @@ public class ToDoDAO {
                 psUpdate.setInt(2, todoId);
                 int rows = psUpdate.executeUpdate();
                 if (rows == 0) {
-                    System.out.println("Errore nello spostamento del ToDo");
+                     logger.info("Errore nello spostamento del ToDo");
                     return 3;
                 }
             }
 
-            System.out.println("ToDo spostato con successo");
+             logger.info("ToDo spostato con successo");
             return 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Errore database durante spostamento ToDo");
+             logger.info("Errore database durante spostamento ToDo");
             return 3;
         }
     }

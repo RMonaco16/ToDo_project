@@ -13,8 +13,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class ApplicationManagement {
+
+    private static final Logger logger = Logger.getLogger(ApplicationManagement.class.getName());
 
     private User currentUser;
 
@@ -25,19 +28,19 @@ public class ApplicationManagement {
     //--Aggiunge un Utente al db chiamando il metodo creaUser della classe Dao, controllando che non esista già la mail inserita--
     public boolean addUser(User u) {
         if (u.getNickname().isBlank() || u.getEmail().isBlank() || u.getPassword().isBlank()) {
-            System.out.println("Utente non creato: campi vuoti.");
+            logger.info("Utente non creato: campi vuoti.");
             return false;
         }
 
         // --- Validazione email ---
         if (!isEmailValid(u.getEmail())) {
-            System.out.println("Formato email non valido.");
+            logger.info("Formato email non valido.");
             return false;
         }
 
         // --- Validazione password ---
         if (!isPasswordValid(u.getPassword())) {
-            System.out.println("Password troppo debole: almeno 8 caratteri, lettera e numero.");
+             logger.info("Password troppo debole: almeno 8 caratteri, lettera e numero.");
             return false;
         }
 
@@ -46,16 +49,16 @@ public class ApplicationManagement {
             UserDAO userDAO = new UserDAO(conn);
 
             if (userDAO.emailExists(u.getEmail())) {
-                System.out.println("Email già presente!");
+                 logger.info("Email già presente!");
                 return false;
             }
 
             boolean added = userDAO.creaUser(u);
 
             if (added) {
-                System.out.println("Utente aggiunto correttamente!");
+                 logger.info("Utente aggiunto correttamente!");
             } else {
-                System.out.println("Errore nell'aggiunta dell'utente.");
+                 logger.info("Errore nell'aggiunta dell'utente.");
             }
 
             return added;
@@ -95,10 +98,10 @@ public class ApplicationManagement {
             User user = userDAO.getUserByEmailAndPassword(email, password);
             if (user != null) {
                 this.currentUser = user;
-                System.out.println("Login effettuato con Successo!!");
+                 logger.info("Login effettuato con Successo!!");
                 return true;
             } else {
-                System.out.println("Email o password errati.");
+                 logger.info("Email o password errati.");
                 return false;
             }
         } catch (Exception e) {
@@ -164,9 +167,9 @@ public class ApplicationManagement {
             boolean success = toDoDAO.addToDoInBoard(email, tipoEnum, toDo);
 
             if (success) {
-                System.out.println("ToDo aggiunto correttamente.");
+                 logger.info("ToDo aggiunto correttamente.");
             } else {
-                System.out.println("Errore nell'aggiunta del ToDo.");
+                 logger.info("Errore nell'aggiunta del ToDo.");
             }
 
             return success;
@@ -190,7 +193,7 @@ public class ApplicationManagement {
     //--Aggiunge una attività Nella Checklist di un to Do in una board di un utente--
     public void addActivity(String email, String titleToDo, String board, Activity activity) {
         if (!board.equalsIgnoreCase("UNIVERSITY") && !board.equalsIgnoreCase("WORK") && !board.equalsIgnoreCase("FREETIME")) {
-            System.out.println("Tipo di bacheca non valido.");
+             logger.info("Tipo di bacheca non valido.");
             return;
         }
 
@@ -209,7 +212,7 @@ public class ApplicationManagement {
             System.err.println("Errore SQL durante addActivity: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Errore generico durante addActivity");
+             logger.info("Errore generico durante addActivity");
         }
     }
 
@@ -256,7 +259,7 @@ public class ApplicationManagement {
                 Date sqlDate = new Date(utilDate.getTime()); // java.sql.Date
                 addHistoryAct(email, activity, sqlDate);
             } else {
-                System.out.println("Data di completamento non fornita, cronologia non aggiornata.");
+                 logger.info("Data di completamento non fornita, cronologia non aggiornata.");
             }
 
             // Controllo e aggiornamento dello stato del To-Do
@@ -264,12 +267,12 @@ public class ApplicationManagement {
             toDoDAO.checkIfComplete(toDoId);
 
         } catch (ParseException e) {
-            System.out.println("Errore nel parsing della data: " + e.getMessage());
+             logger.info("Errore nel parsing della data: " + e.getMessage());
         } catch (SQLException e) {
-            System.out.println("Errore SQL: " + e.getMessage());
+             logger.info("Errore SQL: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Errore generico nel controller durante checkActivity");
+             logger.info("Errore generico nel controller durante checkActivity");
         }
     }
 
@@ -289,7 +292,7 @@ public class ApplicationManagement {
             return result;
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Errore nel controller durante deCheckActivity");
+             logger.info("Errore nel controller durante deCheckActivity");
             return false;
         }
     }
@@ -303,7 +306,7 @@ public class ApplicationManagement {
             completedActivities = dao.getCompletedActivitiesByUser(email);
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Errore nel recupero delle attività completate da DB");
+            logger.info("Errore nel recupero delle attività completate da DB");
         }
 
         return completedActivities;
@@ -317,7 +320,7 @@ public class ApplicationManagement {
             dao.addActivityToHistory(email, activityName, completionDate);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Errore nel controller durante l'aggiunta alla cronologia");
+            logger.info("Errore nel controller durante l'aggiunta alla cronologia");
         }
     }
 
@@ -327,11 +330,11 @@ public class ApplicationManagement {
             CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
             boolean removed = dao.removeActivityFromHistory(email, nmAct);
             if (!removed) {
-                System.out.println("Attività non trovata nella cronologia per l'utente: " + email);
+                logger.info("Attività non trovata nella cronologia per l'utente: " + email);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Errore durante la rimozione dalla cronologia");
+            logger.info("Errore durante la rimozione dalla cronologia");
         }
     }
 
@@ -342,11 +345,11 @@ public class ApplicationManagement {
             boolean deleted = dao.deleteAllActivitiesFromHistory(email);
 
             if (!deleted) {
-                System.out.println("Nessuna attività trovata o utente non esistente: " + email);
+                logger.info("Nessuna attività trovata o utente non esistente: " + email);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Errore durante l'eliminazione della cronologia");
+            logger.info("Errore durante l'eliminazione della cronologia");
         }
     }
 
@@ -482,7 +485,7 @@ public class ApplicationManagement {
         }
         ToDo todo = boardDAO.checkToDoExists(mailAmministratore, boardName, toDoName);
         if (todo == null) {
-            System.out.println("ToDo del mittente non trovata");
+             logger.info("ToDo del mittente non trovata");
             return false;
         }
         return true;
@@ -532,9 +535,10 @@ public class ApplicationManagement {
                 boardDAO.creaBoard(board, mailUtenteDestinatario);
             }
             sharingDAO.aggiungiMembroSharing(mailUtenteDestinatario, mailAmministratore, toDoName);
-            System.out.println("Utente aggiunto come partecipante alla condivisione");
+             logger.info("Utente aggiunto come partecipante alla condivisione");
+            // imposta flag condiviso nel ToDo
         } else {
-            System.out.println("Utente già partecipante alla condivisione");
+             logger.info("Utente già partecipante alla condivisione");
         }
     }
 
@@ -546,7 +550,7 @@ public class ApplicationManagement {
             ToDoDAO toDoDAO = new ToDoDAO();
             return toDoDAO.isUserAdminOfToDo(emailUtente, boardName, toDoTitle);
         } catch (Exception e) {
-            System.out.println("Errore verfica se Utente è anche admin");
+             logger.info("Errore verfica se Utente è anche admin");
             e.printStackTrace();
         }
         return false;
@@ -582,12 +586,12 @@ public class ApplicationManagement {
 
         // 1. Verifica se sei amministratore del To-Do
         if (!isUserAdminOfToDo(mailAmministratore, boardName, toDoTitle)) {
-            System.out.println("Errore: l'utente non è amministratore del ToDo.");
+             logger.info("Errore: l'utente non è amministratore del ToDo.");
             return false;
         }
 
         if (mailAmministratore.equalsIgnoreCase(mailUtenteDaRimuovere)) {
-            System.out.println("Errore: non puoi rimuovere te stesso dalla condivisione.");
+             logger.info("Errore: non puoi rimuovere te stesso dalla condivisione.");
             return false;
         }
 
@@ -598,21 +602,21 @@ public class ApplicationManagement {
 
         // 2. Verifica esistenza utenti
         if (!userDao.emailExists(mailUtenteDaRimuovere) || !userDao.emailExists(mailAmministratore)) {
-            System.out.println("Errore: uno degli utenti non esiste.");
+             logger.info("Errore: uno degli utenti non esiste.");
             return false;
         }
 
         // 3. Recupera ID To-Do
         Integer todoId = toDoDAO.getTodoIdByTitleUserAndBoard(toDoTitle, mailAmministratore, boardName);
         if (todoId == null) {
-            System.out.println("Errore: ToDo non trovato.");
+             logger.info("Errore: ToDo non trovato.");
             return false;
         }
 
         // 4. Rimuovi utente da sharing
         boolean removed = sharingDAO.rimuoviMembroSharing(mailUtenteDaRimuovere, todoId);
         if (!removed) {
-            System.out.println("Errore: impossibile rimuovere l’utente (forse non è membro).");
+             logger.info("Errore: impossibile rimuovere l’utente (forse non è membro).");
             return false;
         }
 
@@ -621,9 +625,9 @@ public class ApplicationManagement {
         if (membriRimasti == 0) {
             toDoDAO.setCondivisoFalseById(todoId);
             sharingDAO.eliminaSharingSeVuoto(todoId);
-            System.out.println("Condivisione terminata: nessun membro rimanente.");
+             logger.info("Condivisione terminata: nessun membro rimanente.");
         } else {
-            System.out.println("Utente rimosso con successo dalla condivisione.");
+             logger.info("Utente rimosso con successo dalla condivisione.");
         }
         return true;
     }
@@ -654,19 +658,19 @@ public class ApplicationManagement {
 
         switch (risultato) {
             case 0:
-                System.out.println("ToDo spostato correttamente");
+                 logger.info("ToDo spostato correttamente");
                 break;
             case 1:
-                System.out.println("ToDo già presente nella bacheca di destinazione");
+                 logger.info("ToDo già presente nella bacheca di destinazione");
                 break;
             case 2:
-                System.out.println("ToDo condiviso, impossibile spostarlo");
+                 logger.info("ToDo condiviso, impossibile spostarlo");
                 break;
             case 3:
-                System.out.println("Utente, bacheca o ToDo non trovati, oppure errore");
+                 logger.info("Utente, bacheca o ToDo non trovati, oppure errore");
                 break;
             default:
-                System.out.println("Errore sconosciuto");
+                 logger.info("Errore sconosciuto");
         }
 
         return risultato;

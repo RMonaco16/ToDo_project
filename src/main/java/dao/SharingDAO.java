@@ -1,13 +1,18 @@
 package dao;
 
+import controller.ApplicationManagement;
 import model.Sharing;
 import model.ToDo;
 import model.User;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class SharingDAO {
+
+    private static final Logger logger = Logger.getLogger(SharingDAO.class.getName());
+
 
     private final Connection conn;
 
@@ -18,50 +23,50 @@ public class SharingDAO {
     // Carica Sharing da un ToDo (identificato dal titolo)
     public Sharing leggiSharingPerToDo(String todoTitle, String boardName, String adminEmail) {
         Sharing sharing = null;
-        try {
-            // Supponendo esista la tabella boards con id e name
-            String sqlSharing = """
-            SELECT s.id AS sharing_id, s.administrator_email, t.id AS todo_id
-            FROM sharings s
-            JOIN todos t ON s.todo_id = t.id
-            JOIN boards b ON t.board_id = b.id
-            WHERE t.title = ? AND b.name = ? AND t.administrator_email = ?
-            LIMIT 1
-        """;
+        String sqlSharing = """
+        SELECT s.id AS sharing_id, s.administrator_email, t.id AS todo_id
+        FROM sharings s
+        JOIN todos t ON s.todo_id = t.id
+        JOIN boards b ON t.board_id = b.id
+        WHERE t.title = ? AND b.name = ? AND t.administrator_email = ?
+        LIMIT 1
+    """;
 
-            PreparedStatement stmt = conn.prepareStatement(sqlSharing);
+        try (PreparedStatement stmt = conn.prepareStatement(sqlSharing)) {
             stmt.setString(1, todoTitle);
             stmt.setString(2, boardName);
             stmt.setString(3, adminEmail);
-            ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                String admin = rs.getString("administrator_email");
-                int todoId = rs.getInt("todo_id");
-                int sharingId = rs.getInt("sharing_id");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String admin = rs.getString("administrator_email");
+                    int todoId = rs.getInt("todo_id");
+                    int sharingId = rs.getInt("sharing_id");
 
-                UserDAO userDAO = new UserDAO(conn);
-                BoardDAO boardDAO = new BoardDAO(conn);
+                    UserDAO userDAO = new UserDAO(conn);
+                    BoardDAO boardDAO = new BoardDAO(conn);
 
-                User adminUser = userDAO.leggiUserPerEmail(admin);
-                ToDo todo = boardDAO.findToDoByTitleInBoard(adminEmail, boardName, todoTitle);
-                sharing = new Sharing(adminUser, todo);
+                    User adminUser = userDAO.leggiUserPerEmail(admin);
+                    ToDo todo = boardDAO.findToDoByTitleInBoard(adminEmail, boardName, todoTitle);
+                    sharing = new Sharing(adminUser, todo);
 
-                // Ora carica i membri
-                String sqlMembers = "SELECT member_email FROM sharing_members WHERE sharing_id = ?";
-                PreparedStatement stmtMembers = conn.prepareStatement(sqlMembers);
-                stmtMembers.setInt(1, sharingId);
-                ResultSet rsMembers = stmtMembers.executeQuery();
+                    String sqlMembers = "SELECT member_email FROM sharing_members WHERE sharing_id = ?";
+                    try (PreparedStatement stmtMembers = conn.prepareStatement(sqlMembers)) {
+                        stmtMembers.setInt(1, sharingId);
 
-                ArrayList<User> members = new ArrayList<>();
-                while (rsMembers.next()) {
-                    String memberEmail = rsMembers.getString("member_email");
-                    User member = userDAO.leggiUserPerEmail(memberEmail);
-                    if (member != null) {
-                        members.add(member);
+                        try (ResultSet rsMembers = stmtMembers.executeQuery()) {
+                            ArrayList<User> members = new ArrayList<>();
+                            while (rsMembers.next()) {
+                                String memberEmail = rsMembers.getString("member_email");
+                                User member = userDAO.leggiUserPerEmail(memberEmail);
+                                if (member != null) {
+                                    members.add(member);
+                                }
+                            }
+                            sharing.setMembers(members);
+                        }
                     }
                 }
-                sharing.setMembers(members);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -76,7 +81,7 @@ public class SharingDAO {
         String insertMemberSql = "INSERT INTO sharing_members (sharing_id, member_email) VALUES (?, ?)";
 
         try {
-            // 1. Recupera l'id del ToDo dal titolo e amministratore
+            // 1. Recupera l'id del To-Do dal titolo e amministratore
             int todoId = -1;
             try (PreparedStatement getTodoStmt = conn.prepareStatement(getTodoIdSql)) {
                 getTodoStmt.setString(1, sharing.getToDo().getTitle());
@@ -85,7 +90,7 @@ public class SharingDAO {
                     if (rs.next()) {
                         todoId = rs.getInt("id");
                     } else {
-                        System.out.println("ToDo non trovato con titolo e amministratore forniti.");
+                         logger.info("ToDo non trovato con titolo e amministratore forniti.");
                         return;
                     }
                 }
@@ -103,7 +108,7 @@ public class SharingDAO {
                     if (generatedKeys.next()) {
                         sharingId = generatedKeys.getInt(1);
                     } else {
-                        System.out.println("Errore: impossibile ottenere l'ID della condivisione appena creata.");
+                         logger.info("Errore: impossibile ottenere l'ID della condivisione appena creata.");
                         return;
                     }
                 }
@@ -120,7 +125,7 @@ public class SharingDAO {
                 }
             }
 
-            System.out.println("Condivisione creata con successo!");
+             logger.info("Condivisione creata con successo!");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -195,7 +200,7 @@ public class SharingDAO {
                     if (rs.next()) {
                         todoId = rs.getInt("id");
                     } else {
-                        System.out.println("ToDo non trovato con titolo e amministratore forniti.");
+                         logger.info("ToDo non trovato con titolo e amministratore forniti.");
                         return false;
                     }
                 }
@@ -248,10 +253,10 @@ public class SharingDAO {
                         insertStmt.setString(1, emailDestinatario);
                         insertStmt.setInt(2, sharingId);
                         insertStmt.executeUpdate();
-                        System.out.println("Membro aggiunto correttamente alla condivisione.");
+                         logger.info("Membro aggiunto correttamente alla condivisione.");
                     }
                 } else {
-                    System.out.println("Nessuna condivisione trovata per il titolo e l’amministratore forniti.");
+                     logger.info("Nessuna condivisione trovata per il titolo e l’amministratore forniti.");
                 }
             }
         } catch (SQLException e) {
