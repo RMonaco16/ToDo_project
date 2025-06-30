@@ -59,37 +59,6 @@ public class BoardDAO {
         }
     }
 
-    // Aggiorna descrizione (o altri dati) di una board identificata dal tipo
-    public void aggiornaBoard(Board board) {
-        String sql = "UPDATE boards SET description = ? WHERE type = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, board.getDescription());
-            stmt.setString(2, board.getType().name());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Leggi tutte le board
-    public ArrayList<Board> leggiTutteLeBoard() {
-        ArrayList<Board> boards = new ArrayList<>();
-        String sql = "SELECT * FROM board";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Board board = new Board(
-                        TypeBoard.valueOf(rs.getString("type")),
-                        rs.getString("description")
-                );
-                boards.add(board);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return boards;
-    }
-
     public ToDo checkToDoExists(String email, String boardType, String todoTitle){
         String sql = """
         SELECT t.title, t.description, t.color, t.image, t.expiration,

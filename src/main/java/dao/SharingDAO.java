@@ -128,105 +128,6 @@ public class SharingDAO {
     }
 
 
-
-    // Metodo per ottenere lo sharing id dal titolo e admin (utile per vari metodi)
-    private int getSharingId(String todoTitle, String adminEmail) throws SQLException {
-        String sql = """
-        SELECT s.id 
-        FROM sharing s
-        JOIN todos t ON s.todo_id = t.id
-        WHERE t.title = ? AND s.administrator_email = ?
-        LIMIT 1
-    """;
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todoTitle);
-            stmt.setString(2, adminEmail);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id");
-                }
-            }
-        }
-        return -1; // Non trovato
-    }
-
-    // aggiornaMembers (sostituisce tutti i membri)
-    public void aggiornaMembers(Sharing sharing) {
-        try {
-            int sharingId = getSharingId(sharing.getToDo().getTitle(), sharing.getAdministrator().getEmail());
-            if (sharingId == -1) {
-                System.out.println("Sharing non trovato.");
-                return;
-            }
-
-            // 1. Elimina vecchi membri
-            String sqlDeleteMembers = "DELETE FROM sharing_members WHERE sharing_id = ?";
-            PreparedStatement stmtDelete = conn.prepareStatement(sqlDeleteMembers);
-            stmtDelete.setInt(1, sharingId);
-            stmtDelete.executeUpdate();
-
-            // 2. Inserisci nuovi membri
-            if (sharing.getMembers() != null && !sharing.getMembers().isEmpty()) {
-                String sqlInsertMember = "INSERT INTO sharing_members (sharing_id, member_email) VALUES (?, ?)";
-                PreparedStatement stmtInsert = conn.prepareStatement(sqlInsertMember);
-                for (User member : sharing.getMembers()) {
-                    stmtInsert.setInt(1, sharingId);
-                    stmtInsert.setString(2, member.getEmail());
-                    stmtInsert.executeUpdate();
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // aggiornaAdministrator con vecchioAdminEmail come parametro
-    public void aggiornaAdministrator(Sharing sharing, String oldAdminEmail) {
-        try {
-            int sharingId = getSharingId(sharing.getToDo().getTitle(), oldAdminEmail);
-            if (sharingId == -1) {
-                System.out.println("Sharing non trovato.");
-                return;
-            }
-
-            String sql = "UPDATE sharing SET administrator_email = ? WHERE id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, sharing.getAdministrator().getEmail());  // nuovo admin
-            stmt.setInt(2, sharingId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    // eliminaSharing
-    public void eliminaSharing(String todoTitle, String adminEmail) {
-        try {
-            int sharingId = getSharingId(todoTitle, adminEmail);
-            if (sharingId == -1) {
-                System.out.println("Sharing non trovato.");
-                return;
-            }
-
-            // Elimina membri
-            String sqlDeleteMembers = "DELETE FROM sharing_members WHERE sharing_id = ?";
-            PreparedStatement stmtDelMembers = conn.prepareStatement(sqlDeleteMembers);
-            stmtDelMembers.setInt(1, sharingId);
-            stmtDelMembers.executeUpdate();
-
-            // Elimina sharing
-            String sqlDeleteSharing = "DELETE FROM sharing WHERE id = ?";
-            PreparedStatement stmtDelSharing = conn.prepareStatement(sqlDeleteSharing);
-            stmtDelSharing.setInt(1, sharingId);
-            stmtDelSharing.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     public Sharing checkSharingExists(User admin, ToDo todo) {
         String findTodoIdSql = """
         SELECT id FROM todos 
@@ -429,7 +330,6 @@ public class SharingDAO {
         return null;
     }
 
-
     public ArrayList<User> getSharingUserShared(String email, String toDoTitle) {
         ArrayList<User> listaUtenti = new ArrayList<>();
         String sql = """
@@ -535,31 +435,6 @@ public class SharingDAO {
             stmt.setString(1, emailUtente);
             stmt.setInt(2, todoId);
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-
-    public boolean hasSharingAnyMembers(String adminEmail, String toDoTitle) {
-        String sql = """
-        SELECT COUNT(*) as total FROM sharing_members
-        WHERE sharing_id = (
-            SELECT s.id FROM sharings s
-            JOIN todos t ON s.todo_id = t.id
-            WHERE s.administrator_email = ? AND t.title = ?
-        )
-    """;
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, adminEmail);
-            stmt.setString(2, toDoTitle);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("total") > 0;
-                }
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

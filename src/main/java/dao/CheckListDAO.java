@@ -203,23 +203,6 @@ public class CheckListDAO {
         }
     }
 
-
-
-    // Aggiorna lo stato e la data di completamento di una attività
-    public void aggiornaActivity(String todoTitle, Activity activity) {
-        String sql = "UPDATE activity SET state = ?, completion_date = ? WHERE name = ? AND todo_title = ?";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBoolean(1, activity.getState());
-            stmt.setString(2, activity.getCompletionDate());
-            stmt.setString(3, activity.getName());
-            stmt.setString(4, todoTitle);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
         String sql = "UPDATE activities SET state = ?, completion_date = ? " +
                 "WHERE name = ? AND checklist_id = (" +
@@ -259,8 +242,6 @@ public class CheckListDAO {
         }
     }
 
-
-
     public boolean uncheckActivity(String email, String board, String todo, String activity) {
         String sql = "UPDATE activities SET state = ?, completion_date = ? " +
                 "WHERE name = ? AND checklist_id = (" +
@@ -289,7 +270,6 @@ public class CheckListDAO {
             return false;
         }
     }
-
 
     public int getToDoId(String email, String boardType, String todoTitle) throws SQLException {
         String sql = """

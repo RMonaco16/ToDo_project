@@ -59,34 +59,6 @@ public class UserDAO {
         return false;
     }
 
-    // Aggiorna dati utente (nickname e password)
-    public boolean aggiornaUser(User user) {
-        String sql = "UPDATE users SET nickname = ?, password = ? WHERE email = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, user.getNickname());
-            stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getEmail());
-            int rows = stmt.executeUpdate();
-            return rows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Elimina utente
-    public boolean eliminaUser(String email) {
-        String sql = "DELETE FROM users WHERE email = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            int rows = stmt.executeUpdate();
-            return rows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     //comntrolla se un utente gia esiste all'interno del db restituendo il risultato al controller
     public boolean emailExists(String email) {
         String sql = "SELECT 1 FROM users WHERE email = ?";
@@ -143,16 +115,6 @@ public class UserDAO {
         return false;
     }
 
-
-
-    // Metodo di esempio per leggere boards (da implementare)
-    // Nota: devi avere DAO Board con metodo leggiBoardsPerUtente(email)
-    /*
-    public Board[] leggiBoardsPerUtente(String email) {
-        BoardDAO boardDAO = new BoardDAO(conn);
-        return boardDAO.leggiBoardsPerUtente(email);
-    }
-    */
 
 
 }

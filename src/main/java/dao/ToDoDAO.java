@@ -202,17 +202,6 @@ public class ToDoDAO {
         }
     }
 
-    // Utilità per convertire il colore
-    private String colorToHex(Color color) {
-        if (color == null) return null;
-        return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-    }
-
-    private Color hexToColor(String hex) {
-        if (hex == null || hex.isEmpty()) return null;
-        return Color.decode(hex);
-    }
-
 
     public boolean isUserAdminOfToDo(String email, String boardName, String toDoTitle) {
         String sql = """
