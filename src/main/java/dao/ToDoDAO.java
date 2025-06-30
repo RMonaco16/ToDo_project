@@ -134,25 +134,6 @@ public class ToDoDAO {
         return null;
     }
 
-    public boolean aggiornaToDo(ToDo todo) {
-        String sql = "UPDATE todo SET description = ?, color = ?, position = ?, image = ?, expiration = ?, state = ?, condiviso = ?, owner_email = ? WHERE title = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todo.getDescription());
-            stmt.setString(2, colorToHex(todo.getColor()));
-            stmt.setString(4, todo.getImage());
-            stmt.setDate(5, todo.getExpiration() != null ? Date.valueOf(todo.getExpiration()) : null);
-            stmt.setBoolean(6, todo.isState());
-            stmt.setBoolean(7, todo.isCondiviso());
-            stmt.setString(8, todo.getOwnerEmail());
-            stmt.setString(9, todo.getTitle());
-
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            System.out.println("Errore durante aggiornamento ToDo: " + e.getMessage());
-            return false;
-        }
-    }
     public boolean deleteToDo(String email, String boardType, String todoTitle) throws SQLException {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
 
@@ -502,7 +483,7 @@ public class ToDoDAO {
         FROM activities a
         JOIN todos t ON a.checklist_id = t.checklist_id
         WHERE t.id = ?
-    """;
+         """;
 
         String updateSql = "UPDATE todos SET state = ? WHERE id = ?";
 

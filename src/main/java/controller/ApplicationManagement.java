@@ -27,17 +27,27 @@ public class ApplicationManagement {
             return false;
         }
 
+        // --- Validazione email ---
+        if (!isEmailValid(u.getEmail())) {
+            System.out.println("Formato email non valido.");
+            return false;
+        }
+
+        // --- Validazione password ---
+        if (!isPasswordValid(u.getPassword())) {
+            System.out.println("Password troppo debole: almeno 8 caratteri, lettera e numero.");
+            return false;
+        }
+
         try {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
-            // 1. Controlla se l'email esiste
             if (userDAO.emailExists(u.getEmail())) {
                 System.out.println("Email già presente!");
                 return false;
             }
 
-            // 2. Inserisce utente se email non esiste
             boolean added = userDAO.creaUser(u);
 
             if (added) {
@@ -53,6 +63,26 @@ public class ApplicationManagement {
             return false;
         }
     }
+
+    private boolean isEmailValid(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        return email != null && email.matches(emailRegex);
+    }
+
+    public boolean isPasswordValid(String password) {
+        if (password == null || password.length() < 8) return false;
+        boolean hasLetter = false;
+        boolean hasDigit = false;
+
+        for (char c : password.toCharArray()) {
+            if (Character.isLetter(c)) hasLetter = true;
+            if (Character.isDigit(c)) hasDigit = true;
+        }
+
+        return hasLetter && hasDigit;
+    }
+
+
 
     //--Effetua il Login di un utente cercando le informazioni passate cme parametro nel metodo, all'interno della classe DAO tramite il metodo getUserByEmailAndPassword--
     public boolean login(String email, String password) {

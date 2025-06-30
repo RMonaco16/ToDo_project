@@ -226,7 +226,10 @@ public class CheckListDAO {
                 "SELECT c.id FROM checklists c " +
                 "JOIN todos t ON c.id = t.checklist_id " +
                 "JOIN boards b ON t.board_id = b.id " +
-                "WHERE b.user_email = ? AND b.type = ? AND t.title = ? LIMIT 1)";
+                "LEFT JOIN sharings s ON s.todo_id = t.id " +
+                "LEFT JOIN sharing_members sm ON sm.sharing_id = s.id " +
+                "WHERE (b.user_email = ? OR sm.member_email = ?) " +
+                "AND b.type = ? AND t.title = ? LIMIT 1)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBoolean(1, true);
@@ -241,19 +244,21 @@ public class CheckListDAO {
             }
 
             stmt.setString(3, activity);
-            stmt.setString(4, email);
-            stmt.setString(5, board.toUpperCase());
-            stmt.setString(6, todo);
+            stmt.setString(4, email); // owner
+            stmt.setString(5, email); // shared member
+            stmt.setString(6, board.toUpperCase());
+            stmt.setString(7, todo);
 
             int updatedRows = stmt.executeUpdate();
 
             if (updatedRows == 0) {
-                System.out.println("Nessuna attività aggiornata, controlla i parametri.");
+                System.out.println("Nessuna attività aggiornata: verifica i parametri o se hai accesso alla ToDo.");
             }
         } catch (SQLException | ParseException e) {
             e.printStackTrace();
         }
     }
+
 
 
     public boolean uncheckActivity(String email, String board, String todo, String activity) {
@@ -262,18 +267,21 @@ public class CheckListDAO {
                 "SELECT c.id FROM checklists c " +
                 "JOIN todos t ON c.id = t.checklist_id " +
                 "JOIN boards b ON t.board_id = b.id " +
-                "WHERE b.user_email = ? AND b.type = ? AND t.title = ? LIMIT 1)";
+                "LEFT JOIN sharings s ON s.todo_id = t.id " +
+                "LEFT JOIN sharing_members sm ON sm.sharing_id = s.id " +
+                "WHERE (b.user_email = ? OR sm.member_email = ?) " +
+                "AND b.type = ? AND t.title = ? LIMIT 1)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBoolean(1, false);
             stmt.setNull(2, java.sql.Types.DATE);
             stmt.setString(3, activity);
             stmt.setString(4, email);
-            stmt.setString(5, board.toUpperCase());
-            stmt.setString(6, todo);
+            stmt.setString(5, email);
+            stmt.setString(6, board.toUpperCase());
+            stmt.setString(7, todo);
 
             int updatedRows = stmt.executeUpdate();
-
             return updatedRows > 0;
 
         } catch (SQLException e) {
@@ -282,18 +290,25 @@ public class CheckListDAO {
         }
     }
 
+
     public int getToDoId(String email, String boardType, String todoTitle) throws SQLException {
         String sql = """
         SELECT t.id
         FROM todos t
         JOIN boards b ON t.board_id = b.id
-        WHERE b.user_email = ? AND b.type = ? AND t.title = ?
+        LEFT JOIN sharings s ON t.id = s.todo_id
+        LEFT JOIN sharing_members sm ON sm.sharing_id = s.id
+        WHERE b.type = ? AND t.title = ? AND (
+            b.user_email = ? OR sm.member_email = ?
+        )
+        LIMIT 1
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
-            ps.setString(2, boardType.toUpperCase());
-            ps.setString(3, todoTitle);
+            ps.setString(1, boardType.toUpperCase());
+            ps.setString(2, todoTitle);
+            ps.setString(3, email); // proprietario
+            ps.setString(4, email); // membro condiviso
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("id");
