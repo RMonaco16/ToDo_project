@@ -12,6 +12,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.text.ParseException;
+import java.util.Objects;
 
 public class ApplicationManagement {
 
@@ -367,27 +368,53 @@ public class ApplicationManagement {
         try {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
-            if (!userDAO.checkBoard(user.getEmail(), boardName)) { // se la bacheca non esiste crea exception
+
+            if (!userDAO.checkBoard(user.getEmail(), boardName)) {
                 throw new Exception();
+            }
+
+            BoardDAO boardDAO = new BoardDAO(conn);
+
+            if (filter.isBlank()) {
+                // aggiunge solo i To-Do non null
+                visibleToDos.addAll(
+                        boardDAO.getAllLocalToDos(user.getEmail(), boardName).stream()
+                                .filter(Objects::nonNull)
+                                .toList()
+                );
+                visibleToDos.addAll(
+                        boardDAO.getAllSharedToDos(user.getEmail(), boardName).stream()
+                                .filter(Objects::nonNull)
+                                .toList()
+                );
+
+            } else if (filter.equals("todayFilter")) {
+                visibleToDos.addAll(
+                        boardDAO.getLocalTodosByExpirationDate(user.getEmail(), boardName).stream()
+                                .filter(Objects::nonNull)
+                                .toList()
+                );
+
             } else {
-                BoardDAO boardDAO = new BoardDAO(conn);
-                if (filter.isBlank()) {       // vuole tutti i to-do locali e condivisi
-                    //aggiunge tutti i to-do creati localmente dell'utente
-                    visibleToDos.addAll(boardDAO.getAllLocalToDos(user.getEmail(), boardName));
-                    //aggiunge tutti i to-do che sono stati condivisi all'utente
-                    visibleToDos.addAll(boardDAO.getAllSharedToDos(user.getEmail(), boardName));
-                } else if (filter.equals("todayFilter")) {
-                    visibleToDos.addAll(boardDAO.getLocalTodosByExpirationDate(user.getEmail(), boardName));
-                } else {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                        LocalDate date = LocalDate.parse(filter, formatter);
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                    LocalDate date = LocalDate.parse(filter, formatter);
 
-                        visibleToDos.addAll(boardDAO.getLocalTodosExpiringBeforeOrOn(user.getEmail(), boardName, date));
-                        visibleToDos.addAll(boardDAO.getSharedTodosExpiringBeforeOrOn(user.getEmail(), boardName, date));
+                    visibleToDos.addAll(
+                            boardDAO.getLocalTodosExpiringBeforeOrOn(user.getEmail(), boardName, date).stream()
+                                    .filter(Objects::nonNull)
+                                    .toList()
+                    );
+                    visibleToDos.addAll(
+                            boardDAO.getSharedTodosExpiringBeforeOrOn(user.getEmail(), boardName, date).stream()
+                                    .filter(Objects::nonNull)
+                                    .toList()
+                    );
 
-                    } catch (DateTimeParseException e) {
-                        visibleToDos.add(boardDAO.findToDoByTitleInBoard(user.getEmail(), boardName, filter));
+                } catch (DateTimeParseException e) {
+                    ToDo single = boardDAO.findToDoByTitleInBoard(user.getEmail(), boardName, filter);
+                    if (single != null) {
+                        visibleToDos.add(single);
                     }
                 }
             }
@@ -395,8 +422,10 @@ public class ApplicationManagement {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return visibleToDos;
     }
+
 
     //--Condivide un to-Do con un altro utente (Creandone se necessario la bacheca in questione)
     public boolean shareToDo(String mailAmministratore, String mailUtenteDestinatario, String boardName, String toDoName) {
