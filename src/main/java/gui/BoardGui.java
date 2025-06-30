@@ -44,13 +44,15 @@ public class BoardGui {
     private JDialog dialog = null;
     private Color color;
     private JLabel stateField = new JLabel("❌");
+    public static final Color DONE_BUTTON_COLOR = Color.decode("#A8BDB5");
+    public static final Color LIGHT_GRAY_BACKGROUND = Color.decode("#F3F4F6");
+    public static final Color DARK_GRAY_TEXT = Color.decode("#374151");
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
 
-
         frame = new JFrame(nameBoard);
         frame.setContentPane(BoardGui);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(1000, 800);
         frame.setLocationRelativeTo(null);
         vecchioFrame.setVisible(false);
@@ -60,7 +62,7 @@ public class BoardGui {
 
         //--Collega panelToDoMain allo scroll pane--
         scrollPanelToDo.setViewportView(panelToDoMain);
-        scrollPanelToDo.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPanelToDo.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPanelToDo.getVerticalScrollBar().setUnitIncrement(16);
 
         //--aggiunta ricerca con filtri--
@@ -86,7 +88,7 @@ public class BoardGui {
 
             // Barra titolo personalizzata
             JPanel titleBar = new JPanel(new BorderLayout());
-            titleBar.setBackground(Color.decode("#374151"));
+            titleBar.setBackground(DARK_GRAY_TEXT);
             titleBar.setPreferredSize(new Dimension(dialogAddToDo.getWidth(), 40));
 
             JLabel titleLabel = new JLabel(" Add New ToDo");
@@ -96,7 +98,7 @@ public class BoardGui {
 
             JButton closeButton = new JButton("X");
             closeButton.setForeground(Color.WHITE);
-            closeButton.setBackground(Color.decode("#374151"));
+            closeButton.setBackground(DARK_GRAY_TEXT);
             closeButton.setBorderPainted(false);
             closeButton.setFocusPainted(false);
             closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -107,11 +109,13 @@ public class BoardGui {
             // Drag per spostare la finestra
             final Point clickPoint = new Point();
             titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
                 public void mousePressed(java.awt.event.MouseEvent e) {
                     clickPoint.setLocation(e.getPoint());
                 }
             });
             titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                @Override
                 public void mouseDragged(java.awt.event.MouseEvent e) {
                     Point location = dialogAddToDo.getLocation();
                     dialogAddToDo.setLocation(location.x + e.getX() - clickPoint.x,
@@ -123,7 +127,7 @@ public class BoardGui {
             JPanel panelAddToDo = new JPanel();
             panelAddToDo.setLayout(new BoxLayout(panelAddToDo, BoxLayout.Y_AXIS));
             panelAddToDo.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
-            panelAddToDo.setBackground(Color.decode("#F3F4F6"));
+            panelAddToDo.setBackground(LIGHT_GRAY_BACKGROUND);
 
             panelAddToDo.add(Box.createRigidArea(new Dimension(0, 15)));
 
@@ -153,7 +157,7 @@ public class BoardGui {
             buttonPanel.setOpaque(false);
 
             JButton doneButton = new JButton("Done");
-            doneButton.setBackground(Color.decode("#A8BDB5")); // rosso tenue
+            doneButton.setBackground(DONE_BUTTON_COLOR); // rosso tenue
             doneButton.setForeground(Color.WHITE);
             doneButton.setFocusPainted(false);
             doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
@@ -213,7 +217,7 @@ public class BoardGui {
 
             // Barra titolo personalizzata
             JPanel titleBar = new JPanel(new BorderLayout());
-            titleBar.setBackground(Color.decode("#374151"));
+            titleBar.setBackground(DARK_GRAY_TEXT);
             titleBar.setPreferredSize(new Dimension(dialogDeleteToDo.getWidth(), 40));
 
             JLabel titleLabel = new JLabel(" Delete ToDo");
@@ -223,7 +227,7 @@ public class BoardGui {
 
             JButton closeButton = new JButton("X");
             closeButton.setForeground(Color.WHITE);
-            closeButton.setBackground(Color.decode("#374151"));
+            closeButton.setBackground(DARK_GRAY_TEXT);
             closeButton.setBorderPainted(false);
             closeButton.setFocusPainted(false);
             closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -234,11 +238,13 @@ public class BoardGui {
             // Drag per spostare la finestra
             final Point clickPoint = new Point();
             titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
                 public void mousePressed(java.awt.event.MouseEvent e) {
                     clickPoint.setLocation(e.getPoint());
                 }
             });
             titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                @Override
                 public void mouseDragged(java.awt.event.MouseEvent e) {
                     Point location = dialogDeleteToDo.getLocation();
                     dialogDeleteToDo.setLocation(location.x + e.getX() - clickPoint.x,
@@ -250,7 +256,7 @@ public class BoardGui {
             JPanel panelDeleteToDo = new JPanel();
             panelDeleteToDo.setLayout(new BoxLayout(panelDeleteToDo, BoxLayout.Y_AXIS));
             panelDeleteToDo.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
-            panelDeleteToDo.setBackground(Color.decode("#F3F4F6"));
+            panelDeleteToDo.setBackground(LIGHT_GRAY_BACKGROUND);
 
             // Titolo interno grande e in grassetto (sotto barra titolo)
 
@@ -402,7 +408,7 @@ public class BoardGui {
                             sharingInfoFrame = new JFrame("Sharing Information");
                             sharingInfoFrame.setSize(300, 150);
                             sharingInfoFrame.setLocationRelativeTo(frame);
-                            sharingInfoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                            sharingInfoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
                             SharingInformation sharingInformation = new SharingInformation(
                                     controller, frame, email, t.getTitle(), nameBoard,
@@ -524,7 +530,6 @@ public class BoardGui {
             JScrollPane tableScroll = new JScrollPane(table);
 
             int rowCount = table.getRowCount();
-            int rowHeight = table.getRowHeight();
 
             int maxHeight = 200; // altezza fissa massima visibile per la tabella
             int totalHeight = rowCount * table.getRowHeight();
@@ -581,7 +586,7 @@ public class BoardGui {
 
                 // Barra del titolo
                 JPanel titleBar = new JPanel(new BorderLayout());
-                titleBar.setBackground(Color.decode("#374151"));
+                titleBar.setBackground(DARK_GRAY_TEXT);
                 titleBar.setPreferredSize(new Dimension(dialogAddActivity.getWidth(), 40));
 
                 titleLabel.setText("Add New Activity");
@@ -591,7 +596,7 @@ public class BoardGui {
 
                 JButton closeButton = new JButton("X");
                 closeButton.setForeground(Color.WHITE);
-                closeButton.setBackground(Color.decode("#374151"));
+                closeButton.setBackground(DARK_GRAY_TEXT);
                 closeButton.setBorderPainted(false);
                 closeButton.setFocusPainted(false);
                 closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -602,11 +607,13 @@ public class BoardGui {
                 // Drag per spostare la finestra
                 final Point clickPoint = new Point();
                 titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
                     public void mousePressed(java.awt.event.MouseEvent e) {
                         clickPoint.setLocation(e.getPoint());
                     }
                 });
                 titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+                    @Override
                     public void mouseDragged(java.awt.event.MouseEvent e) {
                         Point location = dialogAddActivity.getLocation();
                         dialogAddActivity.setLocation(location.x + e.getX() - clickPoint.x,
@@ -641,7 +648,7 @@ public class BoardGui {
                 buttonPanel.setOpaque(false);
 
                 JButton doneButton = new JButton("Done");
-                doneButton.setBackground(Color.decode("#A8BDB5")); // Verde stile coerente
+                doneButton.setBackground(DONE_BUTTON_COLOR); // Verde stile coerente
                 doneButton.setForeground(Color.WHITE);
                 doneButton.setFocusPainted(false);
                 doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
@@ -761,7 +768,7 @@ public class BoardGui {
                 // Etichetta per anteprima
                 JLabel imagePreview = new JLabel();
                 imagePreview.setPreferredSize(new Dimension(100, 100));
-                imagePreview.setHorizontalAlignment(JLabel.CENTER);
+                imagePreview.setHorizontalAlignment(SwingConstants.CENTER);
                 imagePanel.add(imagePreview, BorderLayout.SOUTH);
 
                 // Carica immagine iniziale se esiste
@@ -992,7 +999,7 @@ public class BoardGui {
     }
 
     private void styleButton(JButton button) {
-        Color baseColor = Color.decode("#A8BDB5");
+        Color baseColor = DONE_BUTTON_COLOR;
         Color hoverColor = baseColor.darker();
 
         button.setBackground(baseColor);
@@ -1003,10 +1010,13 @@ public class BoardGui {
         button.setPreferredSize(new Dimension(160, 40));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
+
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor, 2));
@@ -1026,10 +1036,12 @@ public class BoardGui {
         button.setPreferredSize(new Dimension(55, 12));  // più piccolo
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 1));
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor, 1));
