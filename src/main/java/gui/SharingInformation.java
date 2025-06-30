@@ -33,7 +33,6 @@ public class SharingInformation {
             tableInformazioniUsers.setEnabled(false);
         }
 
-
         // Azione bottone elimina
         deleteSelectedButton.addActionListener(new ActionListener() {
             @Override
@@ -59,7 +58,6 @@ public class SharingInformation {
             }
         });
         this.onSharingEnded = onSharingEnded;
-
     }
 
     public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo, boolean isAdmin) {
@@ -132,5 +130,4 @@ public class SharingInformation {
             }
         });
     }
-
 }

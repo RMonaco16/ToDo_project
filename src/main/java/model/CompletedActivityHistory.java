@@ -20,25 +20,4 @@ public class CompletedActivityHistory {
         this.activityHistory = activityHistory;
     }
 
-    public ArrayList<Activity> print(){
-        ArrayList<Activity> listaAtt = new ArrayList<>();
-        for(Activity a :activityHistory){
-            System.out.println(a.getName()+" | "+a.getCompletionDate());
-            listaAtt.add(a);
-        }
-        return listaAtt;
-    }
-
-    public void rmvAct(String nmAct){
-        for(Activity a: activityHistory){
-            if(a.getName().equalsIgnoreCase(nmAct)){
-                activityHistory.remove(a);
-                break;
-            }
-        }
-    }
-
-    public void dltActs(){
-        activityHistory.clear();
-    }
 }
