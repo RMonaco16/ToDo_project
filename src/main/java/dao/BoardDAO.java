@@ -18,8 +18,23 @@ public class BoardDAO {
 
     // Crea una nuova board
     public boolean creaBoard(Board board, String userEmail) {
-        String sql = "INSERT INTO boards (type, description, user_email) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String checkSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
+        String insertSql = "INSERT INTO boards (type, description, user_email) VALUES (?, ?, ?)";
+
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, userEmail);
+            checkStmt.setString(2, board.getType().name());
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                System.out.println("La board di tipo '" + board.getType().name() + "' esiste già per l'utente: " + userEmail);
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
             stmt.setString(1, board.getType().name());
             stmt.setString(2, board.getDescription());
             stmt.setString(3, userEmail);
@@ -32,30 +47,6 @@ public class BoardDAO {
     }
 
 
-/*
-    // Leggi una board per tipo
-    public Board leggiBoard(String type) {
-        String sql = "SELECT * FROM boards WHERE type = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, type);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Board board = new Board(
-                        TypeBoard.valueOf(rs.getString("type")),
-                        rs.getString("description")
-                );
-
-                // Caricamento ToDo associati
-                ToDoDAO toDoDAO = new ToDoDAO();
-                board.setToDo(toDoDAO.leggiToDoPerBoard(type));
-                return board;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-*/
     // Elimina board per tipo
     public void eliminaBoard(String email, String type) {
         String sql = "DELETE FROM boards WHERE user_email = ? AND type = ?";

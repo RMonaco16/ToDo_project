@@ -101,22 +101,74 @@ public class Register {
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String passwordStr = new String(passwordField1.getPassword());
-                if(textEmail.getText().isEmpty() || textNickName.getText().isEmpty() || passwordStr.equals("")){
-                    JOptionPane.showMessageDialog(panelRegister,"Enter all values","missing values",JOptionPane.WARNING_MESSAGE);
-                }else{
-                    User u = new User(textNickName.getText(), textEmail.getText(),passwordStr);
-                    boolean esistente = controller.addUser(u);
-                    if(esistente == false){
-                        JOptionPane.showMessageDialog(panelRegister,"email already exists","This email is already in use",JOptionPane.WARNING_MESSAGE);
-                    }
+                String nickname = textNickName.getText().trim();
+                String email = textEmail.getText().trim();
+                String passwordStr = new String(passwordField1.getPassword()); // avoid trimming password
 
-                    frameChiamante.setVisible(true);
-                    frame.setVisible(false);
-                    frame.dispose();
+                // GUI validations
+                if (nickname.isEmpty()) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Nickname cannot be empty.",
+                            "Missing Nickname Field",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
                 }
+                if (email.isEmpty()) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Email cannot be empty.",
+                            "Missing Email Field",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (passwordStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Password cannot be empty.",
+                            "Missing Password Field",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Invalid email. Please enter a valid email (example: name@domain.com).",
+                            "Invalid Email",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (!controller.isPasswordValid(passwordStr)) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Password must contain at least 8 characters, including at least one letter and one number.",
+                            "Weak Password",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                // Create user
+                User u = new User(nickname, email, passwordStr);
+                boolean added = controller.addUser(u);
+
+                if (!added) {
+                    JOptionPane.showMessageDialog(panelRegister,
+                            "Registration failed: email is already in use or data is invalid.",
+                            "Registration Failed",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                JOptionPane.showMessageDialog(panelRegister,
+                        "Registration successful!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                frameChiamante.setVisible(true);
+                frame.setVisible(false);
+                frame.dispose();
             }
         });
+
+
+
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

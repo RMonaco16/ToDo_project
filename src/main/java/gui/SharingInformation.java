@@ -23,7 +23,16 @@ public class SharingInformation {
     public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
 
         // Inizializza la tabella con i membri attuali
-        updateSharingMember(controller, emailUtente, boardName, nomeTodo);
+        boolean isAdmin = controller.isUserAdminOfToDo(emailUtente, boardName, nomeTodo);
+
+        // Inizializza la tabella con i membri attuali
+        updateSharingMember(controller, emailUtente, boardName, nomeTodo, isAdmin);
+
+        if (!isAdmin) {
+            deleteSelectedButton.setVisible(false);
+            tableInformazioniUsers.setEnabled(false);
+        }
+
 
         // Azione bottone elimina
         deleteSelectedButton.addActionListener(new ActionListener() {
@@ -36,7 +45,7 @@ public class SharingInformation {
                     boolean successo = controller.rimuoviUtenteDaSharing(emailUtente, emailDaEliminare, boardName, nomeTodo);
                     if (successo) {
                         JOptionPane.showMessageDialog(null, "User removed from sharing!");
-                        updateSharingMember(controller, emailUtente, boardName, nomeTodo);  // Ricarica la tabella aggiornata
+                        updateSharingMember(controller, emailUtente, boardName, nomeTodo,isAdmin);  // Ricarica la tabella aggiornata
                     } else {
                         if(emailUtente.equalsIgnoreCase(emailDaEliminare) && emailUtente.equalsIgnoreCase(controller.getToAdministratorMail(emailUtente,nomeTodo))){
                             JOptionPane.showMessageDialog(null, "you cannot eliminate yourself", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -53,7 +62,7 @@ public class SharingInformation {
 
     }
 
-    public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo) {
+    public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo, boolean isAdmin) {
         // Recupera info amministratore
         String adminName = controller.getToAdministratorNick(emailUtente, nomeTodo);
         String adminEmail = controller.getToAdministratorMail(emailUtente, nomeTodo);
@@ -64,37 +73,37 @@ public class SharingInformation {
         textNickname.setEditable(false);
         textEmail.setEditable(false);
 
-        // Recupera utenti condivisi
         ArrayList<User> sharedUsers = controller.getToDoUserShared(emailUtente, nomeTodo);
 
-        //  Chiude la finestra se non ci sono più utenti condivisi
         if (sharedUsers == null || sharedUsers.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No more shared users. The Sharing was deleted.", "Info", JOptionPane.INFORMATION_MESSAGE);
 
-
-            // NOTIFICA alla GUI principale di aggiornare
-            if (onSharingEnded != null) {
-                onSharingEnded.run();
-            }
+            if (onSharingEnded != null) onSharingEnded.run();
 
             Window window = SwingUtilities.getWindowAncestor(panelSharingInformation);
-            if (window != null) {
-                window.dispose();
-            }
+            if (window != null) window.dispose();
             return;
         }
 
-        // Altrimenti aggiorna la tabella
         String[] columnNames = {"Name", "Email"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+        // Tabella non editabile
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         for (User u : sharedUsers) {
             model.addRow(new Object[]{u.getNickname(), u.getEmail()});
         }
 
         tableInformazioniUsers.setModel(model);
-        styleRedButton(deleteSelectedButton);
 
+        if (isAdmin) {
+            styleRedButton(deleteSelectedButton); // Applica stile solo se visibile
+        }
     }
 
     public JPanel getPanel() {

@@ -26,8 +26,6 @@ public class ToDoDAO {
         String boardSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         int boardId = -1;
 
-
-
         try (PreparedStatement boardStmt = conn.prepareStatement(boardSql)) {
             boardStmt.setString(1, email);
             boardStmt.setString(2, tipoEnum);
@@ -80,8 +78,6 @@ public class ToDoDAO {
             e.printStackTrace();
             return false;
         }
-
-
 
         //  Inserisci checklist vuota
         int checklistId = -1;
@@ -482,7 +478,7 @@ public class ToDoDAO {
         FROM activities a
         JOIN todos t ON a.checklist_id = t.checklist_id
         WHERE t.id = ?
-    """;
+         """;
 
         String updateSql = "UPDATE todos SET state = ? WHERE id = ?";
 

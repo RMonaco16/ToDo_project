@@ -64,7 +64,7 @@ public class BoardGui {
         scrollPanelToDo.getVerticalScrollBar().setUnitIncrement(16);
 
         //--aggiunta ricerca con filtri--
-        comboBoxSortFilter.addItem("");
+        comboBoxSortFilter.addItem("-Show all ToDos-");
         comboBoxSortFilter.addItem("sort alphabetically");
         comboBoxSortFilter.addItem("Sort by deadline");
 
@@ -174,7 +174,6 @@ public class BoardGui {
 
                     updateToDoList(controller, email, nameBoard);
                     dialogAddToDo.dispose();
-
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(dialogAddToDo, "Errore", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -369,10 +368,32 @@ public class BoardGui {
                 //-verifica se il to-do è stato condiviso e in tal caso gli aggiunge il pulsante SharingInformation--
                 if (t.isCondiviso()) {
                     final JButton sharingInformationButton = new JButton("👥");
-                    sharingInformationButton.setFont(new Font(null, Font.BOLD, 22));
-                    sharingInformationButton.setBorderPainted(false);  // Rimuove il bordo
-                    sharingInformationButton.setContentAreaFilled(false); // Rimuove lo sfondo colorato
-                    sharingInformationButton.setFocusPainted(false); // Rimuove il contorno quando il bottone è selezionato
+                    sharingInformationButton.setFont(new Font(null, Font.BOLD, 18));
+
+                    // Inizialmente trasparente
+                    sharingInformationButton.setContentAreaFilled(false);
+                    sharingInformationButton.setBorderPainted(false);
+                    sharingInformationButton.setFocusPainted(false);
+
+                    // Margini più piccoli (rende il bottone più compatto)
+                    sharingInformationButton.setMargin(new Insets(4, 8, 4, 8));
+
+                    // Colore hover
+                    Color hoverBackground = new Color(220, 220, 220); // grigio chiaro
+
+                    // Listener per effetto hover
+                    sharingInformationButton.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            sharingInformationButton.setContentAreaFilled(true);
+                            sharingInformationButton.setBackground(hoverBackground);
+                        }
+
+                        @Override
+                        public void mouseExited(MouseEvent e) {
+                            sharingInformationButton.setContentAreaFilled(false);
+                        }
+                    });
 
                     ToDoButton.add(sharingInformationButton);
 
@@ -425,12 +446,29 @@ public class BoardGui {
                     titleLabel.setForeground(Color.RED);
                 }
 
-                //--Bottone delle proprietà del to-do
-                JButton propertiesButton = new JButton("≡");
-                propertiesButton.setFont(new Font(null, Font.BOLD, 20));
-                propertiesButton.setBorderPainted(false);  // Rimuove il bordo
-                propertiesButton.setContentAreaFilled(false); // Rimuove lo sfondo colorato
-                propertiesButton.setFocusPainted(false); // Rimuove il contorno quando il bottone è selezionato
+            //--Bottone delle proprietà del to-do
+            JButton propertiesButton = new JButton("≡");
+            propertiesButton.setFont(new Font(null, Font.BOLD, 20));
+            propertiesButton.setBorderPainted(false);
+            propertiesButton.setContentAreaFilled(false);
+            propertiesButton.setFocusPainted(false);
+            propertiesButton.setMargin(new Insets(4, 8, 4, 8)); // margini piccoli
+
+            Color hoverBackground = new Color(220, 220, 220); // grigio chiaro
+
+            propertiesButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    propertiesButton.setContentAreaFilled(true);
+                    propertiesButton.setBackground(hoverBackground);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    propertiesButton.setContentAreaFilled(false);
+                }
+            });
+
 
             ToDoButton.add(propertiesButton);
 
@@ -788,19 +826,17 @@ public class BoardGui {
                 // Disabilita il bottone se non è admin
                 selectColor.setEnabled(isAdmin);
 
-                color = colort;
-
                 selectColor.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e){
-                        Color colorSelected = JColorChooser.showDialog(null, "Scegli colore", color); // usa il colore attuale come base
+                        Color colorSelected = JColorChooser.showDialog(null, "Scegli colore", colort); // usa il colore attuale come base
                         if (colorSelected != null) {
+                            color = colorSelected;
                             colorPreview.setBackground(color); // aggiorna l'anteprima visiva
                         }
                         // altrimenti non fare nulla: lascia il colore invariato
                     }
                 });
-
 
                 // State--------------------------------------------------
 
@@ -891,11 +927,12 @@ public class BoardGui {
                     }
 
 
-
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();
                 });
-                color = null;
+
+                color = t.getColor();
+
                 styleSmallButton(browseButton);
                 styleSmallButton(selectColor);
                 styleSmallButton(saveButton);
