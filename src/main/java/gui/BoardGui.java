@@ -174,8 +174,9 @@ public class BoardGui {
 
                     updateToDoList(controller, email, nameBoard);
                     dialogAddToDo.dispose();
+
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(dialogAddToDo, "Invalid data!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialogAddToDo, "Errore", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -327,10 +328,6 @@ public class BoardGui {
 
         searchButton.addActionListener(src ->{
            updateToDoList(controller,email,nameBoard);
-        });
-
-        comboBoxSortFilter.addActionListener(boxSort ->{
-            updateToDoList(controller,email,nameBoard);
         });
 
         buttonTodayFilter.addActionListener(todayFilter ->{
@@ -513,10 +510,10 @@ public class BoardGui {
             todoPanel.setPreferredSize(new Dimension(492, 300)); // dimensione fissa iniziale
             todoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+            //colore to-do deve essere diverso al colore dello sfondo
             if (colorBackground == null || Color.decode("#F9F5F0").equals(colorBackground)) {
-                todoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            }else{
 
+            }else{
                 todoPanel.setBackground(colorBackground);
             }
 
@@ -791,17 +788,19 @@ public class BoardGui {
                 // Disabilita il bottone se non è admin
                 selectColor.setEnabled(isAdmin);
 
+                color = colort;
+
                 selectColor.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e){
-                        Color colorSelected = JColorChooser.showDialog(null, "Scegli colore", colort); // usa il colore attuale come base
+                        Color colorSelected = JColorChooser.showDialog(null, "Scegli colore", color); // usa il colore attuale come base
                         if (colorSelected != null) {
-                            color = colorSelected;
                             colorPreview.setBackground(color); // aggiorna l'anteprima visiva
                         }
                         // altrimenti non fare nulla: lascia il colore invariato
                     }
                 });
+
 
                 // State--------------------------------------------------
 
@@ -832,7 +831,7 @@ public class BoardGui {
                 saveButton.setPreferredSize(new Dimension(200, 60)); // Più grande
                 saveButton.setMargin(new Insets(50, 50, 50, 50)); // Padding interno
 
-// Pannello contenitore per posizionamento e padding esterno
+                // Pannello contenitore per posizionamento e padding esterno
                 JPanel savePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
                 savePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                 savePanel.add(saveButton);
@@ -892,14 +891,15 @@ public class BoardGui {
                     }
 
 
+
                     updateToDoList(controller, email, nameBoard);
                     dialog.dispose();
                 });
-
+                color = null;
                 styleSmallButton(browseButton);
                 styleSmallButton(selectColor);
                 styleSmallButton(saveButton);
-
+                saveButton.setPreferredSize(new Dimension(70, 30));
             });
 
 

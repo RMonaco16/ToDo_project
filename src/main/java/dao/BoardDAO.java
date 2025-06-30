@@ -439,19 +439,36 @@ public class BoardDAO {
 
     public ToDo findToDoByTitleInBoard(String email, String boardType, String title) {
         String sql = """
-        SELECT todos.*
-        FROM todos
-        JOIN boards ON todos.board_id = boards.id
-        WHERE boards.user_email = ?
-        AND LOWER(boards.type) = LOWER(?)
-        AND LOWER(todos.title) = LOWER(?)
-        """;
+    SELECT todos.*, false AS is_shared
+    FROM todos
+    JOIN boards ON todos.board_id = boards.id
+    WHERE boards.user_email = ?
+      AND LOWER(boards.type) = LOWER(?)
+      AND LOWER(todos.title) = LOWER(?)
+
+    UNION
+
+    SELECT todos.*, true AS is_shared
+    FROM todos
+    JOIN sharings ON sharings.todo_id = todos.id
+    JOIN sharing_members ON sharing_members.sharing_id = sharings.id
+    JOIN boards ON todos.board_id = boards.id
+    WHERE sharing_members.member_email = ?
+      AND LOWER(boards.type) = LOWER(?)
+      AND LOWER(todos.title) = LOWER(?)
+    """;
+
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, boardType);
-            stmt.setString(3, title);
+            // Per la prima parte (locali)
+            stmt.setString(1, email);   // boards.user_email
+            stmt.setString(2, boardType);   // boards.type
+            stmt.setString(3, title);   // todos.title
 
+            // Per la seconda parte (condivisi)
+            stmt.setString(4, email);   // sharing_members.member_email
+            stmt.setString(5, boardType);   // boards.type
+            stmt.setString(6, title);   // todos.title
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     ToDo todo = new ToDo();

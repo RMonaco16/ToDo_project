@@ -26,6 +26,8 @@ public class ToDoDAO {
         String boardSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         int boardId = -1;
 
+
+
         try (PreparedStatement boardStmt = conn.prepareStatement(boardSql)) {
             boardStmt.setString(1, email);
             boardStmt.setString(2, tipoEnum);
@@ -42,20 +44,44 @@ public class ToDoDAO {
             return false;
         }
 
-        //  CONTROLLO ESISTENZA ToDo CON STESSO TITOLO
-        String checkSql = "SELECT id FROM todos WHERE board_id = ? AND LOWER(title) = LOWER(?)";
+        // CONTROLLO ESISTENZA ToDo CON LO STESSO TITOLO (sia locale che condiviso)
+        String checkSql = """
+    SELECT 1
+    FROM todos
+    WHERE board_id = ? AND LOWER(title) = LOWER(?)
+
+    UNION
+
+    SELECT 1
+    FROM todos
+    JOIN sharings ON todos.id = sharings.todo_id
+    JOIN sharing_members ON sharings.id = sharing_members.sharing_id
+    JOIN boards ON todos.board_id = boards.id
+    WHERE sharing_members.member_email = ?
+      AND boards.type = ?
+      AND LOWER(todos.title) = LOWER(?)
+    LIMIT 1
+    """;
+
         try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            checkStmt.setInt(1, boardId);
+            checkStmt.setInt(1, boardId);               // ToDo locale
             checkStmt.setString(2, toDo.getTitle());
+
+            checkStmt.setString(3, email);              // ToDo condiviso
+            checkStmt.setString(4, tipoEnum);           // tipo della board (es. "WORK")
+            checkStmt.setString(5, toDo.getTitle());
+
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next()) {
-                System.out.println("ToDo con lo stesso titolo già presente nella board.");
+                System.out.println("Esiste già un ToDo con lo stesso titolo (locale o condiviso).");
                 return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+
+
 
         //  Inserisci checklist vuota
         int checklistId = -1;
@@ -107,52 +133,6 @@ public class ToDoDAO {
         }
     }
 
-
-    public ToDo leggiToDoPerTitolo(String title) {
-        String sql = "SELECT * FROM todo WHERE title = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, title);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                ToDo todo = new ToDo(
-                        rs.getString("title"),
-                        rs.getBoolean("state"),
-                        null, // gestione checklist a parte
-                        rs.getBoolean("condiviso"),
-                        rs.getString("owner_email")
-                );
-                todo.setDescription(rs.getString("description"));
-                todo.setColor(hexToColor(rs.getString("color")));
-                todo.setImage(rs.getString("image"));
-                todo.setExpiration(rs.getDate("expiration") != null ? rs.getDate("expiration").toLocalDate() : null);
-
-                return todo;
-            }
-        } catch (SQLException e) {
-            System.out.println("Errore durante lettura ToDo: " + e.getMessage());
-        }
-        return null;
-    }
-
-    public boolean aggiornaToDo(ToDo todo) {
-        String sql = "UPDATE todo SET description = ?, color = ?, position = ?, image = ?, expiration = ?, state = ?, condiviso = ?, owner_email = ? WHERE title = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, todo.getDescription());
-            stmt.setString(2, colorToHex(todo.getColor()));
-            stmt.setString(4, todo.getImage());
-            stmt.setDate(5, todo.getExpiration() != null ? Date.valueOf(todo.getExpiration()) : null);
-            stmt.setBoolean(6, todo.isState());
-            stmt.setBoolean(7, todo.isCondiviso());
-            stmt.setString(8, todo.getOwnerEmail());
-            stmt.setString(9, todo.getTitle());
-
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            System.out.println("Errore durante aggiornamento ToDo: " + e.getMessage());
-            return false;
-        }
-    }
     public boolean deleteToDo(String email, String boardType, String todoTitle) throws SQLException {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
 

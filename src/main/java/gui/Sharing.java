@@ -155,7 +155,9 @@ public class Sharing {
         }
 
         boolean risultato = controller.shareToDo(emailCreatore, emailDaCondividere, bacheca, toDoName);
-        if (!risultato) {
+
+
+        if (!risultato ) {
             JOptionPane.showMessageDialog(panelSharing, "User not found or sharing error.", "Error", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(panelSharing, "ToDo shared successfully!", "Sharing completed", JOptionPane.INFORMATION_MESSAGE);

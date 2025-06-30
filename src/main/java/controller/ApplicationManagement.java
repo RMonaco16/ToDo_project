@@ -128,6 +128,7 @@ public class ApplicationManagement {
         try {
             Connection conn = ConnessioneDatabase.getInstance().getConnection();
             ToDoDAO toDoDAO = new ToDoDAO(conn);
+
             boolean success = toDoDAO.addToDoInBoard(email, tipoEnum, toDo);
 
             if (success) {
@@ -317,6 +318,14 @@ public class ApplicationManagement {
         }
     }
 
+    public boolean ifExistsTodoInUserBoard(String email,String boardName, String toDoName){
+        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        BoardDAO boardDAO = new BoardDAO(conn);
+        if(boardDAO.findToDoByTitleInBoard(email, boardName, toDoName)==null)
+            return false;
+        return true;
+    }
+
     //--Recupera i to-Do Locali di un Utente all'interno di una determinata bacheca--
     public ArrayList<ToDo> printTodo(String email, String board) {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
@@ -383,6 +392,13 @@ public class ApplicationManagement {
         if (mailAmministratore.equalsIgnoreCase(mailUtenteDestinatario)) {
             System.out.println("Errore: non puoi condividere un ToDo con te stesso.");
             return false;
+        }
+
+
+        //verifica che il destinatario non abbia già un to-do con lo stesso nome (sia locale che condiviso)
+        if(ifExistsTodoInUserBoard(mailUtenteDestinatario,boardName,toDoName)) {
+            System.out.println("Errore: il destinatario ha già un todo locale o condiviso con lo stesso nome");
+           return false;
         }
 
         UserDAO userDao = new UserDAO(conn);
