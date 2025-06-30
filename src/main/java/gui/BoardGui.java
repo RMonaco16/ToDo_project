@@ -44,6 +44,9 @@ public class BoardGui {
     private JDialog dialog = null;
     private Color color;
     private JLabel stateField = new JLabel("❌");
+    public static final String SANS_SERIF_FONT = "SansSerif";
+    public static final String ERROR_MESSAGE = "Errore";
+
 
     public BoardGui(ApplicationManagement controller, JFrame vecchioFrame, String email, String nameBoard) {
 
@@ -91,7 +94,7 @@ public class BoardGui {
 
             JLabel titleLabel = new JLabel(" Add New ToDo");
             titleLabel.setForeground(Color.WHITE);
-            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+            titleLabel.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 16));
             titleBar.add(titleLabel, BorderLayout.WEST);
 
             JButton closeButton = new JButton("X");
@@ -99,7 +102,7 @@ public class BoardGui {
             closeButton.setBackground(Color.decode("#374151"));
             closeButton.setBorderPainted(false);
             closeButton.setFocusPainted(false);
-            closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+            closeButton.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 14));
             closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             closeButton.addActionListener(ev -> dialogAddToDo.dispose());
             titleBar.add(closeButton, BorderLayout.EAST);
@@ -134,7 +137,7 @@ public class BoardGui {
 
             JLabel label = new JLabel("Name:");
             label.setAlignmentX(Component.CENTER_ALIGNMENT);
-            label.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            label.setFont(new Font(SANS_SERIF_FONT, Font.PLAIN, 14));
             label.setForeground(Color.DARK_GRAY);
 
             JTextField nameToDo = new JTextField();
@@ -156,7 +159,7 @@ public class BoardGui {
             doneButton.setBackground(Color.decode("#A8BDB5")); // rosso tenue
             doneButton.setForeground(Color.WHITE);
             doneButton.setFocusPainted(false);
-            doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
+            doneButton.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 12));
             doneButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             doneButton.addActionListener(ae -> {
@@ -168,14 +171,14 @@ public class BoardGui {
 
                     // Controllo duplicati
                     if (!controller.addToDoInBoard(email, nameBoard, todo)) {
-                        JOptionPane.showMessageDialog(dialogAddToDo, "Name already used", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(dialogAddToDo, "Name already used", ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
                     updateToDoList(controller, email, nameBoard);
                     dialogAddToDo.dispose();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(dialogAddToDo, "Errore", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialogAddToDo, ERROR_MESSAGE, ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -218,7 +221,7 @@ public class BoardGui {
 
             JLabel titleLabel = new JLabel(" Delete ToDo");
             titleLabel.setForeground(Color.WHITE);
-            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+            titleLabel.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 16));
             titleBar.add(titleLabel, BorderLayout.WEST);
 
             JButton closeButton = new JButton("X");
@@ -226,7 +229,7 @@ public class BoardGui {
             closeButton.setBackground(Color.decode("#374151"));
             closeButton.setBorderPainted(false);
             closeButton.setFocusPainted(false);
-            closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+            closeButton.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 14));
             closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             closeButton.addActionListener(ev -> dialogDeleteToDo.dispose());
             titleBar.add(closeButton, BorderLayout.EAST);
@@ -263,7 +266,7 @@ public class BoardGui {
 
             JLabel label = new JLabel("Select a ToDo to delete:");
             label.setAlignmentX(Component.CENTER_ALIGNMENT);
-            label.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            label.setFont(new Font(SANS_SERIF_FONT, Font.PLAIN, 14));
             label.setForeground(Color.DARK_GRAY);
 
             JComboBox<String> toDoComboBox = new JComboBox<>();
@@ -292,7 +295,7 @@ public class BoardGui {
             deleteBtn.setBackground(new Color(220, 53, 69)); // rosso tenue
             deleteBtn.setForeground(Color.WHITE);
             deleteBtn.setFocusPainted(false);
-            deleteBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
+            deleteBtn.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 12));
             deleteBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             deleteBtn.addActionListener(ev -> {
@@ -586,7 +589,7 @@ public class BoardGui {
 
                 titleLabel.setText("Add New Activity");
                 titleLabel.setForeground(Color.WHITE);
-                titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+                titleLabel.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 16));
                 titleBar.add(titleLabel, BorderLayout.WEST);
 
                 JButton closeButton = new JButton("X");
@@ -594,7 +597,7 @@ public class BoardGui {
                 closeButton.setBackground(Color.decode("#374151"));
                 closeButton.setBorderPainted(false);
                 closeButton.setFocusPainted(false);
-                closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+                closeButton.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 14));
                 closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 closeButton.addActionListener(ev -> dialogAddActivity.dispose());
                 titleBar.add(closeButton, BorderLayout.EAST);
@@ -623,7 +626,7 @@ public class BoardGui {
                 // Label e campo input
                 JLabel nameLabel = new JLabel("Name:");
                 nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                nameLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
+                nameLabel.setFont(new Font(SANS_SERIF_FONT, Font.PLAIN, 13));
                 nameLabel.setForeground(Color.decode("#111827")); // scuro
 
                 JTextField nameAct = new JTextField();
@@ -644,7 +647,7 @@ public class BoardGui {
                 doneButton.setBackground(Color.decode("#A8BDB5")); // Verde stile coerente
                 doneButton.setForeground(Color.WHITE);
                 doneButton.setFocusPainted(false);
-                doneButton.setFont(new Font("SansSerif", Font.BOLD, 12));
+                doneButton.setFont(new Font(SANS_SERIF_FONT, Font.BOLD, 12));
                 doneButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
                 doneButton.addActionListener(ae -> {
@@ -656,7 +659,7 @@ public class BoardGui {
                         aggiornaStatoToDo(stateField ,email, nameBoard, t);
                         dialogAddActivity.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(dialogAddActivity, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(dialogAddActivity, "Something went wrong.", ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE);
                     }
                 });
 
@@ -687,7 +690,7 @@ public class BoardGui {
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(table,
                             "First select an activity to remove.",
-                            "Error",
+                            ERROR_MESSAGE,
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
@@ -918,9 +921,9 @@ public class BoardGui {
                     if(!nameBoard.equalsIgnoreCase(nuovaBoard)){
                         int result =  controller.spostaToDoInBacheca(email,t.getTitle(),nuovaBoard,nameBoard);
                         if(result == 1){
-                            JOptionPane.showMessageDialog(null,"To-Do already exists in " + nuovaBoard+ "dashboard", "Error", JOptionPane.WARNING_MESSAGE);
+                            JOptionPane.showMessageDialog(null,"To-Do already exists in " + nuovaBoard+ "dashboard", ERROR_MESSAGE, JOptionPane.WARNING_MESSAGE);
                         }else if(result == 2){
-                            JOptionPane.showMessageDialog(null,"You can't move a shared To-Do ","Error", JOptionPane.WARNING_MESSAGE);
+                            JOptionPane.showMessageDialog(null,"You can't move a shared To-Do ",ERROR_MESSAGE, JOptionPane.WARNING_MESSAGE);
                         }else if(result == 0){
                             JOptionPane.showMessageDialog(null,"To-Do moved to"+ nuovaBoard + "board", "Moved correctly", JOptionPane.INFORMATION_MESSAGE);
                         }
@@ -994,7 +997,6 @@ public class BoardGui {
     private void styleButton(JButton button) {
         Color baseColor = Color.decode("#A8BDB5");
         Color hoverColor = baseColor.darker();
-
         button.setBackground(baseColor);
         button.setForeground(Color.WHITE);
         button.setBorder(BorderFactory.createLineBorder(baseColor, 2));

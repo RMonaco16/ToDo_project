@@ -7,10 +7,12 @@ import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class BoardDAO {
-
+    private static final Logger logger = Logger.getLogger(BoardDAO.class.getName());
     private final Connection conn;
+
 
     public BoardDAO(Connection conn) {
         this.conn = conn; // usa quella che ti viene passata
@@ -26,7 +28,7 @@ public class BoardDAO {
             checkStmt.setString(2, board.getType().name());
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next()) {
-                System.out.println("La board di tipo '" + board.getType().name() + "' esiste già per l'utente: " + userEmail);
+                logger.info("La board di tipo '" + board.getType().name() + "' esiste già per l'utente: " + userEmail);
                 return false;
             }
         } catch (SQLException e) {

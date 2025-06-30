@@ -19,6 +19,7 @@ public class ApplicationManagement {
     private User currentUser;
 
     public ApplicationManagement() {
+        //controller
     }
 
     //--Aggiunge un Utente al db chiamando il metodo creaUser della classe Dao, controllando che non esista già la mail inserita--
@@ -200,7 +201,7 @@ public class ApplicationManagement {
         try {
             checkListDAO.addActivity(email, titleToDo, board, activity);
 
-            // Controllo e aggiornamento dello stato del ToDo dopo aggiunta attività
+            // Controllo e aggiornamento dello stato del To-Do dopo aggiunta attività
             int toDoId = checkListDAO.getToDoId(email, board, titleToDo);
             toDoDAO.checkIfComplete(toDoId);
 
@@ -258,7 +259,7 @@ public class ApplicationManagement {
                 System.out.println("Data di completamento non fornita, cronologia non aggiornata.");
             }
 
-            // Controllo e aggiornamento dello stato del ToDo
+            // Controllo e aggiornamento dello stato del To-Do
             int toDoId = dao.getToDoId(email, board, todo);
             toDoDAO.checkIfComplete(toDoId);
 
@@ -281,7 +282,7 @@ public class ApplicationManagement {
         try {
             boolean result = dao.uncheckActivity(email, board, todo, activity);
 
-            // Aggiorna lo stato del ToDo dopo la modifica
+            // Aggiorna lo stato del To-Do dopo la modifica
             int toDoId = dao.getToDoId(email, board, todo);
             toDoDAO.checkIfComplete(toDoId);
 
@@ -438,51 +439,61 @@ public class ApplicationManagement {
 
     //--Condivide un to-Do con un altro utente (Creandone se necessario la bacheca in questione)
     public boolean shareToDo(String mailAmministratore, String mailUtenteDestinatario, String boardName, String toDoName) {
-
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
-
         if (conn == null) return false;
 
-        if (!isUserAdminOfToDo(mailAmministratore, boardName, toDoName)) {
-            System.out.println("Errore: l'utente non è amministratore del ToDo e non può condividerlo.");
-            return false;
-        }
+        if (!canShareToDo(mailAmministratore, mailUtenteDestinatario, boardName, toDoName)) return false;
 
+        if (!validateEmailsAndToDo(conn, mailAmministratore, mailUtenteDestinatario, boardName, toDoName)) return false;
+
+        BoardDAO boardDAO = new BoardDAO(conn);
+        ToDo todo = boardDAO.checkToDoExists(mailAmministratore, boardName, toDoName);
+
+        Sharing sharing = ensureSharingExists(conn, mailAmministratore, todo, toDoName, boardName);
+
+        addUserToSharingIfNeeded(conn, sharing, mailUtenteDestinatario, mailAmministratore, toDoName, boardName);
+
+        return true;
+    }
+
+    private boolean canShareToDo(String mailAmministratore, String mailUtenteDestinatario, String boardName, String toDoName) {
         if (mailAmministratore.equalsIgnoreCase(mailUtenteDestinatario)) {
-            System.out.println("Errore: non puoi condividere un ToDo con te stesso.");
+            logger.info("Errore: non puoi condividere un ToDo con te stesso.");
             return false;
         }
-
-
-        //verifica che il destinatario non abbia già un to-do con lo stesso nome (sia locale che condiviso)
-        if(ifExistsTodoInUserBoard(mailUtenteDestinatario,boardName,toDoName)) {
-            System.out.println("Errore: il destinatario ha già un todo locale o condiviso con lo stesso nome");
-           return false;
+        if (!isUserAdminOfToDo(mailAmministratore, boardName, toDoName)) {
+            logger.info("Errore: l'utente non è amministratore del ToDo e non può condividerlo.");
+            return false;
         }
+        if (ifExistsTodoInUserBoard(mailUtenteDestinatario, boardName, toDoName)) {
+            logger.info("Errore: il destinatario ha già un todo locale o condiviso con lo stesso nome");
+            return false;
+        }
+        return true;
+    }
 
+    private boolean validateEmailsAndToDo(Connection conn, String mailAmministratore, String mailUtenteDestinatario,
+                                          String boardName, String toDoName) {
         UserDAO userDao = new UserDAO(conn);
         BoardDAO boardDAO = new BoardDAO(conn);
-        SharingDAO sharingDAO = new SharingDAO(conn);
-
-        // verifica email esistenti
         if (!userDao.emailExists(mailAmministratore) || !userDao.emailExists(mailUtenteDestinatario)) {
-            System.out.println("Email mittente o destinatario non trovata");
+            logger.info("Email mittente o destinatario non trovata");
             return false;
         }
-
-        // verifica esistenza To-Do
         ToDo todo = boardDAO.checkToDoExists(mailAmministratore, boardName, toDoName);
         if (todo == null) {
             System.out.println("ToDo del mittente non trovata");
             return false;
         }
+        return true;
+    }
 
-        // id del to-do
+    private Sharing ensureSharingExists(Connection conn, String mailAmministratore, ToDo todo, String toDoName, String boardName) {
+        SharingDAO sharingDAO = new SharingDAO(conn);
+        Sharing sharing = sharingDAO.checkSharingExists(findUserByEmail(mailAmministratore), todo);
         ToDoDAO todoDAO = new ToDoDAO(conn);
         Integer todoId = todoDAO.getTodoIdByTitleUserAndBoard(toDoName, mailAmministratore, boardName);
 
-        // verifica esistenza sharing
-        Sharing sharing = sharingDAO.checkSharingExists(findUserByEmail(mailAmministratore), todo);
         if (sharing == null) {
             sharing = new Sharing(findUserByEmail(mailAmministratore), todo);
             sharingDAO.creaSharing(sharing);
@@ -491,28 +502,42 @@ public class ApplicationManagement {
         } else {
             System.out.println("Condivisione già esistente");
         }
+        return sharing;
+    }
 
-        // verifica se l'utente destinatario è già membro della condivisione
+
+    private void addUserToSharingIfNeeded(Connection conn, Sharing sharing, String mailUtenteDestinatario,
+                                          String mailAmministratore, String toDoName, String boardName) {
+        SharingDAO sharingDAO = new SharingDAO(conn);
+        UserDAO userDao = new UserDAO(conn);
+        BoardDAO boardDAO = new BoardDAO(conn);
+
         if (!sharingDAO.checkUserAlreadySharing(mailUtenteDestinatario, toDoName, mailAmministratore)) {
-            // verifica esistenza board mittente
             if (!userDao.checkBoard(mailUtenteDestinatario, boardName)) {
                 Board board;
-                switch (boardName){
-                    case "UNIVERSITY": board = new Board(TypeBoard.UNIVERSITY,"");break;
-                    case "WORK": board = new Board(TypeBoard.WORK,"");break;
-                    case "FREETIME": board = new Board(TypeBoard.FREETIME,"");break;
-                    default: return false;
+                switch (boardName) {
+                    case "UNIVERSITY":
+                        board = new Board(TypeBoard.UNIVERSITY, "");
+                        break;
+                    case "WORK":
+                        board = new Board(TypeBoard.WORK, "");
+                        break;
+                    case "FREETIME":
+                        board = new Board(TypeBoard.FREETIME, "");
+                        break;
+                    default:
+                        System.out.println("Board name non riconosciuto");
+                        return;
                 }
-                boardDAO.creaBoard(board,mailUtenteDestinatario);
+                boardDAO.creaBoard(board, mailUtenteDestinatario);
             }
             sharingDAO.aggiungiMembroSharing(mailUtenteDestinatario, mailAmministratore, toDoName);
             System.out.println("Utente aggiunto come partecipante alla condivisione");
-            // imposta flag condiviso nel ToDo
         } else {
             System.out.println("Utente già partecipante alla condivisione");
         }
-        return true;
     }
+
 
     //--Controlla se un utente è amministratore di un to-Do--
     public boolean isUserAdminOfToDo(String emailUtente, String boardName, String toDoTitle) {
@@ -555,7 +580,7 @@ public class ApplicationManagement {
         Connection conn = ConnessioneDatabase.getInstance().getConnection();
         if (conn == null) return false;
 
-        // 1. Verifica se sei amministratore del ToDo
+        // 1. Verifica se sei amministratore del To-Do
         if (!isUserAdminOfToDo(mailAmministratore, boardName, toDoTitle)) {
             System.out.println("Errore: l'utente non è amministratore del ToDo.");
             return false;
@@ -684,16 +709,17 @@ public class ApplicationManagement {
     }
 
     //--Gestisce lordinamento in base all'opzione selezionata dall'utente--
-    public ArrayList<ToDo> orderedVisibleToDos(String order,ArrayList<ToDo> visibleToDos){
-        switch (order){
+    public ArrayList<ToDo> orderedVisibleToDos(String order, ArrayList<ToDo> visibleToDos) {
+        switch (order) {
             case "":
                 return visibleToDos;
             case "sort alphabetically":
                 return getSortedTodosByName(visibleToDos);
             case "Sort by deadline":
                 return getTodosOrderedByExpiration(visibleToDos);
+            default:
+                return visibleToDos;  // default fallback
         }
-        return visibleToDos;
     }
 
 }
