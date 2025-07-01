@@ -1,7 +1,7 @@
 package controller;
 
 import dao.*;
-import db.ConnessioneDatabase;
+import db.DatabaseConnection;
 import model.*;
 import java.awt.*;
 import java.sql.*;
@@ -65,7 +65,7 @@ public class ApplicationManagement {
         }
 
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
             if (userDAO.emailExists(u.getEmail())) {
@@ -138,7 +138,7 @@ public class ApplicationManagement {
      */
     public boolean login(String email, String password) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
             User user = userDAO.getUserByEmailAndPassword(email, password);
@@ -176,16 +176,16 @@ public class ApplicationManagement {
     public boolean addBoard(String email, Board b) {
         try {
             // Ottieni connessione dal singleton
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
 
             // Crea DAO della board e inserisci board nel database
             BoardDAO boardDAO = new BoardDAO(conn);
             boolean created = boardDAO.creaBoard(b, email); // passa l'email al DAO
 
             if (created) {
-                System.out.println("Board creata correttamente.");
+                logger.info("Board creata correttamente.");
             } else {
-                System.out.println("Board NON creata.");
+                logger.info("Board NON creata.");
             }
             return created;
 
@@ -207,7 +207,7 @@ public class ApplicationManagement {
     public void deleteBoard(String email, String type) {
         try {
             // Ottieni connessione dal singleton
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
 
             // Crea DAO della board e inserisci board nel database
             BoardDAO boardDAO = new BoardDAO(conn);
@@ -225,7 +225,7 @@ public class ApplicationManagement {
      * @return una lista di oggetti {@link Board} associati all'utente
      */
     public ArrayList<Board> printBoard(String email) {
-        BoardDAO boardDAO = new BoardDAO(ConnessioneDatabase.getInstance().getConnection());
+        BoardDAO boardDAO = new BoardDAO(DatabaseConnection.getInstance().getConnection());
         return boardDAO.getBoardsByEmail(email);
     }
 
@@ -243,7 +243,7 @@ public class ApplicationManagement {
      */
     public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             ToDoDAO toDoDAO = new ToDoDAO(conn);
 
             boolean success = toDoDAO.addToDoInBoard(email, tipoEnum, toDo);
@@ -274,7 +274,7 @@ public class ApplicationManagement {
      */
     public boolean deleteToDo(String email, String board, String title) {
         try {
-            ToDoDAO dao = new ToDoDAO(ConnessioneDatabase.getInstance().getConnection());
+            ToDoDAO dao = new ToDoDAO(DatabaseConnection.getInstance().getConnection());
             return dao.deleteToDo(email, board, title);
         } catch (SQLException e) {
             System.err.println("Errore durante l'eliminazione del ToDo: " + e.getMessage());
@@ -300,7 +300,7 @@ public class ApplicationManagement {
             return;
         }
 
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         CheckListDAO checkListDAO = new CheckListDAO(conn);
         ToDoDAO toDoDAO = new ToDoDAO(conn);
 
@@ -332,7 +332,7 @@ public class ApplicationManagement {
      */
     public void removeActivity(String email, String titleToDo, String board, String nameActivity) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             CheckListDAO dao = new CheckListDAO(conn);
             ToDoDAO toDoDAO = new ToDoDAO(conn);
 
@@ -362,7 +362,7 @@ public class ApplicationManagement {
      */
     public boolean editToDo(String email, String board, String toDoTitleOld, String newTitle,
                             String description, LocalDate expiration, String image, Color color) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         ToDoDAO dao = new ToDoDAO(conn);
 
         return dao.updateToDo(email, board, toDoTitleOld, newTitle, description, expiration, image, color);
@@ -383,7 +383,7 @@ public class ApplicationManagement {
      * @param dataCompletamento la data di completamento dell'attività in formato "dd-MM-yyyy"; può essere null o vuota
      */
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         CheckListDAO dao = new CheckListDAO(conn);
         ToDoDAO toDoDAO = new ToDoDAO(conn);
 
@@ -427,7 +427,7 @@ public class ApplicationManagement {
      * @return {@code true} se l'operazione è stata completata con successo, {@code false} in caso di errore
      */
     public boolean deCheckActivity(String email, String board, String todo, String activity) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         CheckListDAO dao = new CheckListDAO(conn);
         ToDoDAO toDoDAO = new ToDoDAO(conn);
 
@@ -456,7 +456,7 @@ public class ApplicationManagement {
     public ArrayList<Activity> returnCompletedActivity(String email) {
         ArrayList<Activity> completedActivities = new ArrayList<>();
 
-        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
             CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
             completedActivities = dao.getCompletedActivitiesByUser(email);
         } catch (SQLException e) {
@@ -477,7 +477,7 @@ public class ApplicationManagement {
      */
     public void addHistoryAct(String email, String activityName, Date completionDate) throws SQLException {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
             dao.addActivityToHistory(email, activityName, completionDate);
         } catch (Exception e) {
@@ -493,7 +493,7 @@ public class ApplicationManagement {
      * @param nmAct il nome dell'attività da rimuovere dalla cronologia
      */
     public void rmvHistoryAct(String email, String nmAct) {
-        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
             CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
             boolean removed = dao.removeActivityFromHistory(email, nmAct);
             if (!removed) {
@@ -511,7 +511,7 @@ public class ApplicationManagement {
      * @param email l'indirizzo email dell'utente di cui si vuole cancellare la cronologia delle attività completate
      */
     public void dltHistory(String email) {
-        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
             CompletedActivityHistoryDAO dao = new CompletedActivityHistoryDAO(conn);
             boolean deleted = dao.deleteAllActivitiesFromHistory(email);
 
@@ -533,7 +533,7 @@ public class ApplicationManagement {
      * @return {@code true} se il To-Do esiste nella board specificata, {@code false} altrimenti
      */
     public boolean ifExistsTodoInUserBoard(String email,String boardName, String toDoName){
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         BoardDAO boardDAO = new BoardDAO(conn);
         if(boardDAO.findToDoByTitleInBoard(email, boardName, toDoName)==null)
             return false;
@@ -548,7 +548,7 @@ public class ApplicationManagement {
      * @return una {@link ArrayList} di oggetti {@link ToDo} contenenti tutti i To-Do della board specificata
      */
     public ArrayList<ToDo> printTodo(String email, String board) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         BoardDAO boardDAO = new BoardDAO(conn);
         return boardDAO.getAllLocalToDos(email, board);
     }
@@ -562,7 +562,7 @@ public class ApplicationManagement {
      * @return una {@link ArrayList} di oggetti {@link Activity} associati al To-Do specificato
      */
     public ArrayList<Activity> printActs(String email, String board, String todoTitle) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         CheckListDAO dao = new CheckListDAO(conn);
         return dao.getActivities(email, board, todoTitle);
     }
@@ -587,7 +587,7 @@ public class ApplicationManagement {
     public ArrayList<ToDo> getVisibleToDos(User user, String boardName, String filter) {
         ArrayList<ToDo> visibleToDos = new ArrayList<>();
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
             if (!userDAO.checkBoard(user.getEmail(), boardName)) {
@@ -662,7 +662,7 @@ public class ApplicationManagement {
      * @return {@code true} se la condivisione è avvenuta con successo, {@code false} in caso contrario
      */
     public boolean shareToDo(String mailAmministratore, String mailUtenteDestinatario, String boardName, String toDoName) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         if (conn == null) return false;
 
         if (!canShareToDo(mailAmministratore, mailUtenteDestinatario, boardName, toDoName)) return false;
@@ -764,10 +764,10 @@ public class ApplicationManagement {
         if (sharing == null) {
             sharing = new Sharing(findUserByEmail(mailAmministratore), todo);
             sharingDAO.creaSharing(sharing);
-            System.out.println("Creazione nuova condivisione");
+            logger.info("Creazione nuova condivisione");
             todoDAO.setCondivisoTrueById(todoId);
         } else {
-            System.out.println("Condivisione già esistente");
+            logger.info("Condivisione già esistente");
         }
         return sharing;
     }
@@ -807,7 +807,7 @@ public class ApplicationManagement {
                         board = new Board(TypeBoard.FREETIME, "");
                         break;
                     default:
-                        System.out.println("Board name non riconosciuto");
+                        logger.info("Board name non riconosciuto");
                         return;
                 }
                 boardDAO.creaBoard(board, mailUtenteDestinatario);
@@ -831,7 +831,7 @@ public class ApplicationManagement {
      */
     public boolean isUserAdminOfToDo(String emailUtente, String boardName, String toDoTitle) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             ToDoDAO toDoDAO = new ToDoDAO();
             return toDoDAO.isUserAdminOfToDo(emailUtente, boardName, toDoTitle);
         } catch (Exception e) {
@@ -849,7 +849,7 @@ public class ApplicationManagement {
      */
     public User findUserByEmail(String email) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             UserDAO userDAO = new UserDAO(conn);
 
             User u = userDAO.leggiUserPerEmail(email);
@@ -871,7 +871,7 @@ public class ApplicationManagement {
      * @return una lista di titoli dei ToDo non condivisi per cui l'utente è amministratore
      */
     public ArrayList<String> getToDoAdminNonCondivisi(String emailUtente, String tipoBacheca) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         SharingDAO sharingDAO = new SharingDAO(conn);
         return sharingDAO.getToDoTitlesAdminNonCondivisi(emailUtente, tipoBacheca);
     }
@@ -891,7 +891,7 @@ public class ApplicationManagement {
      * @return true se l'utente è stato rimosso con successo, false in caso di errore o condizioni non soddisfatte
      */
     public boolean rimuoviUtenteDaSharing(String mailAmministratore, String mailUtenteDaRimuovere, String boardName, String toDoTitle) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         if (conn == null) return false;
 
         // 1. Verifica se sei amministratore del To-Do
@@ -950,7 +950,7 @@ public class ApplicationManagement {
      * @return una lista di utenti con cui il ToDo è condiviso
      */
     public ArrayList<User> getToDoUserShared(String email, String toDo) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         SharingDAO sharingDAO = new SharingDAO(conn);
         return sharingDAO.getSharingUserShared(email, toDo);
     }
@@ -963,7 +963,7 @@ public class ApplicationManagement {
      * @return il nickname dell'amministratore della condivisione del ToDo, oppure null se non trovato
      */
     public String getToAdministratorNick(String email, String toDo) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         SharingDAO sharingDAO = new SharingDAO(conn);
         return sharingDAO.getSharingAdministratorNick(email, toDo);
     }
@@ -976,7 +976,7 @@ public class ApplicationManagement {
      * @return l'email dell'amministratore della condivisione del ToDo, oppure null se non trovato
      */
     public String getToAdministratorMail(String email, String toDo) {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         SharingDAO sharingDAO = new SharingDAO(conn);
         return sharingDAO.getSharingAdministratorEmail(email, toDo);
     }
@@ -1072,7 +1072,7 @@ public class ApplicationManagement {
             // Trova l'email dell'amministratore del ToDo condiviso
             email = getToAdministratorMail(email, toDo); // questo metodo esiste già nel tuo controller
         }
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
         ToDoDAO todoDAO = new ToDoDAO(conn);
         return todoDAO.getColorOfToDo(board, email, toDo, shared);
     }

@@ -1,15 +1,11 @@
 package dao;
 
-import controller.ApplicationManagement;
-import db.ConnessioneDatabase;
-import model.Activity;
-import model.CheckList;
+import db.DatabaseConnection;
 import model.ToDo;
 
 import java.awt.Color;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class ToDoDAO {
@@ -20,7 +16,7 @@ public class ToDoDAO {
     private Connection conn;
 
     public ToDoDAO() {
-        this.conn = ConnessioneDatabase.getInstance().getConnection();
+        this.conn = DatabaseConnection.getInstance().getConnection();
     }
 
     public ToDoDAO(Connection conn) {
@@ -135,7 +131,7 @@ public class ToDoDAO {
     }
 
     public boolean deleteToDo(String email, String boardType, String todoTitle) throws SQLException {
-        Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        Connection conn = DatabaseConnection.getInstance().getConnection();
 
         // 1. Recupera l'ID della bacheca
         String boardQuery = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
@@ -369,7 +365,7 @@ public class ToDoDAO {
         // 1 = to-do già presente nella bacheca di destinazione
         // 2 = to-do condiviso, non puoi spostarlo
         // 3 = utente o bacheca non trovati
-        try (Connection conn = ConnessioneDatabase.getInstance().getConnection()) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
 
             // 1. Verifica esistenza utente
             String sqlCheckUser = "SELECT email FROM users WHERE email = ?";

@@ -1,6 +1,6 @@
 package dao;
 
-import db.ConnessioneDatabase;
+import db.DatabaseConnection;
 import model.*;
 
 import java.awt.*;
@@ -119,7 +119,7 @@ public class BoardDAO {
         ArrayList<Board> boards = new ArrayList<>();
         String sql = "SELECT type, description FROM boards WHERE user_email = ?";
 
-        try (Connection conn = ConnessioneDatabase.getInstance().getConnection();
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, email);

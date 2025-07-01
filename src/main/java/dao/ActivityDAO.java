@@ -1,18 +1,15 @@
 package dao;
 
-import db.ConnessioneDatabase;
-import model.Activity;
+import db.DatabaseConnection;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ActivityDAO {
 
     private Connection conn;
 
     public ActivityDAO() {
-        conn = ConnessioneDatabase.getInstance().getConnection();
+        conn = DatabaseConnection.getInstance().getConnection();
     }
 
 
