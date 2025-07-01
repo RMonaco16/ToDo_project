@@ -8,6 +8,11 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 
+/**
+ * Finestra GUI che mostra la cronologia delle attività completate dall'utente.
+ * Presenta una tabella con data di completamento e nome dell'attività,
+ * e permette di eliminare singole attività o tutta la cronologia.
+ */
 public class Chronology {
 
     private JPanel panelCronologia;
@@ -17,9 +22,18 @@ public class Chronology {
     private DefaultTableModel defaultTableModel;
     private JFrame nuovoFrame;
 
+    /**
+     * Costruttore che crea e visualizza la finestra della cronologia.
+     * Carica le attività completate dal controller e le mostra in tabella.
+     * Permette di eliminare la riga selezionata o tutta la cronologia.
+     *
+     * @param controller riferimento al controller dell'applicazione per la gestione dati
+     * @param vecchioFrame il frame genitore da cui si è aperta questa finestra (non usato)
+     * @param emailUtente email dell'utente corrente per caricare la cronologia corretta
+     */
     public Chronology(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente) {
 
-        // Creo il pannello con sfondo a gradiente simile a Home
+        // Pannello principale con sfondo a gradiente
         panelCronologia = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -38,13 +52,13 @@ public class Chronology {
         panelCronologia.setLayout(new BorderLayout(10,10));
         panelCronologia.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Titolo
+        // Titolo della finestra
         JLabel titleLabel = new JLabel("Chronology");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panelCronologia.add(titleLabel, BorderLayout.NORTH);
 
-        // Tabella con dati
+        // Tabella con colonne "Completion Date" e "Activity Name"
         String[] columns = {"Completion Date", "Activity Name"};
         defaultTableModel = new DefaultTableModel(columns, 0);
         tableCronologia = new JTable(defaultTableModel);
@@ -54,7 +68,7 @@ public class Chronology {
         JScrollPane scrollPane = new JScrollPane(tableCronologia);
         panelCronologia.add(scrollPane, BorderLayout.CENTER);
 
-        // Carica dati dal controller
+        // Caricamento dati attività completate da controller
         ArrayList<Activity> attivitaCronologia = controller.returnCompletedActivity(emailUtente);
         if (attivitaCronologia == null || attivitaCronologia.isEmpty()) {
             JOptionPane.showMessageDialog(panelCronologia, "There are no completed activities.", "Empty Timeline", JOptionPane.INFORMATION_MESSAGE);
@@ -64,20 +78,20 @@ public class Chronology {
             }
         }
 
-        // Pannello pulsanti centrato
+        // Pannello pulsanti per eliminare selezionato o tutto
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
         buttonPanel.setOpaque(false);
 
-        // Pulsanti con emoji Unicode corretta
+        // Pulsanti con emoji Unicode
         deleteSelectedButton = new JButton("\uD83D\uDDD1\uFE0F Delete Selected");
         deleteAllButton = new JButton("\u274E Delete All");
 
-        // Imposta font emoji-friendly
+        // Font per supporto emoji
         Font emojiFont = new Font("Segoe UI Emoji", Font.PLAIN, 18);
         deleteSelectedButton.setFont(emojiFont);
         deleteAllButton.setFont(emojiFont);
 
-        // Impostazioni stile (background, colore, bordi)
+        // Impostazioni grafiche pulsanti
         setupButtonWithEmojiFont(deleteSelectedButton);
         setupButtonWithEmojiFont(deleteAllButton);
 
@@ -86,7 +100,7 @@ public class Chronology {
 
         panelCronologia.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Azioni pulsanti
+        // Azione pulsante elimina selezionato
         deleteSelectedButton.addActionListener(e -> {
             int selectedRow = tableCronologia.getSelectedRow();
             if (selectedRow == -1) {
@@ -98,6 +112,7 @@ public class Chronology {
             defaultTableModel.removeRow(selectedRow);
         });
 
+        // Azione pulsante elimina tutta la cronologia
         deleteAllButton.addActionListener(e -> {
             int rowCount = defaultTableModel.getRowCount();
             if (rowCount == 0) {
@@ -114,7 +129,7 @@ public class Chronology {
             }
         });
 
-        // Finestra JFrame
+        // Configurazione JFrame
         nuovoFrame = new JFrame("Chronology");
         nuovoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         nuovoFrame.setContentPane(panelCronologia);
@@ -123,7 +138,12 @@ public class Chronology {
         nuovoFrame.setVisible(true);
     }
 
-    // Metodo helper per impostare font emoji-friendly e stile pulsante
+    /**
+     * Metodo helper per impostare font emoji-friendly, colore di sfondo,
+     * colore testo, bordi e comportamento al passaggio del mouse per un JButton.
+     *
+     * @param button JButton da configurare
+     */
     private void setupButtonWithEmojiFont(JButton button) {
         Color baseColor = Color.decode("#A8BDB5");
         Color hoverColor = baseColor.darker();
@@ -147,7 +167,11 @@ public class Chronology {
         });
     }
 
-    // Per controllo finestre multiple
+    /**
+     * Restituisce il frame principale di questa finestra.
+     *
+     * @return il JFrame associato alla finestra Chronology
+     */
     public JFrame getFrame() {
         return nuovoFrame;
     }

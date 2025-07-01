@@ -8,6 +8,11 @@ import org.jdesktop.swingx.prompt.PromptSupport;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Finestra GUI per aggiungere una nuova bacheca (Board) all'applicazione.
+ * Permette all'utente di selezionare il tipo di bacheca, inserire una descrizione
+ * e creare la bacheca tramite il controller.
+ */
 public class AddBoard {
     private JRadioButton universityRadioButton;
     private JRadioButton workRadioButton;
@@ -19,10 +24,18 @@ public class AddBoard {
 
     private Home home;
 
+    /**
+     * Costruttore che crea e mostra la finestra per aggiungere una nuova bacheca.
+     *
+     * @param controller riferimento al controller dell'applicazione per la gestione delle board
+     * @param vecchioFrame il frame genitore da cui si è aperta questa finestra
+     * @param emailUtente email dell'utente corrente
+     * @param home riferimento alla finestra principale per aggiornare la UI dopo la creazione
+     */
     public AddBoard(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, Home home) {
         this.home = home;
 
-        // Pannello principale con sfondo a gradiente
+        // Inizializzazione pannello principale con sfondo a gradiente
         panelAddBoard = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -41,20 +54,20 @@ public class AddBoard {
         panelAddBoard.setLayout(new BorderLayout(10, 10));
         panelAddBoard.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Titolo
+        // Label titolo
         JLabel titleLabel = new JLabel("Add Board");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panelAddBoard.add(titleLabel, BorderLayout.NORTH);
 
-        // Centro: radio button + descrizione
+        // Pannello centrale con radio button e campo descrizione
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Radio buttons
+        // Radio button per tipi di bacheca
         universityRadioButton = new JRadioButton("University");
         workRadioButton = new JRadioButton("Work");
         freeTimeRadioButton = new JRadioButton("Free Time");
@@ -73,7 +86,7 @@ public class AddBoard {
         group.add(workRadioButton);
         group.add(freeTimeRadioButton);
 
-        // Aggiunta dei radio button
+        // Aggiunta radio button al pannello
         gbc.gridx = 0;
         gbc.gridy = 0;
         centerPanel.add(universityRadioButton, gbc);
@@ -84,22 +97,21 @@ public class AddBoard {
         gbc.gridy = 2;
         centerPanel.add(freeTimeRadioButton, gbc);
 
-        // Campo descrizione
+        // Campo testo per la descrizione della bacheca
         gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         textDescription = new JTextField(20);
         textDescription.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 
-        // Aggiungi il placeholder DOPO l'inizializzazione
+        // Placeholder (prompt) per il campo descrizione
         PromptSupport.setPrompt("Insert Description", textDescription);
         PromptSupport.setForeground(Color.GRAY, textDescription);
         PromptSupport.setFontStyle(Font.ITALIC, textDescription);
 
         centerPanel.add(textDescription, gbc);
-
         panelAddBoard.add(centerPanel, BorderLayout.CENTER);
 
-        // Bottone
+        // Pannello per il bottone di creazione
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setOpaque(false);
 
@@ -111,6 +123,7 @@ public class AddBoard {
         createBoardButton.setOpaque(true);
         createBoardButton.setPreferredSize(new Dimension(140, 40));
 
+        // Cambia colore bottone al passaggio del mouse
         Color baseColor = Color.decode("#A8BDB5");
         Color hoverColor = baseColor.darker();
         createBoardButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -126,14 +139,14 @@ public class AddBoard {
         buttonPanel.add(createBoardButton);
         panelAddBoard.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Azione bottone
+        // Azione al click del bottone "Create Board"
         createBoardButton.addActionListener(e -> {
             addNewBoard(controller, emailUtente);
             nuovoFrame.setVisible(false);
             nuovoFrame.dispose();
         });
 
-        // JFrame
+        // Configurazione JFrame principale
         nuovoFrame = new JFrame("Add Board");
         nuovoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         nuovoFrame.setContentPane(panelAddBoard);
@@ -143,7 +156,14 @@ public class AddBoard {
         nuovoFrame.setVisible(true);
     }
 
-    // Metodo per aggiungere la board
+    /**
+     * Metodo per aggiungere una nuova bacheca tramite il controller.
+     * Verifica che sia stato selezionato un tipo e inserita una descrizione.
+     * Se la bacheca viene creata correttamente, aggiorna la UI della home.
+     *
+     * @param controller il controller dell'applicazione per la gestione delle board
+     * @param emailUtente email dell'utente proprietario della bacheca
+     */
     public void addNewBoard(ApplicationManagement controller, String emailUtente) {
         String descrizione = textDescription.getText().trim();
         boolean creatoCorrettamente = false;
@@ -177,6 +197,11 @@ public class AddBoard {
         }
     }
 
+    /**
+     * Restituisce il frame principale di questa finestra.
+     *
+     * @return il JFrame associato alla finestra AddBoard
+     */
     public JFrame getFrame() {
         return nuovoFrame;
     }

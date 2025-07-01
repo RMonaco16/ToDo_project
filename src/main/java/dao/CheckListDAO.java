@@ -7,15 +7,33 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+/**
+ * Classe DAO per la gestione delle attività (Activity) associate alle checklist dei ToDo.
+ *
+ * Permette di caricare, aggiungere, rimuovere e modificare attività legate a checklist associate a ToDo
+ * all'interno di board specifiche di utenti, gestendo anche i permessi di condivisione.
+ */
 public class CheckListDAO {
 
     private final Connection conn;
 
+    /**
+     * Costruttore che riceve una connessione al database.
+     *
+     * @param conn Connessione al database da usare per tutte le operazioni.
+     */
     public CheckListDAO(Connection conn) {
         this.conn = conn;
     }
 
-    // Carica tutte le attività associate a un ToDo (identificato dal suo titolo)
+    /**
+     * Recupera tutte le attività associate a un ToDo specifico di un utente in una certa board.
+     *
+     * @param email Email dell'utente proprietario della board.
+     * @param boardType Tipo della board (es. UNIVERSITY, WORK, FREETIME).
+     * @param todoTitle Titolo del ToDo a cui sono associate le attività.
+     * @return Lista di oggetti Activity relativi al ToDo richiesto.
+     */
     public ArrayList<Activity> getActivities(String email, String boardType, String todoTitle) {
         ArrayList<Activity> activities = new ArrayList<>();
 
@@ -56,7 +74,15 @@ public class CheckListDAO {
     }
 
 
-    // Salva una nuova attività associata a un ToDo
+    /**
+     * Aggiunge una nuova attività alla checklist associata a un ToDo specifico.
+     * Controlla prima che non esista già un'attività con lo stesso nome.
+     *
+     * @param email Email dell'utente proprietario.
+     * @param titleToDo Titolo del ToDo cui associare l'attività.
+     * @param boardType Tipo della board.
+     * @param activity Oggetto Activity da inserire.
+     */
     public void addActivity(String email, String titleToDo, String boardType, Activity activity) {
         //  Trova ID della checklist collegata al ToDo
         int checklistId = -1;
@@ -124,6 +150,16 @@ public class CheckListDAO {
     }
 
 
+    /**
+     * Rimuove un'attività da una checklist associata a un ToDo di un utente.
+     * Dopo la rimozione aggiorna lo stato del ToDo in base al completamento delle attività rimanenti.
+     *
+     * @param email Email dell'utente proprietario.
+     * @param titleToDo Titolo del ToDo associato alla checklist.
+     * @param board Tipo della board.
+     * @param nameActivity Nome dell'attività da rimuovere.
+     * @throws SQLException In caso di errori SQL.
+     */
     public void removeActivity(String email, String titleToDo, String board, String nameActivity) throws SQLException{
         try {
             // 1. Recupera l'ID della board per l'utente
@@ -201,6 +237,16 @@ public class CheckListDAO {
         }
     }
 
+    /**
+     * Segna un'attività come completata e imposta la data di completamento.
+     * Gestisce sia attività di ToDo locali sia condivisi.
+     *
+     * @param email Email dell'utente (proprietario o membro condiviso).
+     * @param board Tipo della board.
+     * @param todo Titolo del ToDo.
+     * @param activity Nome dell'attività da segnare come completata.
+     * @param dataCompletamento Data di completamento in formato "dd-MM-yyyy".
+     */
     public void checkActivity(String email, String board, String todo, String activity, String dataCompletamento) {
         String sql = "UPDATE activities SET state = ?, completion_date = ? " +
                 "WHERE name = ? AND checklist_id = (" +
@@ -240,6 +286,15 @@ public class CheckListDAO {
         }
     }
 
+    /**
+     * Segna un'attività come non completata (unchecked) rimuovendo anche la data di completamento.
+     *
+     * @param email Email dell'utente (proprietario o membro condiviso).
+     * @param board Tipo della board.
+     * @param todo Titolo del ToDo.
+     * @param activity Nome dell'attività da segnare come non completata.
+     * @return true se l'operazione è andata a buon fine, false altrimenti.
+     */
     public boolean uncheckActivity(String email, String board, String todo, String activity) {
         String sql = "UPDATE activities SET state = ?, completion_date = ? " +
                 "WHERE name = ? AND checklist_id = (" +
@@ -269,6 +324,15 @@ public class CheckListDAO {
         }
     }
 
+    /**
+     * Recupera l'ID del ToDo corrispondente a un titolo, board e utente (proprietario o membro condiviso).
+     *
+     * @param email Email dell'utente.
+     * @param boardType Tipo della board.
+     * @param todoTitle Titolo del ToDo.
+     * @return ID del ToDo.
+     * @throws SQLException Se il ToDo non viene trovato o si verifica un errore SQL.
+     */
     public int getToDoId(String email, String boardType, String todoTitle) throws SQLException {
         String sql = """
         SELECT t.id
@@ -296,7 +360,4 @@ public class CheckListDAO {
             }
         }
     }
-
-
 }
-

@@ -9,6 +9,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
+/**
+ * Classe che rappresenta la schermata principale (Home) dell'applicazione,
+ * dove l'utente può visualizzare, aggiungere o eliminare le proprie board.
+ */
 public class Home {
     public JPanel panelHome;
     private JButton ADDButton;
@@ -22,9 +26,17 @@ public class Home {
     private ArrayList<Board> userBoards;
     private User user;
 
+    /**
+     * Costruttore che crea e mostra la schermata Home per l'utente.
+     *
+     * @param controller  L'oggetto controller per la gestione dell'applicazione.
+     * @param frameVecchio Il frame precedente da chiudere.
+     * @param emailUtente  L'email dell'utente attualmente loggato.
+     */
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
 
+        // Creazione del pannello principale con sfondo sfumato
         panelHome = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -53,6 +65,7 @@ public class Home {
         jFrame.setLocationRelativeTo(null);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // Setup dei bottoni nella parte superiore (indietro e cronologia)
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
 
@@ -90,12 +103,14 @@ public class Home {
 
         panelHome.add(topPanel, BorderLayout.NORTH);
 
+        // Pannello centrale con la lista delle board
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setOpaque(false);
         centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
         centerWrapper.add(panelBoards);
         panelHome.add(centerWrapper, BorderLayout.CENTER);
 
+        // Pannello inferiore con bottoni per eliminare e aggiungere board
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
 
@@ -126,6 +141,7 @@ public class Home {
 
         panelHome.add(bottomPanel, BorderLayout.SOUTH);
 
+        // Apre la finestra per aggiungere una nuova board
         ADDButton.addActionListener(e -> {
             if (addBoardWindow == null || !addBoardWindow.getFrame().isVisible()) {
                 addBoardWindow = new AddBoard(controller, jFrame, emailUtente, Home.this);
@@ -135,6 +151,7 @@ public class Home {
             }
         });
 
+        // Label visualizzata quando non ci sono board
         emptyLabel = new JLabel("No boards available.");
         emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelBoards.add(emptyLabel);
@@ -153,17 +170,24 @@ public class Home {
         jFrame.setVisible(true);
     }
 
+    /**
+     * Aggiunge un pulsante corrispondente a una board nella lista visualizzata.
+     *
+     * @param board        La board da rappresentare con il pulsante.
+     * @param controller   Il controller dell'applicazione.
+     * @param emailUtente  L'email dell'utente corrente.
+     */
     public void addBoardButton(Board board, ApplicationManagement controller, String emailUtente) {
         if (emptyLabel != null && emptyLabel.getParent() != null) {
             panelBoards.remove(emptyLabel);
             emptyLabel = null;
         }
 
-        // Creo il testo con emoji
+        // Crea il testo del pulsante con emoji rappresentativa del tipo di board
         String buttonText = getEmojiForType(board.getType()) + " " + board.getType().toString();
 
         JButton boardButton = new JButton(buttonText);
-        boardButton.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16)); // font emoji-friendly
+        boardButton.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16)); // font compatibile con emoji
 
         Dimension buttonSize = new Dimension(400, 60);
         boardButton.setPreferredSize(buttonSize);
@@ -202,15 +226,27 @@ public class Home {
         panelBoards.repaint();
     }
 
+    /**
+     * Restituisce l'emoji associata al tipo di board.
+     *
+     * @param type Il tipo di board.
+     * @return Una stringa contenente l'emoji corrispondente.
+     */
     private String getEmojiForType(TypeBoard type) {
         switch (type) {
-            case WORK: return "\uD83D\uDCBC";       //
-            case UNIVERSITY: return "\uD83C\uDF93"; //
-            case FREETIME: return "\uD83C\uDF7F";  //
-            default: return "\u2753";               //  (punto interrogativo come fallback)
+            case WORK: return "\uD83D\uDCBC";       // Valigetta per lavoro
+            case UNIVERSITY: return "\uD83C\uDF93"; // Cappello da laurea per università
+            case FREETIME: return "\uD83C\uDF7F";  // Bicchiere per tempo libero
+            default: return "\u2753";               // Punto interrogativo come fallback
         }
     }
 
+    /**
+     * Aggiorna la lista delle board visualizzate, ricaricandola dal controller.
+     *
+     * @param controller  Il controller dell'applicazione.
+     * @param emailUtente L'email dell'utente corrente.
+     */
     public void refreshBoards(ApplicationManagement controller, String emailUtente) {
         panelBoards.removeAll();
         ArrayList<Board> userBoards = controller.printBoard(emailUtente);
@@ -229,10 +265,20 @@ public class Home {
         panelBoards.repaint();
     }
 
+    /**
+     * Resetta il riferimento alla finestra di eliminazione board,
+     * utile per la gestione dello stato della GUI.
+     */
     public void clearDeleteBoardFormWindow() {
         deleteBoardFormWindow = null;
     }
 
+    /**
+     * Configura un JButton come pulsante principale con colori personalizzati e effetti hover.
+     *
+     * @param button    Il JButton da configurare.
+     * @param baseColor Il colore di base del pulsante.
+     */
     private void setupPrimaryButton(JButton button, Color baseColor) {
         Color hoverColor = baseColor.darker();
         button.setBackground(baseColor);
@@ -255,6 +301,12 @@ public class Home {
         });
     }
 
+    /**
+     * Configura un JButton come pulsante secondario con colori personalizzati e effetti hover.
+     *
+     * @param button    Il JButton da configurare.
+     * @param baseColor Il colore di base del pulsante.
+     */
     private void setupSecondaryButton(JButton button, Color baseColor) {
         Color hoverColor = baseColor.darker();
         button.setBackground(baseColor);

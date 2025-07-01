@@ -9,16 +9,30 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+/**
+ * Classe DAO per la gestione delle operazioni sul database relative alle Board e ai ToDo.
+ * Fornisce metodi per creare, eliminare e recuperare board e ToDo associati agli utenti.
+ */
 public class BoardDAO {
     private static final Logger logger = Logger.getLogger(BoardDAO.class.getName());
     private final Connection conn;
 
-
+    /**
+     * Costruttore che inizializza il DAO con una connessione al database.
+     *
+     * @param conn connessione al database da utilizzare per le operazioni
+     */
     public BoardDAO(Connection conn) {
         this.conn = conn; // usa quella che ti viene passata
     }
 
-    // Crea una nuova board
+    /**
+     * Crea una nuova board per un utente, se non ne esiste già una dello stesso tipo.
+     *
+     * @param board la board da creare
+     * @param userEmail email dell'utente proprietario della board
+     * @return true se la board è stata creata con successo, false se esiste già o in caso di errore
+     */
     public boolean creaBoard(Board board, String userEmail) {
         String checkSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         String insertSql = "INSERT INTO boards (type, description, user_email) VALUES (?, ?, ?)";
@@ -49,7 +63,12 @@ public class BoardDAO {
     }
 
 
-    // Elimina board per tipo
+    /**
+     * Elimina una board di un dato tipo associata a un utente.
+     *
+     * @param email email dell'utente proprietario della board
+     * @param type tipo della board da eliminare
+     */
     public void eliminaBoard(String email, String type) {
         String sql = "DELETE FROM boards WHERE user_email = ? AND type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -61,6 +80,14 @@ public class BoardDAO {
         }
     }
 
+    /**
+     * Verifica se esiste un ToDo con un determinato titolo all'interno di una board di un utente.
+     *
+     * @param email email dell'utente proprietario della board
+     * @param boardType tipo della board
+     * @param todoTitle titolo del ToDo da cercare
+     * @return il ToDo trovato oppure null se non esiste
+     */
     public ToDo checkToDoExists(String email, String boardType, String todoTitle){
         String sql = """
         SELECT t.title, t.description, t.color, t.image, t.expiration,
@@ -115,6 +142,12 @@ public class BoardDAO {
         }
     }
 
+    /**
+     * Recupera tutte le board associate a un utente dato l'indirizzo email.
+     *
+     * @param email email dell'utente
+     * @return lista di Board associate all'utente
+     */
     public ArrayList<Board> getBoardsByEmail(String email) {
         ArrayList<Board> boards = new ArrayList<>();
         String sql = "SELECT type, description FROM boards WHERE user_email = ?";
@@ -141,6 +174,13 @@ public class BoardDAO {
         return boards;
     }
 
+    /**
+     * Recupera tutti i ToDo locali (non condivisi) di una board specifica per un utente.
+     *
+     * @param email email dell'utente proprietario
+     * @param nameBoard tipo/nome della board
+     * @return lista di ToDo locali della board
+     */
     public ArrayList<ToDo> getAllLocalToDos(String email, String nameBoard) {
         String sql = """
             SELECT todos.*
@@ -194,6 +234,13 @@ public class BoardDAO {
         return todos;
     }
 
+    /**
+     * Recupera tutti i ToDo condivisi a cui un utente ha accesso in una board specifica.
+     *
+     * @param email email dell'utente membro della condivisione
+     * @param boardType tipo della board
+     * @return lista di ToDo condivisi
+     */
     public ArrayList<ToDo> getAllSharedToDos(String email, String boardType) {
         String sql = """
             SELECT todos.*
@@ -246,6 +293,13 @@ public class BoardDAO {
         return sharedTodos;
     }
 
+    /**
+     * Recupera i ToDo locali che scadono in una data specifica (oggi) per una board di un utente.
+     *
+     * @param email email dell'utente proprietario
+     * @param boardType tipo della board
+     * @return lista di ToDo che scadono oggi
+     */
     public ArrayList<ToDo> getLocalTodosByExpirationDate(String email, String boardType) {
         String sql = """
         SELECT todos.*
@@ -297,6 +351,14 @@ public class BoardDAO {
         return todos;
     }
 
+    /**
+     * Recupera i ToDo locali che scadono prima o entro una data specifica per una board di un utente.
+     *
+     * @param email email dell'utente proprietario
+     * @param boardType tipo della board
+     * @param date data di scadenza limite (inclusa)
+     * @return lista di ToDo con scadenza entro la data specificata
+     */
     public ArrayList<ToDo> getLocalTodosExpiringBeforeOrOn(String email, String boardType, LocalDate date) {
         String sql = """
             SELECT todos.*
@@ -348,6 +410,14 @@ public class BoardDAO {
         return todos;
     }
 
+    /**
+     * Recupera i ToDo condivisi che scadono prima o entro una data specifica per una board.
+     *
+     * @param email email dell'utente membro della condivisione
+     * @param boardType tipo della board
+     * @param date data di scadenza limite (inclusa)
+     * @return lista di ToDo condivisi con scadenza entro la data specificata
+     */
     public ArrayList<ToDo> getSharedTodosExpiringBeforeOrOn(String email, String boardType, LocalDate date) {
         String sql = """
         SELECT todos.*
@@ -399,6 +469,14 @@ public class BoardDAO {
         return todos;
     }
 
+    /**
+     * Cerca un ToDo per titolo in una board specifica di un utente, includendo ToDo sia locali che condivisi.
+     *
+     * @param email email dell'utente (proprietario o membro della condivisione)
+     * @param boardType tipo della board
+     * @param title titolo del ToDo da cercare (case-insensitive)
+     * @return ToDo trovato oppure null se non esiste
+     */
     public ToDo findToDoByTitleInBoard(String email, String boardType, String title) {
         String sql = """
     SELECT todos.*, false AS is_shared
@@ -460,10 +538,6 @@ public class BoardDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null; // Nessun ToDo trovato
     }
-
-
-
 }
