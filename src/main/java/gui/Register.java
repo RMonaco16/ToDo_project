@@ -146,10 +146,10 @@ public class Register {
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
 
-        /**
-         * Azione al click sul bottone registra:
-         * valida i dati inseriti, crea un nuovo utente e lo aggiunge al controller.
-         */
+            /**
+             * Azione al click sul bottone registra:
+             * valida i dati inseriti, crea un nuovo utente e lo aggiunge al controller.
+             */
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);

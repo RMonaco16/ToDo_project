@@ -14,7 +14,7 @@ public class CheckList {
      * Inizializza la lista delle attività come vuota.
      */
     public CheckList() {
-
+        //Costruttore
     }
 
     /**

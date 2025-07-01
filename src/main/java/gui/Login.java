@@ -7,6 +7,10 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
+/**
+ * Classe che rappresenta l'interfaccia grafica per la schermata di login.
+ * Gestisce l'autenticazione dell'utente e la navigazione alla schermata principale o alla registrazione.
+ */
 public class Login {
     private static final String FRAME_TITLE = "Login";
     private static final int FRAME_WIDTH = 500;
@@ -15,10 +19,10 @@ public class Login {
     private static final String IMAGE_PATH = "/images/chat_image.png";
     private static final int IMAGE_DIAMETER = 100;
 
-    private static final Color BACKGROUND_COLOR = Color.decode("#F9F5F0");  // Cream background
-    private static final Color LOGIN_COLOR = Color.decode("#A8BDB5");       // Primary green sage
-    private static final Color REGISTER_COLOR = Color.decode("#6B7280");    // Secondary gray
-    private static final Color TEXT_COLOR = Color.decode("#374151");        // Dark neutral text
+    private static final Color BACKGROUND_COLOR = Color.decode("#F9F5F0");
+    private static final Color LOGIN_COLOR = Color.decode("#A8BDB5");
+    private static final Color REGISTER_COLOR = Color.decode("#6B7280");
+    private static final Color TEXT_COLOR = Color.decode("#374151");
 
     private JTextField textField1;
     private JPasswordField passwordField1;
@@ -30,6 +34,10 @@ public class Login {
     private final JFrame frame;
     private final ApplicationManagement controller;
 
+    /**
+     * Costruttore della classe Login.
+     * Inizializza l'interfaccia e configura il frame principale.
+     */
     public Login() {
         this.controller = new ApplicationManagement();
         this.frame = new JFrame(FRAME_TITLE);
@@ -38,12 +46,18 @@ public class Login {
         configureFrame();
     }
 
+    /**
+     * Inizializza l'interfaccia utente.
+     */
     private void initUI() {
         setupImageIcon();
         styleComponents();
         addListeners();
     }
 
+    /**
+     * Carica e imposta l'immagine circolare di profilo/logo.
+     */
     private void setupImageIcon() {
         ImageIcon originalIcon = new ImageIcon(getClass().getResource(IMAGE_PATH));
         Image originalImage = originalIcon.getImage();
@@ -54,6 +68,9 @@ public class Login {
         imageIcon.setIcon(new ImageIcon(circularImage));
     }
 
+    /**
+     * Applica lo stile grafico ai componenti dell'interfaccia.
+     */
     private void styleComponents() {
         panelLogin.setBackground(BACKGROUND_COLOR);
 
@@ -67,6 +84,12 @@ public class Login {
         passwordField1.setForeground(TEXT_COLOR);
     }
 
+    /**
+     * Applica lo stile a un bottone, inclusi effetti hover.
+     *
+     * @param button    Il bottone da stilizzare.
+     * @param baseColor Il colore di base del bottone.
+     */
     private void styleButton(JButton button, Color baseColor) {
         final Color hoverColor = baseColor.darker();
 
@@ -90,6 +113,9 @@ public class Login {
         });
     }
 
+    /**
+     * Aggiunge gli event listener ai bottoni.
+     */
     private void addListeners() {
         loginButton.addActionListener(e -> handleLogin());
 
@@ -101,6 +127,11 @@ public class Login {
         frame.getRootPane().setDefaultButton(loginButton);
     }
 
+    /**
+     * Gestisce il login dell'utente.
+     * Mostra un messaggio d'errore se le credenziali sono errate,
+     * altrimenti apre la schermata principale (Home).
+     */
     private void handleLogin() {
         String passwordStr = new String(passwordField1.getPassword());
         if (!controller.login(textField1.getText(), passwordStr)) {
@@ -110,6 +141,9 @@ public class Login {
         }
     }
 
+    /**
+     * Configura le proprietà principali del frame.
+     */
     private void configureFrame() {
         frame.setContentPane(panelLogin);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -119,6 +153,14 @@ public class Login {
         frame.setVisible(true);
     }
 
+    /**
+     * Ridimensiona un'immagine alle dimensioni specificate.
+     *
+     * @param srcImg L'immagine sorgente.
+     * @param w      Larghezza desiderata.
+     * @param h      Altezza desiderata.
+     * @return L'immagine ridimensionata.
+     */
     public Image getScaledImage(Image srcImg, int w, int h) {
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
@@ -133,6 +175,13 @@ public class Login {
         return resizedImg;
     }
 
+    /**
+     * Crea un'immagine circolare a partire da un'immagine quadrata.
+     *
+     * @param image    L'immagine di input.
+     * @param diameter Il diametro del cerchio.
+     * @return L'immagine circolare risultante.
+     */
     public Image makeCircularImage(Image image, int diameter) {
         BufferedImage mask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
 
@@ -153,12 +202,22 @@ public class Login {
         return output;
     }
 
+    /**
+     * Applica rendering di alta qualità a un oggetto Graphics2D.
+     *
+     * @param g2 Il contesto grafico su cui applicare le impostazioni.
+     */
     private void applyQualityRenderingHints(Graphics2D g2) {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
     }
 
+    /**
+     * Metodo principale per avviare l'interfaccia utente del login.
+     *
+     * @param args Argomenti della linea di comando (non utilizzati).
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(Login::new);
     }
