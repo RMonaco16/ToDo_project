@@ -8,11 +8,6 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
-/**
- * Classe che rappresenta la schermata di registrazione.
- * Permette all'utente di inserire nickname, email e password
- * per creare un nuovo account utente.
- */
 public class Register {
     private static final String FRAME_TITLE = "Register";
     private static final int FRAME_WIDTH = 500;
@@ -38,12 +33,6 @@ public class Register {
     private final JFrame callerFrame;
     private final ApplicationManagement controller;
 
-    /**
-     * Costruttore che inizializza la schermata di registrazione,
-     * configurando l'interfaccia grafica, i colori e le azioni.
-     *
-     * @param controller     Controller per la gestione dell'applicazione.
-     */
     public Register(JFrame callerFrame, ApplicationManagement controller) {
         this.callerFrame = callerFrame;
         this.controller = controller;
@@ -61,58 +50,12 @@ public class Register {
 
     private void setupImageIcon() {
         ImageIcon originalIcon = new ImageIcon(getClass().getResource(IMAGE_PATH));
-        // Carica e imposta immagine circolare
         Image originalImage = originalIcon.getImage();
-
-        int diameter = 100; // diametro cerchio immagine
 
         Image scaledImage = getScaledImage(originalImage, IMAGE_DIAMETER, IMAGE_DIAMETER);
         Image circularImage = makeCircularImage(scaledImage, IMAGE_DIAMETER);
 
         imageIcon.setIcon(new ImageIcon(circularImage));
-
-        // Crea e configura la finestra di registrazione
-        JFrame frame = new JFrame("Register");
-        frame.setContentPane(panelRegister);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setSize(500, 500);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        // Applica colori alla GUI
-        panelRegister.setBackground(Color.decode("#F9F5F0")); // sfondo crema chiaro
-
-        loginButton.setBackground(Color.decode("#6B7280"));   // grigio medio
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setBorder(BorderFactory.createLineBorder(Color.decode("#6B7280"), 2));
-
-        registerButton.setBackground(Color.decode("#A8BDB5")); // verde salvia chiaro
-        registerButton.setForeground(Color.WHITE);
-        registerButton.setBorder(BorderFactory.createLineBorder(Color.decode("#A8BDB5"), 2));
-
-        // Colori e hover effect per i bottoni
-        Color loginColor = Color.decode("#A8BDB5");
-        Color loginHover = loginColor.darker();
-
-        Color registerColor = Color.decode("#6B7280");
-        Color registerHover = registerColor.darker();
-
-        // Effetti hover loginButton
-        loginButton.setBackground(loginColor);
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setBorder(BorderFactory.createLineBorder(loginColor, 2));
-        loginButton.setFocusPainted(false);
-        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(loginHover);
-                loginButton.setBorder(BorderFactory.createLineBorder(loginHover, 2));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(loginColor);
-                loginButton.setBorder(BorderFactory.createLineBorder(loginColor, 2));
-            }
-        });
     }
 
     private void styleComponents() {
@@ -121,7 +64,6 @@ public class Register {
         styleButton(loginButton, LOGIN_COLOR);
         styleButton(registerButton, REGISTER_COLOR);
 
-        // Colori campi testo e password
         textNickName.setBackground(Color.WHITE);
         textEmail.setBackground(Color.WHITE);
         passwordField1.setBackground(Color.WHITE);
@@ -146,10 +88,6 @@ public class Register {
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
 
-            /**
-             * Azione al click sul bottone registra:
-             * valida i dati inseriti, crea un nuovo utente e lo aggiunge al controller.
-             */
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
@@ -157,7 +95,6 @@ public class Register {
             }
         });
     }
-
 
     private void addListeners() {
         registerButton.addActionListener(e -> handleRegister());
@@ -232,15 +169,6 @@ public class Register {
         frame.setVisible(true);
     }
 
-    /**
-     * Ridimensiona un'immagine alla larghezza e altezza specificate,
-     * mantenendo alta la qualità dell'interpolazione.
-     *
-     * @param srcImg Immagine originale da ridimensionare.
-     * @param w      Larghezza desiderata.
-     * @param h      Altezza desiderata.
-     * @return       Immagine ridimensionata.
-     */
     public Image getScaledImage(Image srcImg, int w, int h) {
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
@@ -255,20 +183,12 @@ public class Register {
         return resizedImg;
     }
 
-    /**
-     * Crea un'immagine circolare ritagliando l'immagine data in un cerchio di diametro specificato.
-     *
-     * @param image    Immagine da ritagliare.
-     * @param diameter Diametro del cerchio finale.
-     * @return         Immagine circolare ritagliata.
-     */
     public Image makeCircularImage(Image image, int diameter) {
         BufferedImage mask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2 = mask.createGraphics();
         applyQualityRenderingHints(g2);
 
-        // Crea maschera circolare piena
         g2.fill(new Ellipse2D.Double(0, 0, diameter, diameter));
         g2.dispose();
 
@@ -276,10 +196,7 @@ public class Register {
         g2 = output.createGraphics();
         applyQualityRenderingHints(g2);
 
-        // Applica maschera come clip per il disegno circolare
         g2.setClip(new Ellipse2D.Double(0, 0, diameter, diameter));
-
-        // Disegna immagine ridimensionata nel cerchio
         g2.drawImage(image, 0, 0, diameter, diameter, null);
         g2.dispose();
 

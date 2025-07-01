@@ -224,7 +224,7 @@ public class BoardGui {
 
     private void openShareWindow(ApplicationManagement controller, String email, JFrame vecchioFrame, String nameBoard) {
         if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
-            sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard, () -> {
+            sharingWindow = new Sharing(controller, email, nameBoard, () -> {
                 updateToDoList(controller, email, nameBoard);
             });
         } else {
@@ -858,7 +858,7 @@ public class BoardGui {
                     sharingInfoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
                     SharingInformation sharingInformation = new SharingInformation(
-                            controller, frame, email, t.getTitle(), nameBoard,
+                            controller, email, t.getTitle(), nameBoard,
                             () -> updateToDoList(controller, email, nameBoard) // callback per aggiornare la lista
                     );
                     sharingInfoFrame.setContentPane(sharingInformation.getPanel());
