@@ -8,6 +8,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 
+/**
+ * Finestra grafica per condividere un ToDo con un altro utente.
+ * Permette di inserire un'email, selezionare un ToDo da condividere e inviare la richiesta di condivisione.
+ */
 public class Sharing {
 
     private JFrame nuovoFrame;
@@ -21,6 +25,14 @@ public class Sharing {
     private String tipoBacheca;
     private Runnable onShareSuccess;
 
+    /**
+     * Costruisce e mostra la finestra di condivisione ToDo.
+     *
+     * @param controller      Istanza del controller per la gestione dell'applicazione.
+     * @param emailUtente     Email dell'utente corrente.
+     * @param tipoBacheca     Tipo di bacheca da cui condividere il ToDo (es. UNIVERSITY, WORK, FREETIME).
+     * @param onShareSuccess  Runnable da eseguire in caso di condivisione avvenuta con successo (ad es. aggiornare UI).
+     */
     public Sharing(ApplicationManagement controller, String emailUtente, String tipoBacheca, Runnable onShareSuccess) {
         this.controller = controller;
         this.emailUtente = emailUtente;
@@ -121,7 +133,9 @@ public class Sharing {
 
         nuovoFrame.setVisible(true);
     }
-
+    /**
+     * Popola la ComboBox con la lista dei ToDo non ancora condivisi dell'utente e della bacheca specificata.
+     */
     private void popolaComboBox() {
         ArrayList<String> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
 
@@ -132,7 +146,12 @@ public class Sharing {
             comboBoxToDo.addItem(todo);
         }
     }
-
+    /**
+     * Gestisce il click sul pulsante "Share".
+     * Verifica i dati inseriti e, se validi, avvia la condivisione del ToDo selezionato.
+     *
+     * @param e Evento generato dal click sul pulsante.
+     */
     private void handleShare(ActionEvent e) {
         String email = textEmail.getText();
         String selectedToDo = (String) comboBoxToDo.getSelectedItem();
@@ -150,6 +169,15 @@ public class Sharing {
         condividiToDo(emailUtente, email, tipoBacheca, selectedToDo);
     }
 
+    /**
+     * Tenta di condividere un ToDo specificato con un altro utente.
+     * Verifica i permessi prima di procedere.
+     *
+     * @param emailCreatore       Email dell'utente proprietario/creatore del ToDo.
+     * @param emailDaCondividere  Email dell'utente con cui si vuole condividere il ToDo.
+     * @param bacheca             Tipo di bacheca a cui appartiene il ToDo.
+     * @param toDoName            Nome del ToDo da condividere.
+     */
     public void condividiToDo(String emailCreatore, String emailDaCondividere, String bacheca, String toDoName) {
         if (!controller.isUserAdminOfToDo(emailCreatore, bacheca, toDoName)) {
             JOptionPane.showMessageDialog(panelSharing, "You can't share a ToDo that you don't manage.", "Error", JOptionPane.WARNING_MESSAGE);
@@ -167,7 +195,11 @@ public class Sharing {
             if (onShareSuccess != null) onShareSuccess.run();
         }
     }
-
+    /**
+     * Restituisce il JFrame associato a questa finestra di condivisione.
+     *
+     * @return JFrame della finestra Sharing.
+     */
     public JFrame getFrame() {
         return nuovoFrame;
     }
