@@ -16,8 +16,9 @@ public class Chronology {
     private JButton deleteAllButton;
     private DefaultTableModel defaultTableModel;
     private JFrame nuovoFrame;
+    private static final String FONT_NAME = "Segoe UI";
 
-    public Chronology(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente) {
+    public Chronology(ApplicationManagement controller, String emailUtente) {
 
         // Creo il pannello con sfondo a gradiente simile a Home
         panelCronologia = new JPanel() {
@@ -40,7 +41,7 @@ public class Chronology {
 
         // Titolo
         JLabel titleLabel = new JLabel("Chronology");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setFont(new Font(FONT_NAME, Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panelCronologia.add(titleLabel, BorderLayout.NORTH);
 
@@ -49,8 +50,8 @@ public class Chronology {
         defaultTableModel = new DefaultTableModel(columns, 0);
         tableCronologia = new JTable(defaultTableModel);
         tableCronologia.setFillsViewportHeight(true);
-        tableCronologia.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        tableCronologia.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        tableCronologia.setFont(new Font(FONT_NAME, Font.PLAIN, 16));
+        tableCronologia.getTableHeader().setFont(new Font(FONT_NAME, Font.BOLD, 16));
         JScrollPane scrollPane = new JScrollPane(tableCronologia);
         panelCronologia.add(scrollPane, BorderLayout.CENTER);
 
@@ -116,7 +117,7 @@ public class Chronology {
 
         // Finestra JFrame
         nuovoFrame = new JFrame("Chronology");
-        nuovoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        nuovoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         nuovoFrame.setContentPane(panelCronologia);
         nuovoFrame.setSize(450, 650);
         nuovoFrame.setLocationRelativeTo(null);
@@ -136,10 +137,12 @@ public class Chronology {
         button.setPreferredSize(new Dimension(160, 40));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor, 2));

@@ -201,7 +201,7 @@ public class BoardGui {
         //--apertura della finestra e Condizione per non farla aprire piu volte--
         shareButton.addActionListener(e -> {
             if (sharingWindow == null || !sharingWindow.getFrame().isVisible()) {
-                sharingWindow = new Sharing(controller, email, vecchioFrame, nameBoard,()->{
+                sharingWindow = new Sharing(controller, email, nameBoard,()->{
                     updateToDoList(controller, email, nameBoard);
                 });
 
@@ -415,7 +415,7 @@ public class BoardGui {
                             sharingInfoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
                             SharingInformation sharingInformation = new SharingInformation(
-                                    controller, frame, email, t.getTitle(), nameBoard,
+                                    controller, email, t.getTitle(), nameBoard,
                                     () -> updateToDoList(controller, email, nameBoard) // callback per aggiornare la lista
                             );                            sharingInfoFrame.setContentPane(sharingInformation.getPanel());
                             sharingInfoFrame.setSize(500, 300);

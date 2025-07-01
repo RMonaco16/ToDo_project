@@ -5,181 +5,171 @@ import model.User;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 public class Register {
+    private static final String FRAME_TITLE = "Register";
+    private static final int FRAME_WIDTH = 500;
+    private static final int FRAME_HEIGHT = 500;
+
+    private static final String IMAGE_PATH = "/images/chat_image.png";
+    private static final int IMAGE_DIAMETER = 100;
+
+    private static final Color BACKGROUND_COLOR = Color.decode("#F9F5F0");  // Cream background
+    private static final Color LOGIN_COLOR = Color.decode("#6B7280");       // Gray medium (login button)
+    private static final Color REGISTER_COLOR = Color.decode("#A8BDB5");    // Green sage (register button)
+    private static final Color TEXT_COLOR = Color.decode("#374151");        // Dark neutral text
+
     private JTextField textNickName;
     private JTextField textEmail;
     private JPasswordField passwordField1;
     private JButton registerButton;
-    private JPanel panelRegister;
     private JButton loginButton;
+    private JPanel panelRegister;
     private JLabel imageIcon;
-    private JFrame frame;
 
-    public Register (JFrame frameChiamante, ApplicationManagement controller) {
+    private final JFrame frame;
+    private final JFrame callerFrame;
+    private final ApplicationManagement controller;
 
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/images/chat_image.png"));
+    public Register(JFrame callerFrame, ApplicationManagement controller) {
+        this.callerFrame = callerFrame;
+        this.controller = controller;
+        this.frame = new JFrame(FRAME_TITLE);
+
+        initUI();
+        configureFrame();
+        addListeners();
+    }
+
+    private void initUI() {
+        setupImageIcon();
+        styleComponents();
+    }
+
+    private void setupImageIcon() {
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource(IMAGE_PATH));
         Image originalImage = originalIcon.getImage();
 
-        int diameter = 100; // dimensione cerchio
-
-        Image scaledImage = getScaledImage(originalImage, diameter, diameter);
-        Image circularImage = makeCircularImage(scaledImage, diameter);
+        Image scaledImage = getScaledImage(originalImage, IMAGE_DIAMETER, IMAGE_DIAMETER);
+        Image circularImage = makeCircularImage(scaledImage, IMAGE_DIAMETER);
 
         imageIcon.setIcon(new ImageIcon(circularImage));
-        JFrame frame = new JFrame("Register");
-        frame.setContentPane(panelRegister);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setSize(500,500);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+    }
 
-        // Applica colori della palette
-        panelRegister.setBackground(Color.decode("#F9F5F0")); // Sfondo crema chiaro
+    private void styleComponents() {
+        panelRegister.setBackground(BACKGROUND_COLOR);
 
-        loginButton.setBackground(Color.decode("#6B7280"));   // Primario: verde salvia
-        loginButton.setForeground(Color.WHITE);               // Testo bianco
-        loginButton.setBorder(BorderFactory.createLineBorder(Color.decode("#6B7280"), 2));
+        styleButton(loginButton, LOGIN_COLOR);
+        styleButton(registerButton, REGISTER_COLOR);
 
-        registerButton.setBackground(Color.decode("#A8BDB5")); // Secondario: grigio medio
-        registerButton.setForeground(Color.WHITE);             // Testo bianco
-        registerButton.setBorder(BorderFactory.createLineBorder(Color.decode("#A8BDB5"), 2));
-
-        // Colori normali
-        Color loginColor = Color.decode("#A8BDB5");
-        Color loginHover = loginColor.darker();
-
-        Color registerColor = Color.decode("#6B7280");
-        Color registerHover = registerColor.darker();
-
-// Login button
-        loginButton.setBackground(loginColor);
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setBorder(BorderFactory.createLineBorder(loginColor, 2));
-        loginButton.setFocusPainted(false);
-        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(loginHover);
-                loginButton.setBorder(BorderFactory.createLineBorder(loginHover, 2));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(loginColor);
-                loginButton.setBorder(BorderFactory.createLineBorder(loginColor, 2));
-            }
-        });
-
-// Register button
-        registerButton.setBackground(registerColor);
-        registerButton.setForeground(Color.WHITE);
-        registerButton.setBorder(BorderFactory.createLineBorder(registerColor, 2));
-        registerButton.setFocusPainted(false);
-        registerButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                registerButton.setBackground(registerHover);
-                registerButton.setBorder(BorderFactory.createLineBorder(registerHover, 2));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                registerButton.setBackground(registerColor);
-                registerButton.setBorder(BorderFactory.createLineBorder(registerColor, 2));
-            }
-        });
-
-
-// (Opzionale) Colore campo testo e password
         textNickName.setBackground(Color.WHITE);
         textEmail.setBackground(Color.WHITE);
         passwordField1.setBackground(Color.WHITE);
-        textNickName.setForeground(Color.decode("#374151"));       // Testo scuro neutro
-        textEmail.setForeground(Color.decode("#374151"));       // Testo scuro neutro
-        passwordField1.setForeground(Color.decode("#374151"));   // Testo scuro neutro
 
-        registerButton.addActionListener(new ActionListener() {
+        textNickName.setForeground(TEXT_COLOR);
+        textEmail.setForeground(TEXT_COLOR);
+        passwordField1.setForeground(TEXT_COLOR);
+    }
+
+    private void styleButton(JButton button, Color baseColor) {
+        final Color hoverColor = baseColor.darker();
+
+        button.setBackground(baseColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createLineBorder(baseColor, 2));
+        button.setFocusPainted(false);
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                String nickname = textNickName.getText().trim();
-                String email = textEmail.getText().trim();
-                String passwordStr = new String(passwordField1.getPassword()); // avoid trimming password
-
-                // GUI validations
-                if (nickname.isEmpty()) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Nickname cannot be empty.",
-                            "Missing Nickname Field",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-                if (email.isEmpty()) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Email cannot be empty.",
-                            "Missing Email Field",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-                if (passwordStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Password cannot be empty.",
-                            "Missing Password Field",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Invalid email. Please enter a valid email (example: name@domain.com).",
-                            "Invalid Email",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (!controller.isPasswordValid(passwordStr)) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Password must contain at least 8 characters, including at least one letter and one number.",
-                            "Weak Password",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                // Create user
-                User u = new User(nickname, email, passwordStr);
-                boolean added = controller.addUser(u);
-
-                if (!added) {
-                    JOptionPane.showMessageDialog(panelRegister,
-                            "Registration failed: email is already in use or data is invalid.",
-                            "Registration Failed",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                JOptionPane.showMessageDialog(panelRegister,
-                        "Registration successful!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                frameChiamante.setVisible(true);
-                frame.setVisible(false);
-                frame.dispose();
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverColor);
+                button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
-        });
 
-
-
-        loginButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                frameChiamante.setVisible(true);
-                frame.setVisible(false);
-                frame.dispose();
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor);
+                button.setBorder(BorderFactory.createLineBorder(baseColor, 2));
             }
         });
     }
 
-    public Image getScaledImage(Image srcImg, int w, int h){
+    private void addListeners() {
+        registerButton.addActionListener(e -> handleRegister());
+        loginButton.addActionListener(e -> switchToCallerFrame());
+    }
+
+    private void handleRegister() {
+        String nickname = textNickName.getText().trim();
+        String email = textEmail.getText().trim();
+        String passwordStr = new String(passwordField1.getPassword()); // no trim for password
+
+        if (nickname.isEmpty()) {
+            showWarning("Nickname cannot be empty.", "Missing Nickname Field");
+            return;
+        }
+        if (email.isEmpty()) {
+            showWarning("Email cannot be empty.", "Missing Email Field");
+            return;
+        }
+        if (passwordStr.isEmpty()) {
+            showWarning("Password cannot be empty.", "Missing Password Field");
+            return;
+        }
+
+        if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            showError("Invalid email. Please enter a valid email (example: name@domain.com).", "Invalid Email");
+            return;
+        }
+
+        if (!controller.isPasswordValid(passwordStr)) {
+            showWarning("Password must contain at least 8 characters, including at least one letter and one number.",
+                    "Weak Password");
+            return;
+        }
+
+        User user = new User(nickname, email, passwordStr);
+        boolean added = controller.addUser(user);
+
+        if (!added) {
+            showError("Registration failed: email is already in use or data is invalid.", "Registration Failed");
+            return;
+        }
+
+        showInfo("Registration successful!", "Success");
+        switchToCallerFrame();
+    }
+
+    private void switchToCallerFrame() {
+        callerFrame.setVisible(true);
+        frame.setVisible(false);
+        frame.dispose();
+    }
+
+    private void showWarning(String message, String title) {
+        JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void showError(String message, String title) {
+        JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showInfo(String message, String title) {
+        JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void configureFrame() {
+        frame.setContentPane(panelRegister);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    public Image getScaledImage(Image srcImg, int w, int h) {
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
 
@@ -193,14 +183,12 @@ public class Register {
         return resizedImg;
     }
 
-
     public Image makeCircularImage(Image image, int diameter) {
         BufferedImage mask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2 = mask.createGraphics();
         applyQualityRenderingHints(g2);
 
-        // Crea cerchio pieno come maschera
         g2.fill(new Ellipse2D.Double(0, 0, diameter, diameter));
         g2.dispose();
 
@@ -208,10 +196,7 @@ public class Register {
         g2 = output.createGraphics();
         applyQualityRenderingHints(g2);
 
-        // Imposta maschera come clip
         g2.setClip(new Ellipse2D.Double(0, 0, diameter, diameter));
-
-        // Disegna immagine ridimensionata all’interno del cerchio
         g2.drawImage(image, 0, 0, diameter, diameter, null);
         g2.dispose();
 

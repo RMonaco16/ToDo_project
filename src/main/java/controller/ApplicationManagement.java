@@ -277,7 +277,7 @@ public class ApplicationManagement {
             ToDoDAO dao = new ToDoDAO(DatabaseConnection.getInstance().getConnection());
             return dao.deleteToDo(email, board, title);
         } catch (SQLException e) {
-            System.err.println("Errore durante l'eliminazione del ToDo: " + e.getMessage());
+            logger.info("Errore durante l'eliminazione del ToDo: " + e.getMessage());
             return false;
         }
     }
@@ -312,7 +312,7 @@ public class ApplicationManagement {
             toDoDAO.checkIfComplete(toDoId);
 
         } catch (SQLException e) {
-            System.err.println("Errore SQL durante addActivity: " + e.getMessage());
+           logger.info("Errore SQL durante addActivity: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
              logger.info("Errore generico durante addActivity");
@@ -343,7 +343,7 @@ public class ApplicationManagement {
             toDoDAO.checkIfComplete(toDoId);
 
         } catch (SQLException e) {
-            System.err.println("Errore nella connessione al database: " + e.getMessage());
+            logger.info("Errore nella connessione al database: " + e.getMessage());
         }
     }
 
@@ -672,9 +672,9 @@ public class ApplicationManagement {
         BoardDAO boardDAO = new BoardDAO(conn);
         ToDo todo = boardDAO.checkToDoExists(mailAmministratore, boardName, toDoName);
 
-        Sharing sharing = ensureSharingExists(conn, mailAmministratore, todo, toDoName, boardName);
+        ensureSharingExists(conn, mailAmministratore, todo, toDoName, boardName);
 
-        addUserToSharingIfNeeded(conn, sharing, mailUtenteDestinatario, mailAmministratore, toDoName, boardName);
+        addUserToSharingIfNeeded(conn, mailUtenteDestinatario, mailAmministratore, toDoName, boardName);
 
         return true;
     }
@@ -781,13 +781,12 @@ public class ApplicationManagement {
      * </p>
      *
      * @param conn                 la connessione al database
-     * @param sharing              l'oggetto Sharing relativo alla condivisione del ToDo
      * @param mailUtenteDestinatario l'email dell'utente destinatario da aggiungere
      * @param mailAmministratore   l'email dell'amministratore che condivide il ToDo
      * @param toDoName             il nome del ToDo condiviso
      * @param boardName            il nome della board a cui appartiene il ToDo
      */
-    private void addUserToSharingIfNeeded(Connection conn, Sharing sharing, String mailUtenteDestinatario,
+    private void addUserToSharingIfNeeded(Connection conn, String mailUtenteDestinatario,
                                           String mailAmministratore, String toDoName, String boardName) {
         SharingDAO sharingDAO = new SharingDAO(conn);
         UserDAO userDao = new UserDAO(conn);
@@ -831,7 +830,6 @@ public class ApplicationManagement {
      */
     public boolean isUserAdminOfToDo(String emailUtente, String boardName, String toDoTitle) {
         try {
-            Connection conn = DatabaseConnection.getInstance().getConnection();
             ToDoDAO toDoDAO = new ToDoDAO();
             return toDoDAO.isUserAdminOfToDo(emailUtente, boardName, toDoTitle);
         } catch (Exception e) {
@@ -906,7 +904,6 @@ public class ApplicationManagement {
         }
 
         UserDAO userDao = new UserDAO(conn);
-        BoardDAO boardDAO = new BoardDAO(conn);
         ToDoDAO toDoDAO = new ToDoDAO(conn);
         SharingDAO sharingDAO = new SharingDAO(conn);
 

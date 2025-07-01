@@ -20,13 +20,13 @@ public class SharingInformation {
     private Runnable onSharingEnded;
 
 
-    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
+    public SharingInformation(ApplicationManagement controller, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
 
         // Inizializza la tabella con i membri attuali
         boolean isAdmin = controller.isUserAdminOfToDo(emailUtente, boardName, nomeTodo);
 
         // Inizializza la tabella con i membri attuali
-        updateSharingMember(controller, emailUtente, boardName, nomeTodo, isAdmin);
+        updateSharingMember(controller, emailUtente, boardName, isAdmin);
 
         if (!isAdmin) {
             deleteSelectedButton.setVisible(false);
@@ -44,7 +44,7 @@ public class SharingInformation {
                     boolean successo = controller.rimuoviUtenteDaSharing(emailUtente, emailDaEliminare, boardName, nomeTodo);
                     if (successo) {
                         JOptionPane.showMessageDialog(null, "User removed from sharing!");
-                        updateSharingMember(controller, emailUtente, boardName, nomeTodo,isAdmin);  // Ricarica la tabella aggiornata
+                        updateSharingMember(controller, emailUtente, boardName,isAdmin);  // Ricarica la tabella aggiornata
                     } else {
                         if(emailUtente.equalsIgnoreCase(emailDaEliminare) && emailUtente.equalsIgnoreCase(controller.getToAdministratorMail(emailUtente,nomeTodo))){
                             JOptionPane.showMessageDialog(null, "you cannot eliminate yourself", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -60,7 +60,7 @@ public class SharingInformation {
         this.onSharingEnded = onSharingEnded;
     }
 
-    public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo, boolean isAdmin) {
+    public void updateSharingMember(ApplicationManagement controller, String emailUtente,  String nomeTodo, boolean isAdmin) {
         // Recupera info amministratore
         String adminName = controller.getToAdministratorNick(emailUtente, nomeTodo);
         String adminEmail = controller.getToAdministratorMail(emailUtente, nomeTodo);
@@ -120,10 +120,12 @@ public class SharingInformation {
         button.setPreferredSize(new Dimension(160, 40));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor.darker(), 2));

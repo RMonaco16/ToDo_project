@@ -6,167 +6,196 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.util.List;
 
 public class Sharing {
 
-    private JFrame nuovoFrame;
-    private JPanel panelSharing;
-    private JTextField textEmail;
-    private JButton shareButton;
-    private JComboBox<String> comboBoxToDo;
+    private static final String FONT_FAMILY = "SansSerif";
 
-    private ApplicationManagement controller;
-    private String emailUtente;
-    private String tipoBacheca;
-    private Runnable onShareSuccess;
+    private static final String BACKGROUND_COLOR_HEX = "#F3F4F6";
+    private static final String TITLE_BAR_COLOR_HEX = "#374151";
+    private static final String BUTTON_COLOR_HEX = "#A8BDB5";
 
-    public Sharing(ApplicationManagement controller, String emailUtente, JFrame vecchioFrame, String tipoBacheca, Runnable onShareSuccess) {
+    private final JFrame frame;
+    private  JPanel panelSharing;
+    private  JTextField textEmail;
+    private  JComboBox<String> comboBoxToDo;
+    private  JButton shareButton;
+
+    private final ApplicationManagement controller;
+    private final String emailUtente;
+    private final String tipoBacheca;
+    private final Runnable onShareSuccess;
+
+    public Sharing(ApplicationManagement controller, String emailUtente,
+                   String tipoBacheca, Runnable onShareSuccess) {
         this.controller = controller;
         this.emailUtente = emailUtente;
         this.tipoBacheca = tipoBacheca;
         this.onShareSuccess = onShareSuccess;
 
-        // Finestra
-        nuovoFrame = new JFrame();
-        nuovoFrame.setUndecorated(true);
-        nuovoFrame.setSize(450, 250);
-        nuovoFrame.setLocationRelativeTo(null);
-        nuovoFrame.setLayout(new BorderLayout());
+        frame = new JFrame();
+        frame.setUndecorated(true);
+        frame.setSize(450, 250);
+        frame.setLocationRelativeTo(null);
+        frame.setLayout(new BorderLayout());
 
-        // Barra titolo personalizzata
+        panelSharing = createContentPanel();
+        textEmail = new JTextField();
+        comboBoxToDo = new JComboBox<>();
+        shareButton = new JButton("Share");
+
+        JPanel titleBar = createTitleBar();
+        JPanel buttonPanel = createButtonPanel();
+
+        setupComponents();
+        populateComboBox();
+
+        frame.add(titleBar, BorderLayout.NORTH);
+        frame.add(panelSharing, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+    }
+
+    private JPanel createTitleBar() {
         JPanel titleBar = new JPanel(new BorderLayout());
-        titleBar.setBackground(Color.decode("#374151"));
-        titleBar.setPreferredSize(new Dimension(nuovoFrame.getWidth(), 40));
+        titleBar.setBackground(Color.decode(TITLE_BAR_COLOR_HEX));
+        titleBar.setPreferredSize(new Dimension(frame.getWidth(), 40));
 
         JLabel titleLabel = new JLabel(" Share ToDo");
         titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+        titleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         titleBar.add(titleLabel, BorderLayout.WEST);
 
         JButton closeButton = new JButton("X");
         closeButton.setForeground(Color.WHITE);
-        closeButton.setBackground(Color.decode("#374151"));
+        closeButton.setBackground(Color.decode(TITLE_BAR_COLOR_HEX));
         closeButton.setBorderPainted(false);
         closeButton.setFocusPainted(false);
-        closeButton.setFont(new Font("SansSerif", Font.BOLD, 14));
-        closeButton.addActionListener(e -> {
-            nuovoFrame.setVisible(false);
-            nuovoFrame.dispose();
-        });
+        closeButton.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        closeButton.addActionListener(e -> frame.dispose());
         titleBar.add(closeButton, BorderLayout.EAST);
 
-        // Drag per spostare la finestra
+        // Drag functionality
         final Point clickPoint = new Point();
-        titleBar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent e) {
+        titleBar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
                 clickPoint.setLocation(e.getPoint());
             }
         });
-        titleBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            public void mouseDragged(java.awt.event.MouseEvent e) {
-                Point location = nuovoFrame.getLocation();
-                nuovoFrame.setLocation(location.x + e.getX() - clickPoint.x,
+        titleBar.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                Point location = frame.getLocation();
+                frame.setLocation(location.x + e.getX() - clickPoint.x,
                         location.y + e.getY() - clickPoint.y);
             }
         });
 
-        // Pannello contenuti
-        panelSharing = new JPanel();
-        panelSharing.setLayout(new BoxLayout(panelSharing, BoxLayout.Y_AXIS));
-        panelSharing.setBorder(new EmptyBorder(20, 30, 20, 30));
-        panelSharing.setBackground(Color.decode("#F3F4F6"));
-
-        // Campo email
-        JLabel emailLabel = new JLabel("User Email:");
-        emailLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        panelSharing.add(emailLabel);
-
-        textEmail = new JTextField();
-        textEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        panelSharing.add(textEmail);
-        panelSharing.add(Box.createVerticalStrut(15));
-
-        // ComboBox
-        JLabel toDoLabel = new JLabel("Select ToDo:");
-        toDoLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        panelSharing.add(toDoLabel);
-
-        comboBoxToDo = new JComboBox<>();
-        comboBoxToDo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        panelSharing.add(comboBoxToDo);
-        panelSharing.add(Box.createVerticalStrut(20));
-
-        // Bottone share
-        shareButton = new JButton("Share");
-        shareButton.setBackground(Color.decode("#A8BDB5"));
-        shareButton.setForeground(Color.WHITE);
-        shareButton.setFocusPainted(false);
-        shareButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        shareButton.setPreferredSize(new Dimension(100, 30));
-        shareButton.addActionListener(this::handleShare);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(panelSharing.getBackground());
-        buttonPanel.add(shareButton);
-
-        // Montaggio frame
-        nuovoFrame.add(titleBar, BorderLayout.NORTH);
-        nuovoFrame.add(panelSharing, BorderLayout.CENTER);
-        nuovoFrame.add(buttonPanel, BorderLayout.SOUTH);
-
-        // Popolamento ComboBox
-        popolaComboBox();
-
-        nuovoFrame.setVisible(true);
+        return titleBar;
     }
 
-    private void popolaComboBox() {
-        ArrayList<String> listaToDo = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
+    private JPanel createContentPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        panel.setBackground(Color.decode(BACKGROUND_COLOR_HEX));
 
+        JLabel emailLabel = new JLabel("User Email:");
+        emailLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        panel.add(emailLabel);
+
+        textEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        panel.add(textEmail);
+        panel.add(Box.createVerticalStrut(15));
+
+        JLabel toDoLabel = new JLabel("Select ToDo:");
+        toDoLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        panel.add(toDoLabel);
+
+        comboBoxToDo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        panel.add(comboBoxToDo);
+        panel.add(Box.createVerticalStrut(20));
+
+        return panel;
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(panelSharing.getBackground());
+
+        shareButton.setBackground(Color.decode(BUTTON_COLOR_HEX));
+        shareButton.setForeground(Color.WHITE);
+        shareButton.setFocusPainted(false);
+        shareButton.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        shareButton.setPreferredSize(new Dimension(100, 30));
+        shareButton.addActionListener(this::handleShare);
+
+        buttonPanel.add(shareButton);
+        return buttonPanel;
+    }
+
+    private void setupComponents() {
+        // Nessuna configurazione aggiuntiva necessaria al momento
+    }
+
+    private void populateComboBox() {
         comboBoxToDo.removeAllItems();
         comboBoxToDo.addItem("--");
 
-        for (String todo : listaToDo) {
+        List<String> todoList = controller.getToDoAdminNonCondivisi(emailUtente, tipoBacheca);
+        for (String todo : todoList) {
             comboBoxToDo.addItem(todo);
         }
     }
 
     private void handleShare(ActionEvent e) {
-        String email = textEmail.getText();
+        String email = textEmail.getText().trim();
         String selectedToDo = (String) comboBoxToDo.getSelectedItem();
 
         if (email.isEmpty()) {
-            JOptionPane.showMessageDialog(panelSharing, "Enter an email.", "Error", JOptionPane.WARNING_MESSAGE);
+            showWarning("Enter an email.");
             return;
         }
 
         if (selectedToDo == null || selectedToDo.equals("--")) {
-            JOptionPane.showMessageDialog(panelSharing, "Please select a valid ToDo.", "Error", JOptionPane.WARNING_MESSAGE);
+            showWarning("Please select a valid ToDo.");
             return;
         }
 
-        condividiToDo(emailUtente, email, tipoBacheca, selectedToDo);
+        shareToDo(emailUtente, email, tipoBacheca, selectedToDo);
     }
 
-    public void condividiToDo(String emailCreatore, String emailDaCondividere, String bacheca, String toDoName) {
-        if (!controller.isUserAdminOfToDo(emailCreatore, bacheca, toDoName)) {
-            JOptionPane.showMessageDialog(panelSharing, "You can't share a ToDo that you don't manage.", "Error", JOptionPane.WARNING_MESSAGE);
+    private void shareToDo(String emailCreator, String emailToShare, String boardType, String toDoName) {
+        if (!controller.isUserAdminOfToDo(emailCreator, boardType, toDoName)) {
+            showWarning("You can't share a ToDo that you don't manage.");
             return;
         }
 
-        boolean risultato = controller.shareToDo(emailCreatore, emailDaCondividere, bacheca, toDoName);
-
-
-        if (!risultato ) {
-            JOptionPane.showMessageDialog(panelSharing, "User not found or sharing error.", "Error", JOptionPane.INFORMATION_MESSAGE);
+        boolean success = controller.shareToDo(emailCreator, emailToShare, boardType, toDoName);
+        if (!success) {
+            showInfo("User not found or sharing error.");
         } else {
-            JOptionPane.showMessageDialog(panelSharing, "ToDo shared successfully!", "Sharing completed", JOptionPane.INFORMATION_MESSAGE);
-            nuovoFrame.dispose();
+            showInfo("ToDo shared successfully!");
+            frame.dispose();
             if (onShareSuccess != null) onShareSuccess.run();
         }
     }
 
+    private void showWarning(String message) {
+        JOptionPane.showMessageDialog(panelSharing, message, "Warning", JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void showInfo(String message) {
+        JOptionPane.showMessageDialog(panelSharing, message, "Info", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     public JFrame getFrame() {
-        return nuovoFrame;
+        return frame;
     }
 }

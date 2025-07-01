@@ -7,7 +7,7 @@ public class CheckList {
     private ArrayList<Activity> activities = new ArrayList<>();
 
     public CheckList(){
-
+        //costructor
     }
 
     public ArrayList<Activity> getActivities() {

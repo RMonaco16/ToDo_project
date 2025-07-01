@@ -12,22 +12,32 @@ public class ToDoDAO {
 
     private static final Logger logger = Logger.getLogger(ToDoDAO.class.getName());
 
-
-    private Connection conn;
+    private Connection connection;
+    private static final String SELECT_BOARD_ID =
+            "SELECT id FROM boards WHERE user_email = ? AND type = ?";
 
     public ToDoDAO() {
-        this.conn = DatabaseConnection.getInstance().getConnection();
+        this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
     public ToDoDAO(Connection conn) {
-        this.conn = conn;
+        this.connection = conn;
     }
 
+    /**
+     * Aggiunge un nuovo ToDo nella board specificata per l'utente.
+     * Controlla che non esista già un ToDo con lo stesso titolo (locale o condiviso).
+     * Crea una checklist vuota associata al ToDo.
+     *
+     * @param email email dell'utente proprietario della board
+     * @param tipoEnum tipo della board (es. "WORK")
+     * @param toDo oggetto ToDo da aggiungere
+     * @return true se il ToDo è stato aggiunto correttamente, false altrimenti
+     */
     public boolean addToDoInBoard(String email, String tipoEnum, ToDo toDo) {
-        String boardSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         int boardId = -1;
 
-        try (PreparedStatement boardStmt = conn.prepareStatement(boardSql)) {
+        try (PreparedStatement boardStmt = connection.prepareStatement(SELECT_BOARD_ID)) {
             boardStmt.setString(1, email);
             boardStmt.setString(2, tipoEnum);
             ResultSet boardRs = boardStmt.executeQuery();
@@ -35,7 +45,7 @@ public class ToDoDAO {
             if (boardRs.next()) {
                 boardId = boardRs.getInt("id");
             } else {
-                 logger.info("Board non trovata per l’utente: " + email);
+                logger.info("Board non trovata per l’utente: " + email);
                 return false;
             }
         } catch (SQLException e) {
@@ -62,17 +72,17 @@ public class ToDoDAO {
     LIMIT 1
     """;
 
-        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            checkStmt.setInt(1, boardId);               // ToDo locale
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, boardId);               // To-Do locale
             checkStmt.setString(2, toDo.getTitle());
 
-            checkStmt.setString(3, email);              // ToDo condiviso
+            checkStmt.setString(3, email);              // To-Do condiviso
             checkStmt.setString(4, tipoEnum);           // tipo della board (es. "WORK")
             checkStmt.setString(5, toDo.getTitle());
 
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next()) {
-                 logger.info("Esiste già un ToDo con lo stesso titolo (locale o condiviso).");
+                logger.info("Esiste già un ToDo con lo stesso titolo (locale o condiviso).");
                 return false;
             }
         } catch (SQLException e) {
@@ -84,12 +94,12 @@ public class ToDoDAO {
         int checklistId = -1;
         String insertChecklistSql = "INSERT INTO checklists DEFAULT VALUES RETURNING id";
 
-        try (PreparedStatement checklistStmt = conn.prepareStatement(insertChecklistSql)) {
+        try (PreparedStatement checklistStmt = connection.prepareStatement(insertChecklistSql)) {
             ResultSet rs = checklistStmt.executeQuery();
             if (rs.next()) {
                 checklistId = rs.getInt("id");
             } else {
-                 logger.info("Errore nella creazione della checklist.");
+                logger.info("Errore nella creazione della checklist.");
                 return false;
             }
         } catch (SQLException e) {
@@ -103,7 +113,7 @@ public class ToDoDAO {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+        try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
             insertStmt.setInt(1, boardId);
             insertStmt.setString(2, toDo.getTitle());
             insertStmt.setString(3, toDo.getDescription() != null ? toDo.getDescription() : null);
@@ -121,7 +131,7 @@ public class ToDoDAO {
             insertStmt.setInt(11, checklistId);
 
             insertStmt.executeUpdate();
-             logger.info("ToDo con checklist vuota inserito con successo.");
+            logger.info("ToDo con checklist vuota inserito con successo.");
             return true;
 
         } catch (SQLException e) {
@@ -130,18 +140,28 @@ public class ToDoDAO {
         }
     }
 
+
+    /**
+     * Elimina un ToDo dalla board specificata di un utente.
+     * Se il ToDo è condiviso, verifica che l'utente sia amministratore prima di eliminarlo.
+     *
+     * @param email email dell'utente che richiede l'eliminazione
+     * @param boardType tipo della board (es. "WORK")
+     * @param todoTitle titolo del ToDo da eliminare
+     * @return true se il ToDo è stato eliminato, false altrimenti
+     * @throws SQLException in caso di errore nell'accesso al database
+     */
     public boolean deleteToDo(String email, String boardType, String todoTitle) throws SQLException {
         Connection conn = DatabaseConnection.getInstance().getConnection();
 
         // 1. Recupera l'ID della bacheca
-        String boardQuery = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
-        try (PreparedStatement boardStmt = conn.prepareStatement(boardQuery)) {
+        try (PreparedStatement boardStmt = conn.prepareStatement(SELECT_BOARD_ID)) {
             boardStmt.setString(1, email);
             boardStmt.setString(2, boardType.toUpperCase());
 
             ResultSet rsBoard = boardStmt.executeQuery();
             if (!rsBoard.next()) {
-                 logger.info("Bacheca non trovata.");
+                logger.info("Bacheca non trovata.");
                 return false;
             }
 
@@ -155,7 +175,7 @@ public class ToDoDAO {
 
                 ResultSet rsTodo = todoStmt.executeQuery();
                 if (!rsTodo.next()) {
-                     logger.info("ToDo non trovato.");
+                    logger.info("ToDo non trovato.");
                     return false;
                 }
 
@@ -171,7 +191,7 @@ public class ToDoDAO {
 
                         ResultSet rsAdmin = adminStmt.executeQuery();
                         if (!rsAdmin.next()) {
-                             logger.info("Solo l'amministratore può eliminare un ToDo condiviso.");
+                            logger.info("Solo l'amministratore può eliminare un ToDo condiviso.");
                             return false;
                         }
 
@@ -197,13 +217,20 @@ public class ToDoDAO {
                     deleteStmt.executeUpdate();
                 }
 
-                 logger.info("ToDo eliminato con successo.");
+                logger.info("ToDo eliminato con successo.");
                 return true;
             }
         }
     }
 
-
+    /**
+     * Verifica se un utente è amministratore di un ToDo specifico nella board indicata.
+     *
+     * @param email email dell'utente
+     * @param boardName tipo della board (es. "WORK")
+     * @param toDoTitle titolo del ToDo
+     * @return true se l'utente è amministratore del ToDo, false altrimenti
+     */
     public boolean isUserAdminOfToDo(String email, String boardName, String toDoTitle) {
         String sql = """
         SELECT COUNT(*) as total
@@ -215,7 +242,7 @@ public class ToDoDAO {
           AND LOWER(b.user_email) = LOWER(?)
     """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
             stmt.setString(2, toDoTitle);
             stmt.setString(3, boardName.toUpperCase());
@@ -233,6 +260,19 @@ public class ToDoDAO {
         return false;
     }
 
+    /**
+     * Aggiorna i dettagli di un ToDo esistente nella board di un utente.
+     *
+     * @param email email dell'utente proprietario della board
+     * @param boardType tipo della board (es. "WORK")
+     * @param oldTitle titolo corrente del ToDo da aggiornare
+     * @param newTitle nuovo titolo da assegnare
+     * @param description nuova descrizione (può essere null)
+     * @param expiration nuova data di scadenza (può essere null)
+     * @param image nuova immagine associata (può essere null)
+     * @param color nuovo colore associato (può essere null)
+     * @return true se l'aggiornamento è andato a buon fine, false altrimenti
+     */
     public boolean updateToDo(String email, String boardType, String oldTitle,
                               String newTitle, String description, LocalDate expiration,
                               String image, Color color) {
@@ -248,7 +288,7 @@ public class ToDoDAO {
         )
     """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, newTitle);
             stmt.setString(2, description);
             stmt.setDate(3, expiration != null ? Date.valueOf(expiration) : null);
@@ -266,7 +306,14 @@ public class ToDoDAO {
             return false;
         }
     }
-
+    /**
+     * Recupera l'ID di un ToDo dato il titolo, l'email dell'amministratore e il tipo di board.
+     *
+     * @param title titolo del ToDo
+     * @param adminEmail email dell'amministratore/proprietario
+     * @param boardName tipo della board (es. "WORK")
+     * @return ID del ToDo se trovato, null altrimenti
+     */
     public Integer getTodoIdByTitleUserAndBoard(String title, String adminEmail, String boardName) {
         String sql = """
         SELECT t.id
@@ -278,7 +325,7 @@ public class ToDoDAO {
           AND t.owner_email = ?
     """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, title);
             stmt.setString(2, boardName);
             stmt.setString(3, adminEmail); // verifica che la board appartenga all'utente
@@ -296,7 +343,12 @@ public class ToDoDAO {
         return null;
     }
 
-
+    /**
+     * Imposta il campo 'condiviso' di un ToDo a true dato il suo ID.
+     *
+     * @param todoId ID del ToDo
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean setCondivisoTrueById(int todoId) {
         String sql = """
         UPDATE todos
@@ -304,7 +356,7 @@ public class ToDoDAO {
         WHERE id = ?
     """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, todoId);
 
             int affected = stmt.executeUpdate();
@@ -316,6 +368,16 @@ public class ToDoDAO {
         }
     }
 
+
+    /**
+     * Recupera il colore associato a un ToDo specifico.
+     *
+     * @param boardType tipo della board (es. "WORK")
+     * @param email email dell'utente proprietario della board
+     * @param toDoTitle titolo del ToDo
+     * @param shared true se il ToDo è condiviso, false altrimenti
+     * @return oggetto Color se presente, null altrimenti
+     */
     public Color getColorOfToDo(String boardType, String email, String toDoTitle, boolean shared) {
         String sql = """
         SELECT t.color
@@ -327,7 +389,7 @@ public class ToDoDAO {
         AND t.condiviso = ?
     """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
             stmt.setString(2, boardType.toUpperCase());
             stmt.setString(3, toDoTitle);
@@ -348,17 +410,37 @@ public class ToDoDAO {
         return null;
     }
 
+    /**
+     * Imposta il campo 'condiviso' di un ToDo a false dato il suo ID.
+     *
+     * @param todoId ID del ToDo
+     */
     public void setCondivisoFalseById(int todoId) {
         String sql = "UPDATE todos SET condiviso = FALSE WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, todoId);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    //--------------abominio sposta to-Do
 
+    /**
+     * Sposta un ToDo da una board all'altra di proprietà dello stesso utente.
+     * Non è possibile spostare ToDo condivisi.
+     *
+     * Codici di ritorno:
+     * 0 = successo
+     * 1 = ToDo già presente nella board di destinazione
+     * 2 = ToDo condiviso, non può essere spostato
+     * 3 = utente o board non trovati o errore
+     *
+     * @param email email dell'utente
+     * @param nomeToDo titolo del ToDo da spostare
+     * @param nomeBachecaInCuiSpostare nome della board di destinazione
+     * @param nomeBachecaDiOrigine nome della board di origine
+     * @return codice intero che indica il risultato dell'operazione
+     */
     public int spostaToDoInBacheca(String email, String nomeToDo, String nomeBachecaInCuiSpostare, String nomeBachecaDiOrigine) {
         // codici di ritorno:
         // 0 = successo
@@ -373,7 +455,7 @@ public class ToDoDAO {
                 psUser.setString(1, email);
                 try (ResultSet rsUser = psUser.executeQuery()) {
                     if (!rsUser.next()) {
-                         logger.info("Utente non trovato...");
+                        logger.info("Utente non trovato...");
                         return 3;
                     }
                 }
@@ -384,7 +466,7 @@ public class ToDoDAO {
             Integer boardIdDestinazione = getBoardId(conn, email, nomeBachecaInCuiSpostare);
 
             if (boardIdOrigine == null || boardIdDestinazione == null) {
-                 logger.info("Bacheca origine o destinazione non valida");
+                logger.info("Bacheca origine o destinazione non valida");
                 return 3;
             }
 
@@ -400,14 +482,14 @@ public class ToDoDAO {
                         todoId = rsToDo.getInt("id");
                         condiviso = rsToDo.getBoolean("condiviso");
                     } else {
-                         logger.info("ToDo non trovato nella bacheca di origine");
+                        logger.info("ToDo non trovato nella bacheca di origine");
                         return 3;
                     }
                 }
             }
 
             if (condiviso) {
-                 logger.info("ToDo condiviso, non puoi spostarlo");
+                logger.info("ToDo condiviso, non puoi spostarlo");
                 return 2;
             }
 
@@ -418,7 +500,7 @@ public class ToDoDAO {
                 psCheckDest.setString(2, nomeToDo);
                 try (ResultSet rsCheckDest = psCheckDest.executeQuery()) {
                     if (rsCheckDest.next()) {
-                         logger.info("ToDo già presente nella bacheca di destinazione");
+                        logger.info("ToDo già presente nella bacheca di destinazione");
                         return 1;
                     }
                 }
@@ -431,25 +513,24 @@ public class ToDoDAO {
                 psUpdate.setInt(2, todoId);
                 int rows = psUpdate.executeUpdate();
                 if (rows == 0) {
-                     logger.info("Errore nello spostamento del ToDo");
+                    logger.info("Errore nello spostamento del ToDo");
                     return 3;
                 }
             }
 
-             logger.info("ToDo spostato con successo");
+            logger.info("ToDo spostato con successo");
             return 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
-             logger.info("Errore database durante spostamento ToDo");
+            logger.info("Errore database durante spostamento ToDo");
             return 3;
         }
     }
 
     // Metodo di supporto per recuperare ID board dato email e tipo (nomeBacheca)
     private Integer getBoardId(Connection conn, String email, String nomeBacheca) throws SQLException {
-        String sql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(SELECT_BOARD_ID)) {
             ps.setString(1, email);
             ps.setString(2, nomeBacheca.toUpperCase()); // assumendo valori in maiuscolo
             try (ResultSet rs = ps.executeQuery()) {
@@ -461,7 +542,13 @@ public class ToDoDAO {
             }
         }
     }
-
+    /**
+     * Verifica se tutte le attività associate a un ToDo sono completate.
+     * Aggiorna di conseguenza lo stato del ToDo.
+     *
+     * @param toDoId ID del ToDo da verificare
+     * @throws SQLException in caso di errore nell'accesso al database
+     */
     public void checkIfComplete(int toDoId) throws SQLException {
         String checkSql = """
         SELECT a.state
@@ -472,7 +559,7 @@ public class ToDoDAO {
 
         String updateSql = "UPDATE todos SET state = ? WHERE id = ?";
 
-        Connection conn = this.conn;
+        Connection conn = this.connection;
 
         boolean allComplete = true;
         boolean hasActivities = false;
@@ -500,9 +587,17 @@ public class ToDoDAO {
             updateStmt.executeUpdate();
         }
     }
+
+    /**
+     * Recupera lo stato (completato o meno) di un ToDo dato il suo ID.
+     *
+     * @param toDoId ID del ToDo
+     * @return true se completato, false altrimenti
+     * @throws SQLException se il ToDo non è trovato o errore DB
+     */
     public boolean getStateById(int toDoId) throws SQLException {
         String sql = "SELECT state FROM todos WHERE id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, toDoId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -513,6 +608,4 @@ public class ToDoDAO {
             }
         }
     }
-
-
 }

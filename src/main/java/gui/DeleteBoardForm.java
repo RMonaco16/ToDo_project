@@ -13,6 +13,7 @@ public class DeleteBoardForm {
     private JButton deleteButton;
     private JComboBox<String> comboBoxBoards;
     private JFrame nuovoFrame;
+    private static final String FONT_NAME = "Segoe UI";
 
     public DeleteBoardForm(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, Home home) {
         // Ottieni e filtra le board
@@ -50,7 +51,7 @@ public class DeleteBoardForm {
 
         // Titolo
         JLabel titleLabel = new JLabel("Delete Board");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setFont(new Font(FONT_NAME, Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panelDeleteBoard.add(titleLabel, BorderLayout.NORTH);
 
@@ -63,14 +64,14 @@ public class DeleteBoardForm {
 
         // Label selezione
         JLabel selectLabel = new JLabel("Select a board:");
-        selectLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        selectLabel.setFont(new Font(FONT_NAME, Font.PLAIN, 16));
         gbc.gridx = 0;
         gbc.gridy = 0;
         centerPanel.add(selectLabel, gbc);
 
         // ComboBox
         comboBoxBoards = new JComboBox<>();
-        comboBoxBoards.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        comboBoxBoards.setFont(new Font(FONT_NAME, Font.PLAIN, 16));
         comboBoxBoards.addItem("--");
         for (Board board : boardsNonNulle) {
             comboBoxBoards.addItem(board.getType().toString());
@@ -86,7 +87,7 @@ public class DeleteBoardForm {
         buttonPanel.setOpaque(false);
 
         deleteButton = new JButton("Delete");
-        deleteButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        deleteButton.setFont(new Font(FONT_NAME, Font.BOLD, 16));
         deleteButton.setBackground(Color.decode("#C44E4E"));
         deleteButton.setForeground(Color.WHITE);
         deleteButton.setFocusPainted(false);
@@ -97,10 +98,12 @@ public class DeleteBoardForm {
         Color baseColor = Color.decode("#C44E4E");
         Color hoverColor = baseColor.darker();
         deleteButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 deleteButton.setBackground(hoverColor);
             }
 
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 deleteButton.setBackground(baseColor);
             }
@@ -124,7 +127,7 @@ public class DeleteBoardForm {
         nuovoFrame.setContentPane(panelDeleteBoard);
         nuovoFrame.setSize(400, 250);
         nuovoFrame.setLocationRelativeTo(null);
-        nuovoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        nuovoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         nuovoFrame.setVisible(true);
 
         // Listener chiusura

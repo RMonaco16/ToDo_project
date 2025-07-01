@@ -18,6 +18,8 @@ public class Home {
     private AddBoard addBoardWindow = null;
     private Chronology chronologyWindow = null;
     private DeleteBoardForm deleteBoardFormWindow = null;
+    private static final String DIALOG_TITLE = "Dialog";
+    private static final String COLOR_GRAY_HEX = "#6B7280";
 
     private ArrayList<Board> userBoards;
     private User user;
@@ -25,6 +27,22 @@ public class Home {
     public Home(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         frameVecchio.dispose();
 
+        initPanelHome();
+        initFrame();
+
+        JPanel topPanel = setupTopPanel(controller, frameVecchio, emailUtente);
+        JPanel bottomPanel = setupBottomPanel(controller, emailUtente);
+        setupCenterPanel();
+
+        panelHome.add(topPanel, BorderLayout.NORTH);
+        panelHome.add(bottomPanel, BorderLayout.SOUTH);
+
+        loadUserBoards(controller, emailUtente);
+
+        jFrame.setVisible(true);
+    }
+
+    private void initPanelHome() {
         panelHome = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -41,24 +59,24 @@ public class Home {
             }
         };
         panelHome.setLayout(new BorderLayout());
+    }
 
-        panelBoards = new JPanel();
-        panelBoards.setOpaque(false);
-        panelBoards.setLayout(new BoxLayout(panelBoards, BoxLayout.Y_AXIS));
-
+    private void initFrame() {
         jFrame = new JFrame("Home");
         jFrame.setContentPane(panelHome);
         jFrame.pack();
         jFrame.setSize(600, 400);
         jFrame.setLocationRelativeTo(null);
-        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
 
+    private JPanel setupTopPanel(ApplicationManagement controller, JFrame frameVecchio, String emailUtente) {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
 
         JButton goBackButton = new JButton("\u21E6");
-        goBackButton.setFont(new Font("Dialog", Font.PLAIN, 24));
-        setupSecondaryButton(goBackButton, Color.decode("#6B7280"));
+        goBackButton.setFont(new Font(DIALOG_TITLE, Font.PLAIN, 24));
+        setupSecondaryButton(goBackButton, Color.decode(COLOR_GRAY_HEX));
         goBackButton.addActionListener(e -> {
             jFrame.setVisible(false);
             jFrame.dispose();
@@ -72,11 +90,11 @@ public class Home {
         topPanel.add(leftPanel, BorderLayout.WEST);
 
         JButton historyButton = new JButton("\uD83D\uDD58");
-        historyButton.setFont(new Font("Dialog", Font.PLAIN, 24));
-        setupSecondaryButton(historyButton, Color.decode("#6B7280"));
+        historyButton.setFont(new Font(DIALOG_TITLE, Font.PLAIN, 24));
+        setupSecondaryButton(historyButton, Color.decode(COLOR_GRAY_HEX));
         historyButton.addActionListener(e -> {
             if (chronologyWindow == null || !chronologyWindow.getFrame().isVisible()) {
-                chronologyWindow = new Chronology(controller, jFrame, emailUtente);
+                chronologyWindow = new Chronology(controller, emailUtente);
             } else {
                 chronologyWindow.getFrame().toFront();
                 chronologyWindow.getFrame().requestFocus();
@@ -88,23 +106,19 @@ public class Home {
         rightPanel.add(historyButton);
         topPanel.add(rightPanel, BorderLayout.EAST);
 
-        panelHome.add(topPanel, BorderLayout.NORTH);
+        return topPanel;
+    }
 
-        JPanel centerWrapper = new JPanel(new GridBagLayout());
-        centerWrapper.setOpaque(false);
-        centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
-        centerWrapper.add(panelBoards);
-        panelHome.add(centerWrapper, BorderLayout.CENTER);
-
+    private JPanel setupBottomPanel(ApplicationManagement controller, String emailUtente) {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
 
         JButton deleteButton = new JButton("\uD83D\uDDD1\uFE0F");
-        deleteButton.setFont(new Font("Dialog", Font.PLAIN, 24));
-        setupSecondaryButton(deleteButton, Color.decode("#6B7280"));
+        deleteButton.setFont(new Font(DIALOG_TITLE, Font.PLAIN, 24));
+        setupSecondaryButton(deleteButton, Color.decode(COLOR_GRAY_HEX));
         deleteButton.addActionListener(e -> {
             if (deleteBoardFormWindow == null || !deleteBoardFormWindow.getFrame().isVisible()) {
-                deleteBoardFormWindow = new DeleteBoardForm(controller, jFrame, emailUtente, Home.this);
+                deleteBoardFormWindow = new DeleteBoardForm(controller, jFrame, emailUtente, this);
             } else {
                 deleteBoardFormWindow.getFrame().toFront();
                 deleteBoardFormWindow.getFrame().requestFocus();
@@ -117,24 +131,37 @@ public class Home {
         bottomPanel.add(deletePanel, BorderLayout.WEST);
 
         ADDButton = new JButton("+");
-        ADDButton.setFont(new Font("Dialog", Font.BOLD, 24));
+        ADDButton.setFont(new Font(DIALOG_TITLE, Font.BOLD, 24));
         setupPrimaryButton(ADDButton, Color.decode("#A8BDB5"));
         JPanel addPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addPanel.setOpaque(false);
         addPanel.add(ADDButton);
         bottomPanel.add(addPanel, BorderLayout.EAST);
 
-        panelHome.add(bottomPanel, BorderLayout.SOUTH);
-
         ADDButton.addActionListener(e -> {
             if (addBoardWindow == null || !addBoardWindow.getFrame().isVisible()) {
-                addBoardWindow = new AddBoard(controller, jFrame, emailUtente, Home.this);
+                addBoardWindow = new AddBoard(controller, emailUtente, this);
             } else {
                 addBoardWindow.getFrame().toFront();
                 addBoardWindow.getFrame().requestFocus();
             }
         });
 
+        return bottomPanel;
+    }
+
+    private void setupCenterPanel() {
+        panelBoards = new JPanel();
+        panelBoards.setOpaque(false);
+        panelBoards.setLayout(new BoxLayout(panelBoards, BoxLayout.Y_AXIS));
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        centerWrapper.setOpaque(false);
+        centerWrapper.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
+        centerWrapper.add(panelBoards);
+        panelHome.add(centerWrapper, BorderLayout.CENTER);
+    }
+
+    private void loadUserBoards(ApplicationManagement controller, String emailUtente) {
         emptyLabel = new JLabel("No boards available.");
         emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelBoards.add(emptyLabel);
@@ -143,15 +170,15 @@ public class Home {
         userBoards = controller.printBoard(emailUtente);
 
         if (userBoards != null && !userBoards.isEmpty()) {
+            panelBoards.remove(emptyLabel);
             for (Board board : userBoards) {
                 if (board != null) {
                     addBoardButton(board, controller, emailUtente);
                 }
             }
         }
-
-        jFrame.setVisible(true);
     }
+
 
     public void addBoardButton(Board board, ApplicationManagement controller, String emailUtente) {
         if (emptyLabel != null && emptyLabel.getParent() != null) {
