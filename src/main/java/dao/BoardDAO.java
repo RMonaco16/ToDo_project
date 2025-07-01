@@ -9,10 +9,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-/**
- * Classe DAO per la gestione delle operazioni sul database relative alle Board e ai ToDo.
- * Fornisce metodi per creare, eliminare e recuperare board e ToDo associati agli utenti.
- */
 public class BoardDAO {
     private static final Logger logger = Logger.getLogger(BoardDAO.class.getName());
     private final Connection conn;
@@ -25,22 +21,12 @@ public class BoardDAO {
     private static final String COL_CONDIVISO = "condiviso";
     private static final String COL_OWNER ="owner_email";
 
-    /**
-     * Costruttore che inizializza il DAO con una connessione al database.
-     *
-     * @param conn connessione al database da utilizzare per le operazioni
-     */
+
     public BoardDAO(Connection conn) {
         this.conn = conn; // usa quella che ti viene passata
     }
 
-    /**
-     * Crea una nuova board per un utente, se non ne esiste già una dello stesso tipo.
-     *
-     * @param board la board da creare
-     * @param userEmail email dell'utente proprietario della board
-     * @return true se la board è stata creata con successo, false se esiste già o in caso di errore
-     */
+    // Crea una nuova board
     public boolean creaBoard(Board board, String userEmail) {
         String checkSql = "SELECT id FROM boards WHERE user_email = ? AND type = ?";
         String insertSql = "INSERT INTO boards (type, description, user_email) VALUES (?, ?, ?)";
@@ -71,12 +57,7 @@ public class BoardDAO {
     }
 
 
-    /**
-     * Elimina una board di un dato tipo associata a un utente.
-     *
-     * @param email email dell'utente proprietario della board
-     * @param type tipo della board da eliminare
-     */
+    // Elimina board per tipo
     public void eliminaBoard(String email, String type) {
         String sql = "DELETE FROM boards WHERE user_email = ? AND type = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -88,14 +69,6 @@ public class BoardDAO {
         }
     }
 
-    /**
-     * Verifica se esiste un ToDo con un determinato titolo all'interno di una board di un utente.
-     *
-     * @param email email dell'utente proprietario della board
-     * @param boardType tipo della board
-     * @param todoTitle titolo del ToDo da cercare
-     * @return il ToDo trovato oppure null se non esiste
-     */
     public ToDo checkToDoExists(String email, String boardType, String todoTitle){
         String sql = """
         SELECT t.title, t.description, t.color, t.image, t.expiration,
@@ -125,14 +98,14 @@ public class BoardDAO {
                     ToDo todo = new ToDo(title, state, checkList, condiviso, ownerEmail);
 
                     // Aggiunta campi opzionali
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
                     Date expDate = rs.getDate(COL_EXPIRATION);
                     if (expDate != null) {
@@ -150,12 +123,6 @@ public class BoardDAO {
         }
     }
 
-    /**
-     * Recupera tutte le board associate a un utente dato l'indirizzo email.
-     *
-     * @param email email dell'utente
-     * @return lista di Board associate all'utente
-     */
     public ArrayList<Board> getBoardsByEmail(String email) {
         ArrayList<Board> boards = new ArrayList<>();
         String sql = "SELECT type, description FROM boards WHERE user_email = ?";
@@ -182,13 +149,6 @@ public class BoardDAO {
         return boards;
     }
 
-    /**
-     * Recupera tutti i ToDo locali (non condivisi) di una board specifica per un utente.
-     *
-     * @param email email dell'utente proprietario
-     * @param nameBoard tipo/nome della board
-     * @return lista di ToDo locali della board
-     */
     public ArrayList<ToDo> getAllLocalToDos(String email, String nameBoard) {
         String sql = """
             SELECT todos.*
@@ -208,8 +168,8 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo(); // usa costruttore vuoto
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     // Converte String "#RRGGBB" in java.awt.Color
                     String hexColor = rs.getString(COL_COLOR);
@@ -217,7 +177,7 @@ public class BoardDAO {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
                     // Conversione da java.sql.Date a java.time.LocalDate
                     Date sqlDate = rs.getDate(COL_EXPIRATION);
@@ -242,13 +202,6 @@ public class BoardDAO {
         return todos;
     }
 
-    /**
-     * Recupera tutti i ToDo condivisi a cui un utente ha accesso in una board specifica.
-     *
-     * @param email email dell'utente membro della condivisione
-     * @param boardType tipo della board
-     * @return lista di ToDo condivisi
-     */
     public ArrayList<ToDo> getAllSharedToDos(String email, String boardType) {
         String sql = """
             SELECT todos.*
@@ -270,15 +223,15 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
                     Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
@@ -301,13 +254,6 @@ public class BoardDAO {
         return sharedTodos;
     }
 
-    /**
-     * Recupera i ToDo locali che scadono in una data specifica (oggi) per una board di un utente.
-     *
-     * @param email email dell'utente proprietario
-     * @param boardType tipo della board
-     * @return lista di ToDo che scadono oggi
-     */
     public ArrayList<ToDo> getLocalTodosByExpirationDate(String email, String boardType) {
         String sql = """
         SELECT todos.*
@@ -329,15 +275,15 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
                     Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
@@ -359,14 +305,6 @@ public class BoardDAO {
         return todos;
     }
 
-    /**
-     * Recupera i ToDo locali che scadono prima o entro una data specifica per una board di un utente.
-     *
-     * @param email email dell'utente proprietario
-     * @param boardType tipo della board
-     * @param date data di scadenza limite (inclusa)
-     * @return lista di ToDo con scadenza entro la data specificata
-     */
     public ArrayList<ToDo> getLocalTodosExpiringBeforeOrOn(String email, String boardType, LocalDate date) {
         String sql = """
             SELECT todos.*
@@ -388,15 +326,15 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
                     Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
@@ -418,14 +356,6 @@ public class BoardDAO {
         return todos;
     }
 
-    /**
-     * Recupera i ToDo condivisi che scadono prima o entro una data specifica per una board.
-     *
-     * @param email email dell'utente membro della condivisione
-     * @param boardType tipo della board
-     * @param date data di scadenza limite (inclusa)
-     * @return lista di ToDo condivisi con scadenza entro la data specificata
-     */
     public ArrayList<ToDo> getSharedTodosExpiringBeforeOrOn(String email, String boardType, LocalDate date) {
         String sql = """
         SELECT todos.*
@@ -452,15 +382,15 @@ public class BoardDAO {
                     if (sqlDate == null) continue; // ulteriore sicurezza
 
                     ToDo todo = new ToDo();
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
                     todo.setExpiration(sqlDate.toLocalDate());
                     todo.setState(rs.getBoolean(COL_STATE));
                     todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
@@ -477,76 +407,68 @@ public class BoardDAO {
         return todos;
     }
 
-    /**
-     * Cerca un ToDo per titolo in una board specifica di un utente, includendo ToDo sia locali che condivisi.
-     *
-     * @param email email dell'utente (proprietario o membro della condivisione)
-     * @param boardType tipo della board
-     * @param title titolo del ToDo da cercare (case-insensitive)
-     * @return ToDo trovato oppure null se non esiste
-     */
     public ToDo findToDoByTitleInBoard(String email, String boardType, String title) {
         String sql = """
     SELECT todos.*, false AS is_shared
     FROM todos
     JOIN boards ON todos.board_id = boards.id
     WHERE boards.user_email = ?
-      AND LOWER(boards.type) = LOWER(?)
-      AND LOWER(todos.title) = LOWER(?)
+      AND boards.type = ?
+      AND todos.title = ?
 
     UNION
 
     SELECT todos.*, true AS is_shared
     FROM todos
-    JOIN sharings ON sharings.todo_id = todos.id
-    JOIN sharing_members ON sharing_members.sharing_id = sharings.id
+    JOIN sharings ON todos.id = sharings.todo_id
+    JOIN sharing_members ON sharings.id = sharing_members.sharing_id
     JOIN boards ON todos.board_id = boards.id
     WHERE sharing_members.member_email = ?
-      AND LOWER(boards.type) = LOWER(?)
-      AND LOWER(todos.title) = LOWER(?)
+      AND boards.type = ?
+      AND todos.title = ?
+    LIMIT 1
     """;
 
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            // Per la prima parte (locali)
-            stmt.setString(1, email);   // boards.user_email
-            stmt.setString(2, boardType);   // boards.type
-            stmt.setString(3, title);   // todos.title
+            stmt.setString(1, email);
+            stmt.setString(2, boardType);
+            stmt.setString(3, title);
+            stmt.setString(4, email);
+            stmt.setString(5, boardType);
+            stmt.setString(6, title);
 
-            // Per la seconda parte (condivisi)
-            stmt.setString(4, email);   // sharing_members.member_email
-            stmt.setString(5, boardType);   // boards.type
-            stmt.setString(6, title);   // todos.title
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(COL_TITLE);
-                    todo.setDescription(COL_DESCRIPTION);
+                    todo.setTitle(rs.getString(COL_TITLE));
+                    todo.setDescription(rs.getString(COL_DESCRIPTION));
 
                     String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(COL_IMAGE);
+                    todo.setImage(rs.getString(COL_IMAGE));
 
-                    Date sqlDate = rs.getDate(COL_EXPIRATION);
-                    if (sqlDate != null) {
-                        todo.setExpiration(sqlDate.toLocalDate());
+                    Date expDate = rs.getDate(COL_EXPIRATION);
+                    if (expDate != null) {
+                        todo.setExpiration(expDate.toLocalDate());
                     }
 
                     todo.setState(rs.getBoolean(COL_STATE));
                     todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
                     todo.setOwnerEmail(rs.getString(COL_OWNER));
-                    todo.setCheckList(null); // opzionale
+                    todo.setCheckList(null);
+                    // is_shared si può leggere se vuoi, ma non è usato qui
 
                     return todo;
+                } else {
+                    return null;
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return null; // Nessun To-Do trovato
     }
 }
