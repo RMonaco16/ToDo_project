@@ -1,8 +1,6 @@
 package dao;
 
-import db.ConnessioneDatabase;
 import model.Activity;
-import model.CheckList;
 
 import java.sql.*;
 import java.text.ParseException;

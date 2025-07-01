@@ -3,7 +3,7 @@ package gui;
 import controller.ApplicationManagement;
 import dao.CheckListDAO;
 import dao.ToDoDAO;
-import db.ConnessioneDatabase;
+import db.DatabaseConnection;
 import model.Activity;
 import model.Board;
 import model.CheckList;
@@ -978,7 +978,7 @@ public class BoardGui {
 
     private void aggiornaStatoToDo(JLabel stateField, String email, String nameBoard, ToDo t) {
         try {
-            Connection conn = ConnessioneDatabase.getInstance().getConnection();
+            Connection conn = DatabaseConnection.getInstance().getConnection();
             ToDoDAO dao = new ToDoDAO(conn);
             CheckListDAO daoChecklist = new CheckListDAO(conn);
 

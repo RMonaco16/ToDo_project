@@ -4,15 +4,15 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConnessioneDatabase {
-    private static ConnessioneDatabase instance;
+public class DatabaseConnection {
+    private static DatabaseConnection instance;
     private Connection connection;
     private final String nome = "postgres";
     private final String password = "posgre321";
     private final String url = "jdbc:postgresql://localhost:5432/ToDo";
     private final String driver = "org.postgresql.Driver";
 
-    private ConnessioneDatabase() {
+    private DatabaseConnection() {
         try {
             Class.forName(driver);
             connection = DriverManager.getConnection(url, nome, password);
@@ -22,11 +22,11 @@ public class ConnessioneDatabase {
         }
     }
 
-    public static ConnessioneDatabase getInstance() {
+    public static DatabaseConnection getInstance() {
         if (instance == null) {
-            synchronized (ConnessioneDatabase.class) {
+            synchronized (DatabaseConnection.class) {
                 if (instance == null) {
-                    instance = new ConnessioneDatabase();
+                    instance = new DatabaseConnection();
                 }
             }
         }
