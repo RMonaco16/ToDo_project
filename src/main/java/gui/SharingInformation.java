@@ -30,19 +30,17 @@ public class SharingInformation {
      * solo per gli amministratori.
      *
      * @param controller    Controller per la gestione dell'applicazione.
-     * @param vecchioFrame  Frame chiamante (non utilizzato direttamente).
      * @param emailUtente   Email dell'utente corrente.
      * @param nomeTodo     Nome del ToDo condiviso.
      * @param boardName    Nome della bacheca.
      * @param onSharingEnded Runnable eseguito quando la condivisione termina (es. tutti gli utenti rimossi).
      */
-    public SharingInformation(ApplicationManagement controller, JFrame vecchioFrame, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
-
-        // Controlla se l'utente è amministratore del ToDo
+    public SharingInformation(ApplicationManagement controller, String emailUtente, String nomeTodo, String boardName, Runnable onSharingEnded) {
+        // Inizializza la tabella con i membri attuali
         boolean isAdmin = controller.isUserAdminOfToDo(emailUtente, boardName, nomeTodo);
 
-        // Aggiorna la tabella con i membri attuali
-        updateSharingMember(controller, emailUtente, boardName, nomeTodo, isAdmin);
+        // Inizializza la tabella con i membri attuali
+        updateSharingMember(controller, emailUtente, boardName, isAdmin);
 
         // Se non è admin, nasconde il bottone elimina e disabilita tabella
         if (!isAdmin) {
@@ -50,7 +48,7 @@ public class SharingInformation {
             tableInformazioniUsers.setEnabled(false);
         }
 
-        // Azione bottone elimina utente selezionato
+        // Azione bottone elimina
         deleteSelectedButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -61,12 +59,11 @@ public class SharingInformation {
                     boolean successo = controller.rimuoviUtenteDaSharing(emailUtente, emailDaEliminare, boardName, nomeTodo);
                     if (successo) {
                         JOptionPane.showMessageDialog(null, "User removed from sharing!");
-                        updateSharingMember(controller, emailUtente, boardName, nomeTodo,isAdmin);  // Aggiorna tabella
+                        updateSharingMember(controller, emailUtente, boardName,isAdmin);  // Ricarica la tabella aggiornata
                     } else {
-                        // Messaggi di errore specifici
                         if(emailUtente.equalsIgnoreCase(emailDaEliminare) && emailUtente.equalsIgnoreCase(controller.getToAdministratorMail(emailUtente,nomeTodo))){
-                            JOptionPane.showMessageDialog(null, "You cannot eliminate yourself", "Warning", JOptionPane.WARNING_MESSAGE);
-                        } else {
+                            JOptionPane.showMessageDialog(null, "you cannot eliminate yourself", "Warning", JOptionPane.WARNING_MESSAGE);
+                        }else{
                             JOptionPane.showMessageDialog(null, "Only the administrator can manage users", "Administrator Only", JOptionPane.WARNING_MESSAGE);
                         }
                     }
@@ -75,7 +72,6 @@ public class SharingInformation {
                 }
             }
         });
-
         this.onSharingEnded = onSharingEnded;
     }
 
@@ -86,11 +82,10 @@ public class SharingInformation {
      *
      * @param controller  Controller dell'applicazione.
      * @param emailUtente Email dell'utente corrente.
-     * @param boardName   Nome della bacheca.
      * @param nomeTodo    Nome del ToDo.
      * @param isAdmin     True se l'utente è amministratore del ToDo.
      */
-    public void updateSharingMember(ApplicationManagement controller, String emailUtente, String boardName, String nomeTodo, boolean isAdmin) {
+    public void updateSharingMember(ApplicationManagement controller, String emailUtente,  String nomeTodo, boolean isAdmin) {
         // Recupera info amministratore
         String adminName = controller.getToAdministratorNick(emailUtente, nomeTodo);
         String adminEmail = controller.getToAdministratorMail(emailUtente, nomeTodo);
@@ -115,7 +110,7 @@ public class SharingInformation {
 
         String[] columnNames = {"Name", "Email"};
 
-        // Modello tabella non editabile
+        // Tabella non editabile
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -130,7 +125,7 @@ public class SharingInformation {
         tableInformazioniUsers.setModel(model);
 
         if (isAdmin) {
-            styleRedButton(deleteSelectedButton); // Applica stile al bottone elimina
+            styleRedButton(deleteSelectedButton); // Applica stile solo se visibile
         }
     }
 
@@ -149,7 +144,7 @@ public class SharingInformation {
      * @param button JButton a cui applicare lo stile.
      */
     private void styleRedButton(JButton button) {
-        Color baseColor = new Color(220, 53, 69); // Rosso acceso (stile Bootstrap)
+        Color baseColor = new Color(220, 53, 69); // Rosso acceso (Bootstrap-style)
         Color hoverColor = baseColor.darker();
 
         button.setBackground(baseColor);
@@ -160,10 +155,12 @@ public class SharingInformation {
         button.setPreferredSize(new Dimension(160, 40));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor.darker(), 2));

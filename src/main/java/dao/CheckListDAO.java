@@ -6,6 +6,7 @@ import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * Classe DAO per la gestione delle attività (Activity) associate alle checklist dei ToDo.
@@ -14,6 +15,8 @@ import java.util.ArrayList;
  * all'interno di board specifiche di utenti, gestendo anche i permessi di condivisione.
  */
 public class CheckListDAO {
+
+    private static final Logger logger = Logger.getLogger(CheckListDAO.class.getName());
 
     private final Connection conn;
 
@@ -103,7 +106,7 @@ public class CheckListDAO {
             if (rs.next()) {
                 checklistId = rs.getInt("id");
             } else {
-                System.out.println("Checklist non trovata.");
+                logger.info("Checklist non trovata.");
                 return;
             }
         } catch (SQLException e) {
@@ -120,7 +123,7 @@ public class CheckListDAO {
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                System.out.println("Attività già esistente nella checklist.");
+                logger.info("Attività già esistente nella checklist.");
                 return; // blocca inserimento
             }
         } catch (SQLException e) {
@@ -143,7 +146,7 @@ public class CheckListDAO {
             }
 
             stmt.executeUpdate();
-            System.out.println("Attività inserita correttamente.");
+            logger.info("Attività inserita correttamente.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -170,7 +173,7 @@ public class CheckListDAO {
                 ResultSet rsBoard = boardStmt.executeQuery();
 
                 if (!rsBoard.next()) {
-                    System.out.println("Bacheca non trovata.");
+                    logger.info("Bacheca non trovata.");
                     return;
                 }
 
@@ -184,7 +187,7 @@ public class CheckListDAO {
                     ResultSet rsTodo = todoStmt.executeQuery();
 
                     if (!rsTodo.next()) {
-                        System.out.println("ToDo non trovato.");
+                        logger.info("ToDo non trovato.");
                         return;
                     }
 
@@ -192,7 +195,7 @@ public class CheckListDAO {
                     int checklistId = rsTodo.getInt("checklist_id");
 
                     if (checklistId == 0) {
-                        System.out.println("ToDo non ha una checklist associata.");
+                        logger.info("ToDo non ha una checklist associata.");
                         return;
                     }
 
@@ -204,7 +207,7 @@ public class CheckListDAO {
                         int affected = delActStmt.executeUpdate();
 
                         if (affected == 0) {
-                            System.out.println("Attività non trovata.");
+                            logger.info("Attività non trovata.");
                             return;
                         }
                     }
@@ -228,11 +231,11 @@ public class CheckListDAO {
                         }
                     }
 
-                    System.out.println("Attività rimossa con successo.");
+                    logger.info("Attività rimossa con successo.");
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Errore durante la rimozione dell'attività: " + e.getMessage());
+           logger.info("Errore durante la rimozione dell'attività: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -279,7 +282,7 @@ public class CheckListDAO {
             int updatedRows = stmt.executeUpdate();
 
             if (updatedRows == 0) {
-                System.out.println("Nessuna attività aggiornata: verifica i parametri o se hai accesso alla ToDo.");
+                logger.info("Nessuna attività aggiornata: verifica i parametri o se hai accesso alla ToDo.");
             }
         } catch (SQLException | ParseException e) {
             e.printStackTrace();

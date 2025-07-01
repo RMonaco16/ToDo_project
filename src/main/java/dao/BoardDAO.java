@@ -16,6 +16,14 @@ import java.util.logging.Logger;
 public class BoardDAO {
     private static final Logger logger = Logger.getLogger(BoardDAO.class.getName());
     private final Connection conn;
+    private static final String COL_TITLE = "title";
+    private static final String COL_DESCRIPTION = "description";
+    private static final String COL_COLOR = "color";
+    private static final String COL_IMAGE = "image";
+    private static final String COL_EXPIRATION = "expiration";
+    private static final String COL_STATE = "state";
+    private static final String COL_CONDIVISO = "condiviso";
+    private static final String COL_OWNER ="owner_email";
 
     /**
      * Costruttore che inizializza il DAO con una connessione al database.
@@ -105,10 +113,10 @@ public class BoardDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String title = rs.getString("title");
-                    boolean state = rs.getBoolean("state");
-                    boolean condiviso = rs.getBoolean("condiviso");
-                    String ownerEmail = rs.getString("owner_email");
+                    String title = rs.getString(COL_TITLE);
+                    boolean state = rs.getBoolean(COL_STATE);
+                    boolean condiviso = rs.getBoolean(COL_CONDIVISO);
+                    String ownerEmail = rs.getString(COL_OWNER);
 
                     // Supponiamo di non avere ancora una CheckList associata qui
                     CheckList checkList = null;
@@ -117,16 +125,16 @@ public class BoardDAO {
                     ToDo todo = new ToDo(title, state, checkList, condiviso, ownerEmail);
 
                     // Aggiunta campi opzionali
-                    todo.setDescription(rs.getString("description"));
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
-                    Date expDate = rs.getDate("expiration");
+                    Date expDate = rs.getDate(COL_EXPIRATION);
                     if (expDate != null) {
                         todo.setExpiration(expDate.toLocalDate());
                     }
@@ -161,7 +169,7 @@ public class BoardDAO {
             while (rs.next()) {
                 String typeStr = rs.getString("type");
                 TypeBoard type = TypeBoard.valueOf(typeStr); // enum: UNIVERSITY, WORK, FREETIME
-                String description = rs.getString("description");
+                String description = rs.getString(COL_DESCRIPTION);
 
                 Board board = new Board(type, description);
                 boards.add(board);
@@ -200,26 +208,26 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo(); // usa costruttore vuoto
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
                     // Converte String "#RRGGBB" in java.awt.Color
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
                     // Conversione da java.sql.Date a java.time.LocalDate
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
                         todo.setExpiration(sqlDate.toLocalDate());
                     }
 
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
 
                     // Per ora lascia CheckList null finché non implementi join con checklists
                     todo.setCheckList(null);
@@ -262,24 +270,24 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
                         todo.setExpiration(sqlDate.toLocalDate());
                     }
 
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
 
                     todo.setCheckList(null); // opzionale, se non gestisci la checklist qui
 
@@ -321,24 +329,24 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
                         todo.setExpiration(sqlDate.toLocalDate());
                     }
 
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
                     todo.setCheckList(null);
 
                     todos.add(todo);
@@ -380,24 +388,24 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
                         todo.setExpiration(sqlDate.toLocalDate());
                     }
 
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
                     todo.setCheckList(null);
 
                     todos.add(todo);
@@ -440,23 +448,23 @@ public class BoardDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate == null) continue; // ulteriore sicurezza
 
                     ToDo todo = new ToDo();
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
                     todo.setExpiration(sqlDate.toLocalDate());
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
                     todo.setCheckList(null); // opzionale
 
                     todos.add(todo);
@@ -512,24 +520,24 @@ public class BoardDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     ToDo todo = new ToDo();
-                    todo.setTitle(rs.getString("title"));
-                    todo.setDescription(rs.getString("description"));
+                    todo.setTitle(COL_TITLE);
+                    todo.setDescription(COL_DESCRIPTION);
 
-                    String hexColor = rs.getString("color");
+                    String hexColor = rs.getString(COL_COLOR);
                     if (hexColor != null) {
                         todo.setColor(Color.decode(hexColor));
                     }
 
-                    todo.setImage(rs.getString("image"));
+                    todo.setImage(COL_IMAGE);
 
-                    Date sqlDate = rs.getDate("expiration");
+                    Date sqlDate = rs.getDate(COL_EXPIRATION);
                     if (sqlDate != null) {
                         todo.setExpiration(sqlDate.toLocalDate());
                     }
 
-                    todo.setState(rs.getBoolean("state"));
-                    todo.setCondiviso(rs.getBoolean("condiviso"));
-                    todo.setOwnerEmail(rs.getString("owner_email"));
+                    todo.setState(rs.getBoolean(COL_STATE));
+                    todo.setCondiviso(rs.getBoolean(COL_CONDIVISO));
+                    todo.setOwnerEmail(rs.getString(COL_OWNER));
                     todo.setCheckList(null); // opzionale
 
                     return todo;
@@ -538,6 +546,7 @@ public class BoardDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // Nessun ToDo trovato
+
+        return null; // Nessun To-Do trovato
     }
 }

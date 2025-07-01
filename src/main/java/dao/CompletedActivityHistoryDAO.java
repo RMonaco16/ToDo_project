@@ -1,7 +1,6 @@
 package dao;
 
 import model.Activity;
-import model.CompletedActivityHistory;
 
 import java.sql.*;
 import java.util.ArrayList;
