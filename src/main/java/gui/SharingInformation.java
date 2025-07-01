@@ -157,10 +157,12 @@ public class SharingInformation {
         button.setPreferredSize(new Dimension(160, 40));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(hoverColor);
                 button.setBorder(BorderFactory.createLineBorder(hoverColor, 2));
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(baseColor);
                 button.setBorder(BorderFactory.createLineBorder(baseColor.darker(), 2));
