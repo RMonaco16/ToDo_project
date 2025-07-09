@@ -714,7 +714,7 @@ public class BoardGui {
 
         caricaImmagineIniziale(t, imagePreview);
 
-        JButton browseButton = new JButton("Sfoglia...");
+        JButton browseButton = new JButton("Browse...");
         browseButton.setEnabled(isAdmin);
         browseButton.addActionListener(es -> {
             JFileChooser fileChooser = new JFileChooser();
