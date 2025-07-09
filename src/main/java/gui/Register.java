@@ -9,17 +9,34 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 public class Register {
+
+    /** Titolo della finestra di registrazione */
     private static final String FRAME_TITLE = "Register";
+
+    /** Larghezza della finestra */
     private static final int FRAME_WIDTH = 500;
+
+    /** Altezza della finestra */
     private static final int FRAME_HEIGHT = 500;
 
+    /** Percorso dell'immagine usata come icona */
     private static final String IMAGE_PATH = "/images/chat_image.png";
+
+    /** Diametro dell'immagine visualizzata */
     private static final int IMAGE_DIAMETER = 100;
 
-    private static final Color BACKGROUND_COLOR = Color.decode("#F9F5F0");  // Cream background
-    private static final Color LOGIN_COLOR = Color.decode("#6B7280");       // Gray medium (login button)
-    private static final Color REGISTER_COLOR = Color.decode("#A8BDB5");    // Green sage (register button)
-    private static final Color TEXT_COLOR = Color.decode("#374151");        // Dark neutral text
+
+    /** Colore di sfondo della finestra */
+    private static final Color BACKGROUND_COLOR = Color.decode("#F9F5F0");
+
+    /** Colore del pulsante di login */
+    private static final Color LOGIN_COLOR = Color.decode("#6B7280");
+
+    /** Colore del pulsante di registrazione */
+    private static final Color REGISTER_COLOR = Color.decode("#A8BDB5");
+
+    /** Colore del testo */
+    private static final Color TEXT_COLOR = Color.decode("#374151");
 
     private JTextField textNickName;
     private JTextField textEmail;
@@ -33,6 +50,12 @@ public class Register {
     private final JFrame callerFrame;
     private final ApplicationManagement controller;
 
+    /**
+     * Costruttore della finestra di registrazione.
+     *
+     * @param callerFrame Finestra chiamante, mostrata di nuovo dopo la registrazione o login
+     * @param controller Controller dell'applicazione per la gestione degli utenti
+     */
     public Register(JFrame callerFrame, ApplicationManagement controller) {
         this.callerFrame = callerFrame;
         this.controller = controller;
@@ -43,11 +66,17 @@ public class Register {
         addListeners();
     }
 
+    /**
+     * Inizializza l'interfaccia grafica.
+     */
     private void initUI() {
         setupImageIcon();
         styleComponents();
     }
 
+    /**
+     * Carica e imposta l'immagine dell'icona come immagine circolare.
+     */
     private void setupImageIcon() {
         ImageIcon originalIcon = new ImageIcon(getClass().getResource(IMAGE_PATH));
         Image originalImage = originalIcon.getImage();
@@ -58,6 +87,9 @@ public class Register {
         imageIcon.setIcon(new ImageIcon(circularImage));
     }
 
+    /**
+     * Applica gli stili grafici a componenti e pulsanti.
+     */
     private void styleComponents() {
         panelRegister.setBackground(BACKGROUND_COLOR);
 
@@ -73,6 +105,12 @@ public class Register {
         passwordField1.setForeground(TEXT_COLOR);
     }
 
+    /**
+     * Applica stile base e effetto hover ad un pulsante.
+     *
+     * @param button Pulsante da stilizzare
+     * @param baseColor Colore base del pulsante
+     */
     private void styleButton(JButton button, Color baseColor) {
         final Color hoverColor = baseColor.darker();
 
@@ -96,15 +134,22 @@ public class Register {
         });
     }
 
+    /**
+     * Aggiunge i listener ai pulsanti.
+     */
     private void addListeners() {
         registerButton.addActionListener(e -> handleRegister());
         loginButton.addActionListener(e -> switchToCallerFrame());
     }
 
+    /**
+     * Gestisce la logica di registrazione dell'utente.
+     * Controlla i campi inseriti, la validità dell'email e della password e comunica con il controller.
+     */
     private void handleRegister() {
         String nickname = textNickName.getText().trim();
         String email = textEmail.getText().trim();
-        String passwordStr = new String(passwordField1.getPassword()); // no trim for password
+        String passwordStr = new String(passwordField1.getPassword()); // non si usa trim per la password
 
         if (nickname.isEmpty()) {
             showWarning("Nickname cannot be empty.", "Missing Nickname Field");
@@ -142,24 +187,48 @@ public class Register {
         switchToCallerFrame();
     }
 
+    /**
+     * Torna alla finestra chiamante e chiude la finestra corrente.
+     */
     private void switchToCallerFrame() {
         callerFrame.setVisible(true);
         frame.setVisible(false);
         frame.dispose();
     }
 
+    /**
+     * Mostra un messaggio di avviso.
+     *
+     * @param message Messaggio da mostrare
+     * @param title Titolo della finestra di dialogo
+     */
     private void showWarning(String message, String title) {
         JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.WARNING_MESSAGE);
     }
 
+    /**
+     * Mostra un messaggio di errore.
+     *
+     * @param message Messaggio da mostrare
+     * @param title Titolo della finestra di dialogo
+     */
     private void showError(String message, String title) {
         JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Mostra un messaggio informativo.
+     *
+     * @param message Messaggio da mostrare
+     * @param title Titolo della finestra di dialogo
+     */
     private void showInfo(String message, String title) {
         JOptionPane.showMessageDialog(panelRegister, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Configura e mostra la finestra principale della registrazione.
+     */
     private void configureFrame() {
         frame.setContentPane(panelRegister);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -169,6 +238,14 @@ public class Register {
         frame.setVisible(true);
     }
 
+    /**
+     * Ridimensiona un'immagine alle dimensioni desiderate.
+     *
+     * @param srcImg Immagine sorgente
+     * @param w Larghezza desiderata
+     * @param h Altezza desiderata
+     * @return Immagine ridimensionata
+     */
     public Image getScaledImage(Image srcImg, int w, int h) {
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
@@ -183,6 +260,13 @@ public class Register {
         return resizedImg;
     }
 
+    /**
+     * Crea un'immagine con forma circolare a partire da una rettangolare.
+     *
+     * @param image Immagine sorgente
+     * @param diameter Diametro del cerchio
+     * @return Immagine con forma circolare
+     */
     public Image makeCircularImage(Image image, int diameter) {
         BufferedImage mask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_INT_ARGB);
 
@@ -203,6 +287,11 @@ public class Register {
         return output;
     }
 
+    /**
+     * Applica impostazioni grafiche di alta qualità per rendering e interpolazione.
+     *
+     * @param g2 Oggetto grafico su cui applicare le impostazioni
+     */
     private void applyQualityRenderingHints(Graphics2D g2) {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
